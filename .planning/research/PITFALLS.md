@@ -1,8 +1,8 @@
 # Pitfalls & Risk Prevention
 
-**Domain:** AI-Powered Adaptive Learning Platform for GESP C++
+**Domain:** GESP C++ AI 自适应学习平台
 **Researched:** 2026-04-22
-**Confidence:** HIGH (based on domain expertise + educational AI patterns)
+**Confidence:** HIGH（基于领域专长 + 教育 AI 模式）
 
 ---
 
@@ -10,212 +10,212 @@
 
 ### 1. AI Accuracy & Hallucination in Educational Content
 
-**Pitfall:** AI generates incorrect explanations or wrong code examples, students learn wrong concepts.
+**Pitfall:** AI 生成错误的讲解或代码示例，学生学了错误的概念。
 
 **Warning Signs:**
-- AI-generated code doesn't compile or has logical errors
-- Explanations contradict official GESP curriculum
-- Student confusion in interactive Q&A sessions
-- High error rate in AI grading analysis
+- AI 生成的代码无法编译或存在逻辑错误
+- 讲解内容与官方 GESP 课程大纲相矛盾
+- 交互式问答中学生表现出困惑
+- AI 判题分析出错率高
 
 **Prevention Strategy:**
-- Implement strict prompt engineering with verification steps
-- Cross-reference AI outputs against curated knowledge base before showing to students
-- Use structured output (Zod schema) to enforce correct format
-- Add "confidence score" display — warn students when AI is uncertain
-- Admin review workflow for AI-generated teaching content
+- 实施严格的提示词工程，加入验证步骤
+- 向学生展示前，对照策划好的知识库交叉验证 AI 输出
+- 使用结构化输出（Zod schema）强制正确格式
+- 添加"置信度评分"显示 — 当 AI 不确定时警告学生
+- AI 生成教学内容的管理员审核流程
 
-**Phase to Address:** Phase 2 (Teaching Agent), Phase 4 (Practice Agent)
+**Phase to Address:** Phase 2（教学讲解智能体）, Phase 4（练习判题智能体）
 
 ---
 
 ### 2. Youth Engagement Dropout
 
-**Pitfall:** Young students lose interest quickly, low completion rates, platform becomes boring.
+**Pitfall:** 青少年学生很快失去兴趣，完成率低，平台变得无聊。
 
 **Warning Signs:**
-- Short session durations (< 10 minutes)
-- High bounce rate after first assessment
-- Low return rate after initial visit
-- Students skipping lessons, only doing assessments
+- 会话时长过短（< 10 分钟）
+- 首次测评后跳出率高
+- 首次访问后回访率低
+- 学生跳过课程，只做测评
 
 **Prevention Strategy:**
-- Gamification elements (progress bars, badges, streaks) even in MVP
-- Visual feedback — immediate positive/negative indicators
-- Short, bite-sized lessons (< 5 minutes each)
-- Adaptive difficulty — don't frustrate with too-hard questions
-- Fun analogies in explanations (生活化类比)
-- Allow student to "pause and resume" without losing progress
+- MVP 中加入游戏化元素（进度条、徽章、连续学习天数）
+- 视觉反馈 — 即时正/负反馈指示
+- 短课程，每个 < 5 分钟
+- 自适应难度 — 不因太难而挫败学生
+- 讲解中使用趣味类比（生活化类比）
+- 允许学生"暂停后恢复"而不丢失进度
 
-**Phase to Address:** Phase 3 (Student App UX), Phase 1 (Assessment UX)
+**Phase to Address:** Phase 3（学员端 UX）, Phase 1（测评 UX）
 
 ---
 
 ### 3. Knowledge Base Coverage Gaps
 
-**Pitfall:** Vector search returns irrelevant results because knowledge base is incomplete or poorly structured.
+**Pitfall:** 向量检索返回不相关结果，因为知识库不完整或结构不良。
 
 **Warning Signs:**
-- AI teaching agent references non-existent topics
-- Assessment generates questions outside GESP scope
-- Search results don't match student queries
-- Admin reports missing knowledge points
+- 教学智能体引用不存在的主题
+- 测评生成超出 GESP 范围的题目
+- 搜索结果与学生查询不匹配
+- 管理员报告缺失知识点
 
 **Prevention Strategy:**
-- Seed LanceDB with complete GESP 1-4 curriculum before launch
-- Use official GESP exam outline as taxonomy backbone
-- Implement metadata filtering (level, topic, difficulty) in vector search
-- Regular admin audit of knowledge base coverage
-- Fallback to generic response when knowledge gap detected
+- 启动前使用完整的 GESP 1-4 级课程大纲初始化 LanceDB
+- 以官方 GESP 考试大纲作为分类骨架
+- 在向量检索中实现元数据过滤（级别、主题、难度）
+- 管理员定期审计知识库覆盖度
+- 当检测到知识缺口时回退到通用响应
 
-**Phase to Address:** Phase 1 (Knowledge Base seeding)
+**Phase to Address:** Phase 1（知识库初始化）
 
 ---
 
 ### 4. Provider Reliability & Cost
 
-**Pitfall:** Single AI provider fails or becomes expensive, system goes down or costs explode.
+**Pitfall:** 单一 AI 供应商失效或成本暴涨，系统宕机或费用爆炸。
 
 **Warning Signs:**
-- API rate limit errors during peak usage
-- Slow response times (> 5 seconds)
-- Unexpected billing spikes
-- Provider API changes breaking integration
+- 高峰期 API 限流错误
+- 响应时间过慢（> 5 秒）
+- 意外账单激增
+- 供应商 API 变更导致集成中断
 
 **Prevention Strategy:**
-- Multi-provider fallback chain (OpenAI → Anthropic → DeepSeek → Doubao)
-- Implement request queuing and rate limiting
-- Cache common responses (相似题目, 常见错误分析)
-- Monitor API usage with alerts
-- Use cost-effective models for simple tasks (grading vs teaching)
+- 多供应商降级链（OpenAI → Anthropic → DeepSeek → 豆包）
+- 实现请求队列和限流
+- 缓存常见响应（相似题目、常见错误分析）
+- 监控 API 用量并设置告警
+- 简单任务使用低成本模型（判题 vs 教学）
 
-**Phase to Address:** Phase 2 (Provider abstraction layer)
+**Phase to Address:** Phase 2（Provider 抽象层）
 
 ---
 
 ### 5. Assessment Fairness & Consistency
 
-**Pitfall:** AI-generated assessments are inconsistent — same student gets different level results.
+**Pitfall:** AI 生成的测评不一致 — 同一学生获得不同的等级结果。
 
 **Warning Signs:**
-- Student complains about unfair grading
-- Level placement changes unexpectedly between sessions
-- Assessment difficulty not matching student progress
-- Bias toward certain question types
+- 学生对评分不公表示不满
+- 等级定级在会话间意外变化
+- 测评难度与学生进度不匹配
+- 对特定题型存在偏见
 
 **Prevention Strategy:**
-- Fixed assessment pool for each level (sample from curated set)
-- Logging all assessment decisions for audit
-- Clear grading rubric in AI prompt
-- Post-assessment review by admin before level assignment
-- Student can appeal/retry assessment
+- 每个级别使用固定的测评题库（从精选题库中抽样）
+- 记录所有测评决策以便审计
+- AI 提示词中明确评分标准
+- 等级定级前由管理员进行测评后审核
+- 学生可以申诉/重测
 
-**Phase to Address:** Phase 2 (Assessment Agent)
+**Phase to Address:** Phase 2（测评定级智能体）
 
 ---
 
 ### 6. AI Grading Over-trust
 
-**Pitfall:** Students blindly trust AI grading without verification, miss actual learning opportunities.
+**Pitfall:** 学生盲目信任 AI 判题而不自行验证，错失真正的学习机会。
 
 **Warning Signs:**
-- Student accepts wrong grading without questioning
-- AI marks correct code as wrong
-- Grading doesn't explain "why" the error
-- No feedback loop to improve AI accuracy
+- 学生接受错误判题而不质疑
+- AI 将正确代码判定为错误
+- 判题不解释"为什么"出错
+- 没有反馈循环来改进 AI 准确性
 
 **Prevention Strategy:**
-- Always show "AI analyzed this" disclaimer
-- Encourage student to review grading explanation
-- Provide "report issue" button for questionable grading
-- Admin review queue for disputed gradings
-- Use AI to identify error type, but require student to find location
+- 始终显示"AI 已分析此答案"提示
+- 鼓励学生查看判题解释
+- 提供"报告问题"按钮用于可疑判题
+- 管理员审核队列用于争议判题
+- AI 识别错误类型，但要求学生自己找到错误位置
 
-**Phase to Address:** Phase 4 (Practice Agent)
+**Phase to Address:** Phase 4（练习判题智能体）
 
 ---
 
 ### 7. Session State Loss
 
-**Pitfall:** Student loses progress when connection drops or browser refreshes during assessment/lesson.
+**Pitfall:** 学生在测评或课程中因连接中断或浏览器刷新而丢失进度。
 
 **Warning Signs:**
-- Student complaints about lost answers
-- Session data not persisting across refresh
-- SSE connection breaks without recovery
-- Long sessions timing out
+- 学生抱怨答案丢失
+- 刷新后会话数据不持久
+- SSE 连接断开后无法恢复
+- 长会话超时
 
 **Prevention Strategy:**
-- Save progress incrementally (after each answer)
-- Use localStorage backup for critical data
-- Implement SSE reconnection logic
-- Session timeout warning before disconnect
-- "Resume where you left off" functionality
+- 增量保存进度（每次答题后）
+- 对关键数据使用 localStorage 备份
+- 实现 SSE 重连逻辑
+- 断开前发出会话超时警告
+- 支持"从断点继续"功能
 
-**Phase to Address:** Phase 3 (Student App state management)
+**Phase to Address:** Phase 3（学员端状态管理）
 
 ---
 
 ### 8. Admin Data Overload
 
-**Pitfall:** Admin dashboard shows too much data, becomes unusable, decisions delayed.
+**Pitfall:** 管理后台显示过多数据，变得不可用，决策延迟。
 
 **Warning Signs:**
-- Dashboard loading slowly (> 3 seconds)
-- Admin can't find specific student data
-- Too many tables/charts, unclear priorities
-- No actionable insights from data
+- 仪表板加载缓慢（> 3 秒）
+- 管理员找不到特定学生数据
+- 表格/图表过多，优先级不清晰
+- 数据没有可执行的洞察
 
 **Prevention Strategy:**
-- Focus dashboard on actionable metrics (completion rate, error patterns)
-- Implement pagination and filtering
-- Summary views with drill-down
-- Export critical data for offline analysis
-- Alert system for important events (student stuck, low engagement)
+- 仪表板聚焦可执行指标（完成率、错误模式）
+- 实现分页和筛选
+- 摘要视图支持向下钻取
+- 导出关键数据用于离线分析
+- 重要事件的告警系统（学生卡壳、低参与度）
 
-**Phase to Address:** Phase 5 (Admin Dashboard)
+**Phase to Address:** Phase 5（管理后台）
 
 ---
 
 ### 9. Monorepo Build Complexity
 
-**Pitfall:** Turborepo configuration becomes complex, builds slow, local dev confusing.
+**Pitfall:** Turborepo 配置变得复杂，构建变慢，本地开发混乱。
 
 **Warning Signs:**
-- "It worked yesterday" build failures
-- Developers don't know which package to modify
-- Cross-package dependencies unclear
-- Build times > 5 minutes
+- "昨天还能跑"的构建失败
+- 开发者不知道该修改哪个包
+- 跨包依赖关系不清晰
+- 构建时间超过 5 分钟
 
 **Prevention Strategy:**
-- Clear package dependency graph documentation
-- Use Turborepo remote caching
-- Strict workspace boundaries (no circular deps)
-- Each package has own README with dev instructions
-- CI pipeline validates build order
+- 清晰的包依赖图文档
+- 使用 Turborepo 远程缓存
+- 严格的工作区边界（禁止循环依赖）
+- 每个包有自己的 README 和开发指南
+- CI 流水线验证构建顺序
 
-**Phase to Address:** Phase 0 (Project setup)
+**Phase to Address:** Phase 0（项目初始化）
 
 ---
 
 ### 10. Scope Creep from "Nice-to-Have"
 
-**Pitfall:** Features keep getting added during MVP, timeline explodes.
+**Pitfall:** 开发过程中不断添加"锦上添花"的功能，MVP 时间线爆炸。
 
 **Warning Signs:**
-- "This is easy, let's add it" conversations
-- v1 requirements growing from 25 to 40+
-- Phase estimates increasing
-- Team overwhelmed by feature count
+- "这个很简单，我们加上吧"的对话
+- v1 需求从 25 个增长到 40+
+- 阶段预估时间不断增加
+- 团队被功能数量压垮
 
 **Prevention Strategy:**
-- Strict OUT OF SCOPE list in PROJECT.md
-- Every new feature goes through "does it support core value?" check
-- Weekly scope review with stakeholders
-- Deferred feature backlog (don't lose ideas, but park them)
-- MVP success criteria defined upfront
+- PROJECT.md 中列出严格的 OUT OF SCOPE 清单
+- 每个新功能都通过"是否支持核心价值"的检查
+- 每周与利益相关者进行范围审查
+- 设置延迟功能积压池（不丢弃想法，但先搁置）
+- 提前定义 MVP 成功标准
 
-**Phase to Address:** Ongoing (enforced by PROJECT.md)
+**Phase to Address:** Ongoing（由 PROJECT.md 强制执行）
 
 ---
 
@@ -223,22 +223,22 @@
 
 | Risk | Likelihood | Impact | Phase | Mitigation Priority |
 |------|------------|--------|-------|---------------------|
-| AI hallucination | High | Critical | 2, 4 | P0 — Must address |
-| Youth dropout | High | High | 1, 3 | P0 — Core UX |
-| Knowledge gaps | Medium | Critical | 1 | P1 — Foundation |
-| Provider failure | Medium | High | 2 | P1 — Reliability |
-| Assessment fairness | Medium | High | 2 | P1 — Trust |
-| Session loss | Medium | Medium | 3 | P2 — UX polish |
-| Grading over-trust | Medium | Medium | 4 | P2 — Education |
-| Admin overload | Low | Low | 5 | P3 — Post-MVP |
-| Build complexity | Low | Medium | 0 | P2 — Setup |
-| Scope creep | High | Medium | All | P1 — Process |
+| AI 幻觉 | High | Critical | 2, 4 | P0 — 必须解决 |
+| 青少年流失 | High | High | 1, 3 | P0 — 核心 UX |
+| 知识缺口 | Medium | Critical | 1 | P1 — 基础 |
+| Provider 失效 | Medium | High | 2 | P1 — 可靠性 |
+| 测评公平性 | Medium | High | 2 | P1 — 信任 |
+| 会话丢失 | Medium | Medium | 3 | P2 — UX 优化 |
+| 判题过度信任 | Medium | Medium | 4 | P2 — 教育 |
+| 管理后台过载 | Low | Low | 5 | P3 — 后-MVP |
+| 构建复杂度 | Low | Medium | 0 | P2 — 初始化 |
+| 范围蔓延 | High | Medium | All | P1 — 流程 |
 
 ---
 
 ## Sources
 
-- **Educational AI research** — Hallucination patterns in tutoring systems (MEDIUM confidence, web search)
-- **Youth education UX patterns** — Engagement factors for coding education (HIGH confidence, domain expertise)
-- **ellamaka experience** — Provider reliability, SSE patterns (HIGH confidence)
-- **Domain expertise** — GESP exam patterns, student behavior (HIGH confidence)
+- **教育 AI 研究** — 辅导系统中的幻觉模式（MEDIUM confidence, web search）
+- **青少年教育 UX 模式** — 编程教育的参与度因素（HIGH confidence, 领域专长）
+- **ellamaka 经验** — Provider 可靠性、SSE 模式（HIGH confidence）
+- **领域专长** — GESP 考试模式、学生行为（HIGH confidence）

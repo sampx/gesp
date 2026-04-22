@@ -1,122 +1,129 @@
 # Roadmap: GESP C++ 智能学习系统
 
-## Overview
+## 概览
 
-构建面向 GESP 1~4 级 C++ 等级考试的 AI 自适应学习平台。从项目基础设施开始，搭建知识库和认证系统，然后依次实现三个核心智能体（测评定级、教学讲解、练习判题），最后构建学员端和管理端应用完成 MVP 交付。
+构建面向 GESP 1~4 级 C++ 等级考试的 AI 自适应学习平台。从项目基础设施开始，搭建知识库和认证系统，然后依次实现三个核心智能体（测评定级、教学讲解、练习判题）的 ellamaka 集成，最后构建学员端和管理端应用完成 MVP 交付。
 
-## Phases
+**架构变更：** Agent 引擎运行在 ellamaka，gesp backend 作为业务层代理调用。
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+## 阶段划分
 
-Decimal phases appear between their surrounding integers in numeric order.
+**阶段编号规则：**
+- 整数阶段（1, 2, 3）：规划中的里程碑工作
+- 小数阶段（2.1, 2.2）：紧急插入（标记为 INSERTED）
 
-- [ ] **Phase 1: Foundation & Auth** - 项目基础设施搭建与用户认证系统
-- [ ] **Phase 2: Knowledge Base** - 知识库基础设施与向量检索
-- [ ] **Phase 3: Assessment Agent** - 测评定级智能体
-- [ ] **Phase 4: Teaching Agent** - 教学讲解智能体
-- [ ] **Phase 5: Practice Agent** - 练习判题智能体
-- [ ] **Phase 6: Student Learning App** - 学员学习界面与进度追踪
-- [ ] **Phase 7: Admin Management App** - 管理后台应用
+小数阶段按数值顺序出现在整数阶段之间。
 
-## Phase Details
+- [ ] **阶段 1: 基础设施与认证** — 项目初始化、gesp backend 框架、用户认证
+- [ ] **阶段 2: 知识库** — LanceDB 知识库、向量检索、数据导入
+- [ ] **阶段 3: 测评定级智能体** — ellamaka assessor agent + gesp SDK 代理
+- [ ] **阶段 4: 教学讲解智能体** — ellamaka teacher agent + SSE 流式
+- [ ] **阶段 5: 练习判题智能体** — ellamaka grader agent + 判题反馈
+- [ ] **阶段 6: 学员学习应用** — NextJS 学习界面整合三个智能体
+- [ ] **阶段 7: 管理后台应用** — React 管理端
 
-### Phase 1: Foundation & Auth
-**Goal**: 开发环境就绪，用户可以注册登录并保持会话
-**Depends on**: Nothing (first phase)
-**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04
-**Success Criteria** (what must be TRUE):
-  1. Student can register with username and password
-  2. Student can login and stay logged in across browser sessions
-  3. Admin can login with username and password
-  4. Admin session persists for 24 hours (vs 1 hour for students)
-**Plans**: TBD
+## 阶段详情
 
-### Phase 2: Knowledge Base
-**Goal**: GESP 课程知识可通过语义检索供 AI 智能体查询
-**Depends on**: Phase 1
-**Requirements**: KNOW-01, KNOW-02, KNOW-03, KNOW-04, KNOW-05
-**Success Criteria** (what must be TRUE):
-  1. Knowledge points can be searched by text query with semantic similarity ranking
-  2. GESP 1-4 curriculum outline is stored and retrievable
-  3. Past exam questions are indexed with metadata (level, topic, difficulty)
-  4. Admin can view and edit knowledge base content
-  5. Admin can add new questions with proper metadata tagging
-**Plans**: TBD
+### 阶段 1: 基础设施与认证
+**目标：** 开发环境就绪，用户可以注册登录并保持会话，gesp backend 基础框架搭建
+**依赖：** 无（首阶段）
+**需求：** AUTH-01, AUTH-02, AUTH-03, AUTH-04
+**成功标准**（必须为 TRUE）：
+  1. 学员可以使用用户名和密码注册
+  2. 学员登录后跨浏览器会话保持登录状态
+  3. 管理员可以使用用户名和密码登录
+  4. 管理员会话保持 24 小时（学员为 1 小时）
+  5. gesp backend 框架结构就绪（Hono + Drizzle + SDK 代理层骨架）
+**计划：** 待定
 
-### Phase 3: Assessment Agent
-**Goal**: 新学员可完成自适应测评并获得等级定位
-**Depends on**: Phase 2
-**Requirements**: ASSESS-01, ASSESS-02, ASSESS-03, ASSESS-04, ASSESS-05
-**Success Criteria** (what must be TRUE):
-  1. Student receives adaptive questions based on current level estimate
-  2. Questions cover GESP 1-4 curriculum scope (defined topics per level)
-  3. Student answers are auto-graded (objective + coding questions)
-  4. Student receives level placement after completing 5-10 questions
-  5. Assessment progress is saved incrementally and can be resumed after interruption
-**Plans**: TBD
+### 阶段 2: 知识库
+**目标：** GESP 课程知识可通过语义检索供 backend 查询组织提示词
+**依赖：** 阶段 1
+**需求：** KNOW-01, KNOW-02, KNOW-03, KNOW-04, KNOW-05
+**成功标准**（必须为 TRUE）：
+  1. 知识库可通过文本查询实现语义相似度排序检索
+  2. GESP 1-4 级课程大纲已存储且可检索
+  3. 历年真题已索引，包含元数据（级别、主题、难度）
+  4. 管理员可查看和编辑知识库内容
+  5. 管理员可添加新题目并进行元数据标签标注
+**计划：** 待定
 
-### Phase 4: Teaching Agent
-**Goal**: 学员可观看 AI 生成的知识点讲解并获得互动答疑
-**Depends on**: Phase 2
-**Requirements**: TEACH-01, TEACH-02, TEACH-03, TEACH-04, TEACH-05
-**Success Criteria** (what must be TRUE):
-  1. Student can view structured knowledge point explanations with code examples
-  2. Explanations use youth-friendly language with life analogies
-  3. Visual diagrams (ASCII/Mermaid) are generated for complex concepts
-  4. Student can ask follow-up questions during lesson (interactive Q&A via SSE)
-  5. Teaching content references official GESP curriculum for accuracy
-**Plans**: TBD
+### 阶段 3: 测评定级智能体
+**目标：** 新学员可完成自适应测评并获得等级定位（ellamaka agent + gesp 代理）
+**依赖：** 阶段 2
+**需求：** ASSESS-01, ASSESS-02, ASSESS-03, ASSESS-04, ASSESS-05
+**成功标准**（必须为 TRUE）：
+  1. gesp backend 可调用 ellamaka assessor agent
+  2. 学员根据当前等级估计收到自适应题目
+  3. 题目覆盖 GESP 1-4 级课程范围（各级别定义的主题）
+  4. 学员答案自动评分（客观题 + 编程题）
+  5. 学员完成 5-10 道题后获得级别定级结果
+  6. 测评进度增量保存，可中断后恢复继续
+**计划：** 待定
 
-### Phase 5: Practice Agent
-**Goal**: 学员可完成编程练习并获得 AI 智能判题反馈
-**Depends on**: Phase 2
-**Requirements**: PRAC-01, PRAC-02, PRAC-03, PRAC-04, PRAC-05, PRAC-06
-**Success Criteria** (what must be TRUE):
-  1. Student receives practice questions matching current level
-  2. Student can submit code answers via web interface
-  3. Submitted code is analyzed for correctness (AI simulated grading)
-  4. Errors are classified by type (syntax/logic/algorithm errors)
-  5. System provides specific improvement suggestions with code location hints
-  6. Similar practice questions are recommended based on weakness patterns
-**Plans**: TBD
+### 阶段 4: 教学讲解智能体
+**目标：** 学员可观看 AI 生成的知识点讲解并获得互动答疑（ellamaka agent + SSE）
+**依赖：** 阶段 2
+**需求：** TEACH-01, TEACH-02, TEACH-03, TEACH-04, TEACH-05
+**成功标准**（必须为 TRUE）：
+  1. gesp backend 可调用 ellamaka teacher agent 并转发 SSE 流
+  2. 学员可查看结构化的知识点讲解，含代码示例
+  3. 讲解使用青少年友好的语言，融入生活类比
+  4. 为复杂概念生成可视化图表（ASCII/Mermaid）
+  5. 学员可在课程中提问（通过 SSE 进行交互式问答）
+  6. 教学内容参考官方 GESP 课程大纲确保准确性
+**计划：** 待定
 
-### Phase 6: Student Learning App
-**Goal**: 学员拥有完整的学习界面和个人进度追踪
-**Depends on**: Phase 3, Phase 4, Phase 5
-**Requirements**: PROG-01, PROG-02, PROG-03, PROG-04
-**Success Criteria** (what must be TRUE):
-  1. Student can view personal dashboard showing level, progress, and recent activity
-  2. Learning time is tracked per session
-  3. Knowledge weaknesses are identified based on practice history
-  4. Progress is visualized with completion rate charts
-**Plans**: TBD
-**UI hint**: yes
+### 阶段 5: 练习判题智能体
+**目标：** 学员可完成编程练习并获得 AI 智能判题反馈（ellamaka agent + 反鉴）
+**依赖：** 阶段 2
+**需求：** PRAC-01, PRAC-02, PRAC-03, PRAC-04, PRAC-05, PRAC-06
+**成功标准**（必须为 TRUE）：
+  1. gesp backend 可调用 ellamaka grader agent
+  2. 学员收到匹配当前级别的练习题
+  3. 学员可通过 Web 界面提交代码答案
+  4. 提交的代码经 AI 模拟判题分析正确性
+  5. 错误按类型分类（语法/逻辑/算法错误）
+  6. 系统提供具体的改进建议，含代码位置提示
+  7. 根据薄弱点模式推荐类似的练习题
+**计划：** 待定
 
-### Phase 7: Admin Management App
-**Goal**: 管理员可管理学员数据并查看系统分析
-**Depends on**: Phase 1, Phase 2
-**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04
-**Success Criteria** (what must be TRUE):
-  1. Admin can view list of all students with search and filter capabilities
-  2. Admin can view individual student learning data and progress details
-  3. Admin can view aggregate statistics (total students, completion rates)
-  4. Admin can manage system configuration (AI provider settings)
-**Plans**: TBD
-**UI hint**: yes
+### 阶段 6: 学员学习应用
+**目标：** 学员拥有完整的学习界面和个人进度追踪（整合三个智能体）
+**依赖：** 阶段 3, 阶段 4, 阶段 5
+**需求：** PROG-01, PROG-02, PROG-03, PROG-04
+**成功标准**（必须为 TRUE）：
+  1. 学员可查看个人仪表板，显示级别、进度和最近活动
+  2. 每次会话的学习时间被追踪记录
+  3. 基于练习历史识别知识薄弱点
+  4. 进度通过完成率图表可视化展示
+  5. 学员可通过界面触发测评、课程、练习三个流程
+**计划：** 待定
+**UI 提示：** 是
 
-## Progress
+### 阶段 7: 管理后台应用
+**目标：** 管理员可管理学员数据并查看系统分析
+**依赖：** 阶段 1, 阶段 2
+**需求：** ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04
+**成功标准**（必须为 TRUE）：
+  1. 管理员可查看学员列表，支持搜索和筛选
+  2. 管理员可查看单个学员的学习数据和进度详情
+  3. 管理员可查看汇总统计（学员总数、完成率等）
+  4. 管理员可管理系统配置（AI Provider 设置）
+**计划：** 待定
+**UI 提示：** 是
 
-**Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
+## 进度
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Foundation & Auth | 0/TBD | Not started | - |
-| 2. Knowledge Base | 0/TBD | Not started | - |
-| 3. Assessment Agent | 0/TBD | Not started | - |
-| 4. Teaching Agent | 0/TBD | Not started | - |
-| 5. Practice Agent | 0/TBD | Not started | - |
-| 6. Student Learning App | 0/TBD | Not started | - |
-| 7. Admin Management App | 0/TBD | Not started | - |
+**执行顺序：**
+阶段按数值顺序执行：1 → 2 → 3 → 4 → 5 → 6 → 7
+
+| 阶段 | 计划完成 | 状态 | 完成时间 |
+|------|----------|------|----------|
+| 1. 基础设施与认证 | 0/待定 | 未开始 | - |
+| 2. 知识库 | 0/待定 | 未开始 | - |
+| 3. 测评定级智能体 | 0/待定 | 未开始 | - |
+| 4. 教学讲解智能体 | 0/待定 | 未开始 | - |
+| 5. 练习判题智能体 | 0/待定 | 未开始 | - |
+| 6. 学员学习应用 | 0/待定 | 未开始 | - |
+| 7. 管理后台应用 | 0/待定 | 未开始 | - |

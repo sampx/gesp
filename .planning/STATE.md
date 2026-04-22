@@ -1,11 +1,11 @@
 ---
 wsf_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
+milestone_name: 架构重构版
 status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-04-22T07:29:26.160Z"
-last_activity: 2026-04-22 — Roadmap created, 7 phases defined
+stopped_at: Milestone 初始化
+last_updated: "2026-04-22T17:38:00.000Z"
+last_activity: 2026-04-22 — 架构重构，Agent 迁移到 ellamaka
 progress:
   total_phases: 7
   completed_phases: 0
@@ -14,66 +14,64 @@ progress:
   percent: 0
 ---
 
-# Project State
+# 项目状态
 
-## Project Reference
+## 项目参考
 
-See: .planning/PROJECT.md (updated 2026-04-22)
+参见：`.planning/PROJECT.md`（更新于 2026-04-22）
 
-**Core value:** AI 全流程自动化 — 测评定级、教学讲解、练习判题全部由 AI 智能体驱动
-**Current focus:** Phase 1: Foundation & Auth
+**核心价值：** AI 全流程自动化 — 测评定级、教学讲解、练习判题全部由 AI 智能体驱动
+**当前重点：** Phase 1: 基础设施与认证
 
-## Current Position
+## 当前位置
 
-Phase: 1 of 7 (Foundation & Auth)
-Plan: - of -
-Status: Ready to plan
-Last activity: 2026-04-22 — Roadmap created, 7 phases defined
+阶段：1 / 7（基础设施与认证）
+计划：- / -
+状态：等待规划
+最近活动：2026-04-22 — 架构重构完成，Roadmap 已更新
 
-Progress: [░░░░░░░░░░] 0%
+进度：[░░░░░░░░░░] 0%
 
-## Performance Metrics
+## 性能指标
 
-**Velocity:**
+**速度：**
+- 已完成计划总数：0
+- 平均耗时：- 分钟
+- 总执行时间：- 小时
 
-- Total plans completed: 0
-- Average duration: - min
-- Total execution time: - hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
+**按阶段：**
+| 阶段 | 计划 | 总耗时 | 平均/计划 |
+|------|------|--------|-----------|
 | - | - | - | - |
 
-**Recent Trend:**
+**近期趋势：**
+- 最近 5 个计划：-
+- 趋势：-
 
-- Last 5 plans: -
-- Trend: -
+*每个计划完成后更新*
 
-*Updated after each plan completion*
+## 累积上下文
 
-## Accumulated Context
+### 决策
 
-### Decisions
+已记录决策见 PROJECT.md 的 Key Decisions 表格。
+影响当前工作的近期决策：
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+- Agent 引擎迁移到 ellamaka（gesp backend 通过 SDK 远程调用）
+- gesp backend 为唯一入口（组织提示词、代理 agent 调用）
+- gesp-plugin 嵌入 ellamaka（封装少量 API）
+- 提示词在 backend 组织后喂给 agent
 
-- Roadmap: 7 phases derived from 33 v1 requirements
-- Dependencies: Phase 2 (Knowledge Base) enables Phases 3-5 (Agents)
-- Student App (Phase 6) requires all three agents complete
+### 待办事项
 
-### Pending Todos
+暂无。
 
-None yet.
+### 阻塞点/顾虑
 
-### Blockers/Concerns
+暂无。
 
-None yet.
+## 会话连续性
 
-## Session Continuity
-
-Last session: 2026-04-22T07:29:26.155Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-foundation-auth/01-CONTEXT.md
+上次会话：2026-04-22T17:38:00.000Z
+停止于：Milestone 初始化
+恢复文件：待创建

@@ -1,8 +1,8 @@
 # Stack Recommendations
 
-**Domain:** AI-Powered Adaptive Learning Platform for GESP C++
+**Domain:** GESP C++ AI 自适应学习平台
 **Researched:** 2026-04-22
-**Confidence:** HIGH (based on ellamaka reference + official docs verification)
+**Confidence:** HIGH（基于 ellamaka 参考 + 官方文档验证）
 
 ## Recommended Stack
 
@@ -10,33 +10,33 @@
 
 | Layer | Technology | Version | Rationale |
 |-------|------------|---------|-----------|
-| **Runtime** | Bun | 1.3.11+ | High performance JS/TS runtime, native TypeScript support, fast startup. Used in ellamaka successfully. |
-| **Web Framework** | Hono | 4.x | Lightweight, type-safe, works with Bun natively. Better than Express/NestJS for this use case. |
-| **OpenAPI** | hono-openapi | 0.4.x | Auto-generate OpenAPI spec from routes, enables SDK generation. Reference: ellamaka. |
-| **AI SDK** | Vercel AI SDK | 4.x (ai package) | Multi-provider support (OpenAI, Anthropic, Google, DeepSeek, Doubao, etc.). Unified streaming interface. |
-| **ORM** | Drizzle ORM | 0.39.x | Type-safe SQL, better than Prisma for SQLite. Used in ellamaka. |
-| **Relational DB** | SQLite | 3.x | Lightweight, embedded, perfect for MVP. File-based, no server needed. |
-| **Vector DB** | LanceDB | 0.10.x | Embedded vector DB, works with Bun. Good for knowledge base semantic search. |
+| **Runtime** | Bun | 1.3.11+ | 高性能 JS/TS 运行时，原生 TypeScript 支持，快速启动。ellamaka 中已验证成功使用。 |
+| **Web Framework** | Hono | 4.x | 轻量、类型安全，原生支持 Bun。优于 Express/NestJS 的选型。 |
+| **OpenAPI** | hono-openapi | 0.4.x | 从路由生成 OpenAPI 规范，支持 SDK 生成。参考 ellamaka。 |
+| **AI SDK** | Vercel AI SDK | 4.x（ai 包） | 多 Provider 支持（OpenAI、Anthropic、Google、DeepSeek、豆包等）。统一流式接口。 |
+| **ORM** | Drizzle ORM | 0.39.x | 类型安全 SQL，SQLite 下比 Prisma 更轻量。ellamaka 使用。 |
+| **Relational DB** | SQLite | 3.x | 轻量、嵌入式，适合 MVP。基于文件，无需额外服务器。 |
+| **Vector DB** | LanceDB | 0.10.x | 嵌入式向量数据库，与 Bun 兼容。适用于知识库语义检索。 |
 
 ### Frontend Stack
 
 | Layer | Technology | Version | Rationale |
 |-------|------------|---------|-----------|
-| **Student App** | NextJS | 15.x | App Router, React Server Components for SEO, streaming support. |
-| **Admin App** | React + Vite | 18.x / 6.x | Fast dev server, HMR. Reference: new-api web structure. |
-| **Admin UI Library** | Semi Design | 2.x | Enterprise-grade components, Chinese-friendly. Used in new-api. |
-| **Student UI** | Tailwind CSS + Kobalte | 3.x / 0.13.x | Modern styling + SolidJS components for interactive parts. |
-| **State Management** | TanStack Query | 5.x | Server state management, caching. |
-| **Forms** | React Hook Form + Zod | 7.x / 3.x | Type-safe form validation. |
+| **Student App** | NextJS | 15.x | App Router、React Server Components 支持 SEO 和流式渲染。 |
+| **Admin App** | React + Vite | 18.x / 6.x | 快速开发服务器，HMR。参考 new-api Web 结构。 |
+| **Admin UI Library** | Semi Design | 2.x | 企业级组件库，中文友好。new-api 使用。 |
+| **Student UI** | Tailwind CSS + Kobalte | 3.x / 0.13.x | 现代样式 + SolidJS 组件用于交互部分。 |
+| **State Management** | TanStack Query | 5.x | 服务端状态管理，缓存。 |
+| **Forms** | React Hook Form + Zod | 7.x / 3.x | 类型安全的表单验证。 |
 
 ### Monorepo Tooling
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| **Turborepo** | 2.x | Monorepo build orchestration, remote caching |
-| **Bun workspaces** | 1.3.x | Package management (faster than npm/pnpm) |
+| **Turborepo** | 2.x | Monorepo 构建编排，远程缓存 |
+| **Bun workspaces** | 1.3.x | 包管理（比 npm/pnpm 更快） |
 
-### AI Provider SDKs (Vercel AI SDK ecosystem)
+### AI Provider SDKs（Vercel AI SDK 生态系统）
 
 ```json
 {
@@ -44,30 +44,30 @@
   "@ai-sdk/anthropic": "3.0.x",
   "@ai-sdk/google": "3.0.x",
   "@ai-sdk/google-vertex": "4.0.x",
-  "@ai-sdk/openai-compatible": "2.0.x",  // For DeepSeek, Doubao, etc.
-  "ai": "4.x"  // Core AI SDK
+  "@ai-sdk/openai-compatible": "2.0.x",  // 用于 DeepSeek、豆包等
+  "ai": "4.x"  // AI SDK 核心
 }
 ```
 
 ---
 
-## What NOT to Use
+## 不建议使用的技术
 
 | Technology | Why Avoid |
 |------------|-----------|
-| NestJS | Heavy framework, not needed for this project. Hono is lighter and faster. |
-| Express | Older, less type-safe than Hono. No native Bun optimizations. |
-| Prisma | Drizzle is better for SQLite + Bun, lighter weight. |
-| MongoDB | Not suitable for structured educational data. SQLite is simpler. |
-| Pinecone/Qdrant (cloud vector DB) | LanceDB is embedded, zero-config for MVP. Cloud vector DB adds complexity. |
-| Redux | TanStack Query handles server state, local state with React hooks. |
-| Classic OJ systems (Judge0, DOMjudge) | v1 uses AI模拟判题, not real code execution. No sandbox needed. |
+| NestJS | 框架过重，本项目不需要。Hono 更轻量且更快。 |
+| Express | 较旧，类型安全性不如 Hono。无原生 Bun 优化。 |
+| Prisma | Drizzle 在 SQLite + Bun 组合下更好，更轻量。 |
+| MongoDB | 不适合结构化教育数据。SQLite 更简单。 |
+| Pinecone/Qdrant（云端向量数据库）| LanceDB 嵌入式、零配置用于 MVP。云端向量数据库增加复杂度。 |
+| Redux | TanStack Query 处理服务端状态，本地状态用 React hooks 即可。 |
+| 经典 OJ 系统（Judge0、DOMjudge）| v1 使用 AI 模拟判题，不需要真实代码执行。无需沙盒。 |
 
 ---
 
-## Integration Patterns
+## 集成模式
 
-### 1. AI SDK Multi-Provider Pattern (参考 ellamaka)
+### 1. AI SDK 多 Provider 模式（参考 ellamaka）
 
 ```typescript
 // packages/backend/src/provider/index.ts
@@ -76,7 +76,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
-// Provider registry - fallback chain
+// Provider 注册表 — 降级链
 const providers = {
   openai: createOpenAI({ apiKey: process.env.OPENAI_API_KEY }),
   anthropic: createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY }),
@@ -92,7 +92,7 @@ const providers = {
   }),
 };
 
-// Model registry with provider mapping
+// 模型注册表与 Provider 映射
 export const models = {
   "gpt-4o": { provider: "openai", modelId: "gpt-4o" },
   "claude-sonnet-4": { provider: "anthropic", modelId: "claude-sonnet-4-20250514" },
@@ -107,7 +107,7 @@ export function getLanguageModel(modelKey: string) {
 }
 ```
 
-### 2. LanceDB Integration Pattern
+### 2. LanceDB 集成模式
 
 ```typescript
 // packages/backend/src/db/lance/index.ts
@@ -116,12 +116,12 @@ import * as lancedb from "@lancedb/lancedb";
 
 const db = await lancedb.connect("./data/knowledge.lance");
 
-// Create tables
+// 创建表
 await db.createTable("knowledge_points", [
   { id: "1", content: "...", embedding: [], metadata: {} }
 ]);
 
-// Vector search
+// 向量搜索
 const table = await db.openTable("knowledge_points");
 const results = await table
   .vectorSearch(embedding)
@@ -129,7 +129,7 @@ const results = await table
   .toArray();
 ```
 
-### 3. Drizzle SQLite Schema Pattern (参考 ellamaka)
+### 3. Drizzle SQLite Schema 模式（参考 ellamaka）
 
 ```typescript
 // packages/backend/src/db/sqlite/schema.ts
@@ -158,14 +158,14 @@ export const practice_records = sqliteTable("practice_records", {
   question_id: text().notNull(),
   student_answer: text().notNull(),
   is_correct: integer({ mode: "boolean" }),
-  analysis: text(), // JSON from AI grading
+  analysis: text(), // AI 判题返回的 JSON
   created_at: integer().notNull(),
 });
 ```
 
 ---
 
-## Configuration Files
+## 配置文件
 
 ### Root package.json
 
@@ -213,7 +213,7 @@ export const practice_records = sqliteTable("practice_records", {
 
 ## Sources
 
-- **ellamaka package.json** — Verified Bun, Hono, AI SDK versions (HIGH confidence)
-- **Vercel AI SDK docs** — Multi-provider patterns (HIGH confidence, context7 verified)
-- **LanceDB docs** — Embedded vector DB patterns (MEDIUM confidence, web search)
-- **Turborepo docs** — Monorepo configuration (HIGH confidence, turbo.build)
+- **ellamaka package.json** — 已验证 Bun、Hono、AI SDK 版本（HIGH confidence）
+- **Vercel AI SDK docs** — 多 Provider 模式（HIGH confidence, context7 verified）
+- **LanceDB docs** — 嵌入式向量数据库模式（MEDIUM confidence, web search）
+- **Turborepo docs** — Monorepo 配置（HIGH confidence, turbo.build）
