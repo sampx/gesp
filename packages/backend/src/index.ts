@@ -5,6 +5,8 @@ import { spawnSync } from "bun";
 import authRoutes from "./routes/auth";
 import debugRoutes from "./routes/debug";
 import { runSeeds } from "./db/seed/admin.seed";
+import { logger } from "./utils/logger";
+import { requestLogger } from "./middleware/request-logger";
 
 const app = new Hono();
 
@@ -21,13 +23,16 @@ async function pushSchema(): Promise<void> {
 }
 
 async function bootstrap() {
-  console.log("Pushing database schema...");
+  logger.info({ action: "schema_push" }, "Schema push started");
   await pushSchema();
-  console.log("Schema push completed");
+  logger.info({ action: "schema_push" }, "Schema push completed");
   await runSeeds();
-  console.log("Seeds completed");
+  logger.info({ action: "seed_run" }, "Seeds completed");
 
   app.get("/", (c: Context) => c.json({ success: true, message: "GESP Backend API", data: { version: "0.0.1" } }));
+
+  // Request logging middleware - mount before routes
+  app.use(requestLogger);
 
   app.route("/api/auth", authRoutes);
 
@@ -51,7 +56,7 @@ async function bootstrap() {
   }));
 
   const port = process.env.PORT || 3000;
-  console.log(`GESP Backend running on http://localhost:${port}`);
+  logger.info({ port }, "Server started");
 
   Bun.serve({
     fetch: app.fetch,
