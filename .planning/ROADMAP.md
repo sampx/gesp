@@ -14,7 +14,7 @@
 
 Decimal phases appear between integer phases in numerical order.
 
-- [ ] **Phase 1: 基础设施与认证** — 项目初始化、gesp backend 框架、用户认证
+- [x] **Phase 1: 基础设施与认证** — 项目初始化、gesp backend 框架、用户认证 ✓ 2026-04-23
 - [ ] **Phase 2: 知识库** — LanceDB 知识库、向量检索、数据导入
 - [ ] **Phase 3: 测评定级智能体** — ellamaka assessor agent + gesp SDK 代理
 - [ ] **Phase 4: 教学讲解智能体** — ellamaka teacher agent + SSE 流式
@@ -120,7 +120,7 @@ Phase executed in numerical order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed Date |
 |-------|----------------|--------|----------------|
-| 1. 基础设施与认证 | 0/TBD | Not Started | - |
+| 1. 基础设施与认证 | 5/5 | Complete | 2026-04-23 |
 | 2. 知识库 | 0/TBD | Not Started | - |
 | 3. 测评定级智能体 | 0/TBD | Not Started | - |
 | 4. 教学讲解智能体 | 0/TBD | Not Started | - |
