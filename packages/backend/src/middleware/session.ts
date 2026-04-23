@@ -6,6 +6,17 @@ import { sessions, users } from "../db/schema";
 import { ROLE } from "@gesp/shared";
 import { unauthorized } from "../utils/response";
 
+/**
+ * Generate a cryptographically secure session ID.
+ * Uses 32 random bytes encoded as base64url (43 chars).
+ * Per D-R4: replaces crypto.randomUUID() for higher entropy.
+ */
+export function generateSessionId(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Buffer.from(bytes).toString("base64url");
+}
+
 const SESSION_TTL = {
   student: 60 * 60, // 1 hour in seconds
   admin: 24 * 60 * 60, // 24 hours in seconds
@@ -18,7 +29,7 @@ function getTTL(role: number): number {
 }
 
 export async function createSession(c: Context, userId: string, role: number): Promise<string> {
-  const sessionId = crypto.randomUUID();
+  const sessionId = generateSessionId();
   const ttl = getTTL(role);
   const expiresAt = new Date(Date.now() + ttl * 1000);
 
