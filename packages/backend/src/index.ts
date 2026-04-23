@@ -3,6 +3,7 @@ import { openAPISpecs } from "hono-openapi";
 import type { Context } from "hono";
 import { spawnSync } from "bun";
 import authRoutes from "./routes/auth";
+import debugRoutes from "./routes/debug";
 import { runSeeds } from "./db/seed/admin.seed";
 
 const app = new Hono();
@@ -29,6 +30,11 @@ async function bootstrap() {
   app.get("/", (c: Context) => c.json({ success: true, message: "GESP Backend API", data: { version: "0.0.1" } }));
 
   app.route("/api/auth", authRoutes);
+
+  // Debug route - production disabled unless ENABLE_DEBUG=true
+  if (process.env.NODE_ENV !== "production" || process.env.ENABLE_DEBUG === "true") {
+    app.route("/debug", debugRoutes);
+  }
 
   // TODO: Mount admin and student routes
   // app.route("/api/admin", adminRoutes);
