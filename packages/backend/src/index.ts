@@ -1,13 +1,15 @@
 import { Hono } from "hono";
 import { openAPISpecs } from "hono-openapi";
 import type { Context } from "hono";
+import authRoutes from "./routes/auth";
 
 const app = new Hono();
 
 app.get("/", (c: Context) => c.json({ success: true, message: "GESP Backend API", data: { version: "0.0.1" } }));
 
-// TODO: Mount auth routes
-// app.route("/api/auth", authRoutes);
+app.route("/api/auth", authRoutes);
+
+// TODO: Mount admin and student routes
 // app.route("/api/admin", adminRoutes);
 // app.route("/api/student", studentRoutes);
 
