@@ -15,13 +15,23 @@ export async function seedAdmin(): Promise<void> {
     return;
   }
 
-  // Get credentials from env or use defaults
+  // Production: require ADMIN_PASSWORD
+  const password = process.env.ADMIN_PASSWORD;
+  if (process.env.NODE_ENV === "production" && !password) {
+    throw new Error("ADMIN_PASSWORD must be set in production environment");
+  }
+
   const username = process.env.ADMIN_USERNAME || "admin";
-  const password = process.env.ADMIN_PASSWORD || "admin123";
   const displayName = process.env.ADMIN_DISPLAY_NAME || "System Admin";
 
+  // Development: warn when using default password
+  if (!password) {
+    console.warn("WARNING: Using default password 'admin123'. CHANGE IMMEDIATELY!");
+    console.warn("WARNING: Set ADMIN_PASSWORD environment variable for security.");
+  }
+
   // Hash password
-  const passwordHash = await hashPassword(password);
+  const passwordHash = await hashPassword(password || "admin123");
 
   // Insert root admin
   await db.insert(users).values({
@@ -34,7 +44,6 @@ export async function seedAdmin(): Promise<void> {
   });
 
   console.log(`Root admin seeded: ${username}`);
-  console.log("WARNING: Change default password after first login in production!");
 }
 
 // Export function to run seed
