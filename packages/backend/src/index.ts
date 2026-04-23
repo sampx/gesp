@@ -1,14 +1,28 @@
 import { Hono } from "hono";
 import { openAPISpecs } from "hono-openapi";
 import type { Context } from "hono";
+import { spawnSync } from "bun";
 import authRoutes from "./routes/auth";
 import { runSeeds } from "./db/seed/admin.seed";
 
 const app = new Hono();
 
-// Run seeds before starting server
+async function pushSchema(): Promise<void> {
+  const result = spawnSync({
+    cmd: ["bun", "run", "db:push"],
+    cwd: import.meta.dir,
+    stdout: "inherit",
+    stderr: "inherit",
+  });
+  if (result.exitCode !== 0) {
+    throw new Error(`Schema push failed with exit code ${result.exitCode}`);
+  }
+}
+
 async function bootstrap() {
-  console.log("Running seeds...");
+  console.log("Pushing database schema...");
+  await pushSchema();
+  console.log("Schema push completed");
   await runSeeds();
   console.log("Seeds completed");
 
@@ -40,5 +54,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-
-export default app;
