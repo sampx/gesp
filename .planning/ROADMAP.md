@@ -40,11 +40,11 @@ Decimal phases appear between integer phases in numerical order.
 
 **Goal:** 修复 Phase 1 评审中发现的 3 项安全问题（Session ID、用户枚举、默认密码）并创建验证界面供后续阶段功能验证
 **Depends on:** Phase 1
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 01.1-01-PLAN.md — 安全修复（D-R4 Session ID + D-R5 注册模糊化 + D-R7 生产密码强制）+ 单元测试
-- [ ] 01.1-02-PLAN.md — 验证界面 `/debug`（D-R8）+ Hono HTML 页面 + Wave 2
+- [x] 01.1-01-PLAN.md — 安全修复（D-R4 Session ID + D-R5 注册模糊化 + D-R7 生产密码强制）+ 单元测试
+- [x] 01.1-02-PLAN.md — 验证界面 `/debug`（D-R8）+ Hono HTML 页面 + Wave 2
 
 ### Phase 2: 知识库
 **Goal:** GESP 课程知识可通过语义检索供 backend 查询组织提示词
