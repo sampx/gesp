@@ -94,7 +94,7 @@ const debugHtml = `
       span.style.color = color;
       span.textContent = new Date().toLocaleTimeString() + ' ' + msg;
       logEl.appendChild(span);
-      logEl.appendChild(document.createTextNode('\n'));
+      logEl.appendChild(document.createTextNode('\\n'));
     }
 
     async function register() {
