@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 phase: 01.1-phase-1
-source: [01.1-01-SUMMARY.md, 01.1-02-SUMMARY.md]
+source: [01.1-01-SUMMARY.md, 01.1-02-SUMMARY.md, 01.1-03-SUMMARY.md]
 started: 2026-04-23T18:08:11Z
-updated: 2026-04-23T18:20:00Z
+updated: 2026-04-23T19:30:00Z
 ---
 
 ## Current Test
@@ -58,8 +58,8 @@ blocked: 0
 ## Gaps
 
 - truth: "bun run test passes with no failures"
-  status: failed
-  reason: "User reported: bun run test 有 1 个失败 (auth-register.test.ts 第 4 case). CR-01 修复改变了 registerUser 调用顺序，Test 3 残留的 mock findFirst(undefined) 未被消耗，污染 Test 4 的 mock 队列"
+  status: resolved
+  reason: "Fixed by 01.1-03: removed unnecessary findFirst mock from Test 3"
   severity: major
   test: 1
   root_cause: "Vitest mockResolvedValueOnce 队列污染：Test 3 (line 57) mock 了 findFirst(undefined)，但因 CR-01 修复后密码检查提前到 DB 查询之前，密码 'short' 触发 early return → findFirst 未被调用 → mock 未被消耗 → beforeEach 的 vi.clearAllMocks() 只清除 call history，不清除 queued mock values → Test 4 的队列变成 [undefined (stale), existing user (fresh)] → findFirst 返回 undefined → 用户被创建 → success=true"
@@ -71,10 +71,11 @@ blocked: 0
   missing:
     - "Test 3 删除不必要的 findFirst mock，或改用 vi.restoreAllMocks() 替代 vi.clearAllMocks()"
   debug_session: ".planning/debug/auth-register-test-failure.md"
+  resolved_by: "01.1-03"
 
 - truth: "Debug 界面按钮点击后发起 API 请求并显示结果"
-  status: failed
-  reason: "User reported: Debug 界面可以打开，但注册/登录按钮都没有响应，后台无日志打印，界面上也无日志，完全没有反应"
+  status: resolved
+  reason: "Fixed by 01.1-03: escaped newline in inline JavaScript"
   severity: major
   test: 1
   root_cause: "JavaScript 语法错误导致所有函数未定义：debug.ts line 97 的 document.createTextNode('\n') 在 TypeScript template literal 中被解释为真实换行符，HTML 输出的 JavaScript 字符串被断行（unclosed quote + continuation on next line）→ SyntaxError → 所有 onclick handler 函数 undefined → 点击无响应"
@@ -84,3 +85,4 @@ blocked: 0
   missing:
     - "将 '\n' 改为 '\\n' 或 '\\u000a'，确保浏览器收到正确的 JavaScript escape sequence"
   debug_session: ".planning/debug/debug-ui-buttons-not-working.md"
+  resolved_by: "01.1-03"
