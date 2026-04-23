@@ -90,7 +90,11 @@ const debugHtml = `
     const logEl = document.getElementById('log');
     function log(msg, type = 'info') {
       const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'black';
-      logEl.innerHTML += '<span style="color:' + color + '">' + new Date().toLocaleTimeString() + ' ' + msg + '</span>\n';
+      const span = document.createElement('span');
+      span.style.color = color;
+      span.textContent = new Date().toLocaleTimeString() + ' ' + msg;
+      logEl.appendChild(span);
+      logEl.appendChild(document.createTextNode('\n'));
     }
 
     async function register() {
