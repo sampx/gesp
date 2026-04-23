@@ -1,4 +1,5 @@
 import type { Context } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 import type { ApiResponse } from "@gesp/shared";
 
 export function success<T>(c: Context, data: T, message = "Success"): Response {
@@ -9,7 +10,7 @@ export function success<T>(c: Context, data: T, message = "Success"): Response {
   });
 }
 
-export function error(c: Context, message: string, status = 400): Response {
+export function error(c: Context, message: string, status: ContentfulStatusCode = 400): Response {
   return c.json<ApiResponse<never>>({
     success: false,
     message,
