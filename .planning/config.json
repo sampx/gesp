@@ -42,5 +42,10 @@
     "context_warnings": true
   },
   "model_profile": "inherit",
-  "agent_skills": {}
+  "agent_skills": {
+    "wsf-executor": [],
+    "wsf-researcher": [
+      ".wopal/skills/fc-local"
+    ]
+  }
 }
