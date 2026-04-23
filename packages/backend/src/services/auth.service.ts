@@ -9,18 +9,18 @@ export async function registerUser(
   password: string,
   displayName: string
 ): Promise<{ success: boolean; user?: typeof users.$inferSelect; error?: string }> {
-  // Check username uniqueness
+  // Validate password FIRST (before DB query) - prevents user enumeration
+  if (password.length < 6) {
+    return { success: false, error: "Password must be at least 6 characters" };
+  }
+
+  // Now check username uniqueness
   const existing = await db.query.users.findFirst({
     where: eq(users.username, username),
   });
 
   if (existing) {
     return { success: false, error: "Registration failed. Please try different credentials." };
-  }
-
-  // Validate password length
-  if (password.length < 6) {
-    return { success: false, error: "Password must be at least 6 characters" };
   }
 
   // Create user
