@@ -18,64 +18,90 @@
 <!-- WSF:stack-start source:research/STACK.md -->
 ## Technology Stack
 
-## Recommended Stack
-### Backend Stack
-| Layer | Technology | Version | Rationale |
-|-------|------------|---------|-----------|
-| **Runtime** | Bun | 1.3.11+ | High performance JS/TS runtime, native TypeScript support, fast startup. Used in ellamaka successfully. |
-| **Web Framework** | Hono | 4.x | Lightweight, type-safe, works with Bun natively. Better than Express/NestJS for this use case. |
-| **OpenAPI** | hono-openapi | 0.4.x | Auto-generate OpenAPI spec from routes, enables SDK generation. Reference: ellamaka. |
-| **ORM** | Drizzle ORM | 0.39.x | Type-safe SQL, better than Prisma for SQLite. Used in ellamaka. |
-| **Relational DB** | SQLite | 3.x | Lightweight, embedded, perfect for MVP. File-based, no server needed. |
-| **Vector DB** | LanceDB | 0.10.x | Embedded vector DB, works with Bun. Good for knowledge base semantic search. |
-### Frontend Stack
-| Layer | Technology | Version | Rationale |
-|-------|------------|---------|-----------|
-| **Student App** | NextJS | 15.x | App Router, React Server Components for SEO, streaming support. |
-| **Admin App** | React + Vite | 18.x / 6.x | Fast dev server, HMR. Reference: new-api web structure. |
-| **Admin UI Library** | Semi Design | 2.x | Enterprise-grade components, Chinese-friendly. Used in new-api. |
-| **Student UI** | Tailwind CSS + Kobalte | 3.x / 0.13.x | Modern styling + SolidJS components for interactive parts. |
-| **State Management** | TanStack Query | 5.x | Server state management, caching. |
-| **Forms** | React Hook Form + Zod | 7.x / 3.x | Type-safe form validation. |
+### Backend (已实现)
+| Layer | Technology | Version |
+|-------|------------|---------|
+| Runtime | Bun | 1.3.11+ |
+| Web Framework | Hono | 4.x |
+| ORM | Drizzle ORM | 0.39.x |
+| Database | SQLite | 3.x |
+| Validation | Zod + @hono/zod-validator | 3.x / 0.7.x |
+| Test | Vitest | 2.x |
+
+### Frontend (计划中)
+| Layer | Technology | Version |
+|-------|------------|---------|
+| Student App | NextJS | 15.x |
+| Admin App | React + Vite | 18.x / 6.x |
+| Admin UI | Semi Design | 2.x |
+| Student UI | Tailwind CSS + Kobalte | 3.x / 0.13.x |
+
 ### Monorepo Tooling
 | Tool | Version | Purpose |
 |------|---------|---------|
-| **Turborepo** | 2.x | Monorepo build orchestration, remote caching |
-| **Bun workspaces** | 1.3.x | Package management (faster than npm/pnpm) |
-
-## What NOT to Use
-| Technology | Why Avoid |
-|------------|-----------|
-| NestJS | Heavy framework, not needed for this project. Hono is lighter and faster. |
-| Express | Older, less type-safe than Hono. No native Bun optimizations. |
-| Prisma | Drizzle is better for SQLite + Bun, lighter weight. |
-| MongoDB | Not suitable for structured educational data. SQLite is simpler. |
-| Pinecone/Qdrant (cloud vector DB) | LanceDB is embedded, zero-config for MVP. Cloud vector DB adds complexity. |
-| Redux | TanStack Query handles server state, local state with React hooks. |
-| Classic OJ systems (Judge0, DOMjudge) | v1 uses AI模拟判题, not real code execution. No sandbox needed. |
-## Integration Patterns
-### 1. LanceDB Integration Pattern
-### 2. Drizzle SQLite Schema Pattern (参考 ellamaka)
-## Configuration Files
-### Root package.json
-### turbo.json
-## Sources
-- **ellamaka package.json** — Verified Bun, Hono, AI SDK versions (HIGH confidence)
-- **Vercel AI SDK docs** — Multi-provider patterns (HIGH confidence, context7 verified)
-- **LanceDB docs** — Embedded vector DB patterns (MEDIUM confidence, web search)
-- **Turborepo docs** — Monorepo configuration (HIGH confidence, turbo.build)
+| Turborepo | 2.x | Build orchestration |
+| Bun workspaces | 1.3.x | Package management |
 <!-- WSF:stack-end -->
 
-<!-- WSF:conventions-start source:CONVENTIONS.md -->
-## Conventions
+---
 
-Conventions not yet established. Will populate as patterns emerge during development.
+## 1. 架构概览
+
+```
+Monorepo
+├── @gesp/shared    — 常量、类型定义（ROLE / USER_STATUS / ApiResponse）
+└── @gesp/backend   — Hono API Server
+    ├── routes      → services → db
+    ├── middleware  — session 管理 + 角色守卫
+    ├── db          — Drizzle ORM + SQLite (./data/gesp.db)
+    └── seed        — root admin 自动初始化
+```
+
+详细架构与代码规范见 `packages/backend/AGENTS.md`
+
+---
+
+## 2. 目录结构
+
+```
+gesp/
+├── packages/
+│   ├── backend/          # API 服务器（详见 packages/backend/AGENTS.md）
+│   └── shared/           # 跨包共享类型和常量
+│       └── src/
+│           ├── types/        # ApiResponse, User
+│           └── constants/    # ROLE (1/10/100), USER_STATUS (1/2)
+├── scripts/
+│   └── verify-auth.ts   # 端到端验证脚本
+├── turbo.json
+└── package.json
+```
+
+---
+
+## 3. 命令速查
+
+| 命令 | 说明 |
+|------|------|
+| `bun run dev` | 启动开发服务器（自动建表 + seed） |
+| `bun run db:push` | 同步表结构 |
+| `bun run typecheck` | 类型检查 |
+| `bun run test` | 单元测试 |
+| `bun scripts/verify-auth.ts` | 认证系统 E2E 验证（需先 dev） |
+
+---
+
+## 4. 代码约束
+
+- **禁止** `export default app`（Bun 自动 serve 导致端口冲突）
+- 密码必须 bcryptjs 哈希，Session cookie httpOnly + sameSite=Strict
+- 禁止提交 `data/`、`.env`、`node_modules/`、`dist/`
+- Shared 包禁止依赖 Backend；Backend 通过 `@gesp/shared` 引用共享类型
+
+<!-- WSF:conventions-start source:CONVENTIONS.md -->
 <!-- WSF:conventions-end -->
 
 <!-- WSF:architecture-start source:ARCHITECTURE.md -->
-## Architecture
-
-Architecture not yet mapped. Follow existing patterns found in the codebase.
 <!-- WSF:architecture-end -->
 
 <!-- WSF:skills-start source:skills/ -->
@@ -96,8 +122,6 @@ Use these entry points:
 
 Do not make direct repo edits outside a WSF workflow unless the user explicitly asks to bypass it.
 <!-- WSF:workflow-end -->
-
-
 
 <!-- WSF:profile-start -->
 ## Developer Profile
