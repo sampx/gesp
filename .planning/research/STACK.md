@@ -13,7 +13,7 @@
 | **Runtime** | Bun | 1.3.11+ | 高性能 JS/TS 运行时，原生 TypeScript 支持，快速启动。ellamaka 中已验证成功使用。 |
 | **Web Framework** | Hono | 4.x | 轻量、类型安全，原生支持 Bun。优于 Express/NestJS 的选型。 |
 | **OpenAPI** | hono-openapi | 0.4.x | 从路由生成 OpenAPI 规范，支持 SDK 生成。参考 ellamaka。 |
-| **AI SDK** | Vercel AI SDK | 4.x（ai 包） | 多 Provider 支持（OpenAI、Anthropic、Google、DeepSeek、豆包等）。统一流式接口。 |
+| **Agent Engine** | ellamaka SDK | — | 远程调用 Agent 引擎（HTTP SDK）。AI Provider 多协议支持由 ellamaka 处理。 |
 | **ORM** | Drizzle ORM | 0.39.x | 类型安全 SQL，SQLite 下比 Prisma 更轻量。ellamaka 使用。 |
 | **Relational DB** | SQLite | 3.x | 轻量、嵌入式，适合 MVP。基于文件，无需额外服务器。 |
 | **Vector DB** | LanceDB | 0.10.x | 嵌入式向量数据库，与 Bun 兼容。适用于知识库语义检索。 |
@@ -36,9 +36,10 @@
 | **Turborepo** | 2.x | Monorepo 构建编排，远程缓存 |
 | **Bun workspaces** | 1.3.x | 包管理（比 npm/pnpm 更快） |
 
-### AI Provider SDKs（Vercel AI SDK 生态系统）
+### AI Provider SDKs（由 ellamaka 管理，gesp 不直接依赖）
 
 ```json
+// ellamaka 项目内的 AI SDK 依赖
 {
   "@ai-sdk/openai": "3.0.x",
   "@ai-sdk/anthropic": "3.0.x",
@@ -46,6 +47,18 @@
   "@ai-sdk/google-vertex": "4.0.x",
   "@ai-sdk/openai-compatible": "2.0.x",  // 用于 DeepSeek、豆包等
   "ai": "4.x"  // AI SDK 核心
+}
+```
+
+**gesp backend 不直接依赖 AI SDK** — 所有 AI 调用通过 ellamaka SDK 代理层转发。
+
+### ellamaka Plugin SDK（gesp-plugin 使用）
+
+```json
+// ellamaka/gesp-plugin/package.json
+{
+  "@ellamaka/plugin-sdk": "workspace:*",  // ellamaka 内部包
+  "@gesp/sdk": "workspace:*"             // gesp SDK（供 plugin 调用 gesp API）
 }
 ```
 
@@ -67,47 +80,40 @@
 
 ## 集成模式
 
-### 1. AI SDK 多 Provider 模式（参考 ellamaka）
+### 1. ellamaka SDK 代理模式（gesp → ellamaka）
 
 ```typescript
-// packages/backend/src/provider/index.ts
+// packages/backend/src/ellamaka/client.ts
 
-import { createOpenAI } from "@ai-sdk/openai";
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { EllamakaClient } from "@ellamaka/sdk";
 
-// Provider 注册表 — 降级链
-const providers = {
-  openai: createOpenAI({ apiKey: process.env.OPENAI_API_KEY }),
-  anthropic: createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY }),
-  deepseek: createOpenAICompatible({
-    name: "deepseek",
-    baseURL: "https://api.deepseek.com/v1",
-    apiKey: process.env.DEEPSEEK_API_KEY,
-  }),
-  doubao: createOpenAICompatible({
-    name: "doubao",
-    baseURL: "https://ark.cn-beijing.volces.com/api/v3",
-    apiKey: process.env.DOUBAO_API_KEY,
-  }),
-};
+export const ellamakaClient = new EllamakaClient({
+  baseURL: process.env.ELLAMAKA_URL || "http://localhost:3001",
+  apiKey: process.env.ELLAMAKA_API_KEY,
+});
 
-// 模型注册表与 Provider 映射
-export const models = {
-  "gpt-4o": { provider: "openai", modelId: "gpt-4o" },
-  "claude-sonnet-4": { provider: "anthropic", modelId: "claude-sonnet-4-20250514" },
-  "deepseek-chat": { provider: "deepseek", modelId: "deepseek-chat" },
-  "doubao-pro": { provider: "doubao", modelId: "doubao-pro-32k" },
-};
+// Stream agent response
+export async function* streamAgent(agent: string, params: StreamParams): AsyncGenerator<SSEEvent> {
+  const stream = await ellamakaClient.streamAgent({
+    agent,
+    messages: params.messages,
+    context: params.context,
+  });
+  
+  for await (const event of stream) {
+    yield event;
+  }
+}
 
-export function getLanguageModel(modelKey: string) {
-  const config = models[modelKey];
-  const provider = providers[config.provider];
-  return provider.languageModel(config.modelId);
+// One-shot agent call
+export async function callAgent(agent: string, params: CallParams): Promise<AgentResult> {
+  return await ellamakaClient.callAgent({ agent, ...params });
 }
 ```
 
-### 2. LanceDB 集成模式
+**AI Provider 选择由 ellamaka 管理** — gesp backend 只需指定 agent 名称，不关心具体模型。
+
+### 2. LanceDB 集成模式（gesp backend 内）
 
 ```typescript
 // packages/backend/src/db/lance/index.ts
@@ -213,7 +219,8 @@ export const practice_records = sqliteTable("practice_records", {
 
 ## Sources
 
-- **ellamaka package.json** — 已验证 Bun、Hono、AI SDK 版本（HIGH confidence）
-- **Vercel AI SDK docs** — 多 Provider 模式（HIGH confidence, context7 verified）
+- **ellamaka 项目** — Agent 引擎、SDK 设计、Plugin 系统（HIGH confidence）
+- **ellamaka package.json** — 已验证 Bun、Hono 版本（HIGH confidence）
+- **Vercel AI SDK docs** — 多 Provider 模式（由 ellamaka 使用，gesp 间接依赖）
 - **LanceDB docs** — 嵌入式向量数据库模式（MEDIUM confidence, web search）
 - **Turborepo docs** — Monorepo 配置（HIGH confidence, turbo.build）

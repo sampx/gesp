@@ -10,7 +10,7 @@
 
 ### Stack（技术栈）
 
-**Backend:** Bun + Hono + hono-openapi + Vercel AI SDK + Drizzle ORM + SQLite + LanceDB
+**Backend:** Bun + Hono + hono-openapi + ellamaka SDK + Drizzle ORM + SQLite + LanceDB
 
 **Frontend:** 
 - Student App: NextJS 15 (App Router) + Tailwind CSS + Kobalte
@@ -18,9 +18,11 @@
 
 **Monorepo:** Turborepo + Bun workspaces
 
-**AI Providers:** OpenAI, Anthropic, DeepSeek, Doubao (multi-provider fallback)
+**Agent Engine:** ellamaka（独立运行，HTTP SDK 调用）
 
-**Key Decision:** 跟随 ellamaka 架构，避免 NestJS/Express，使用更轻量的 Hono。
+**AI Providers:** 由 ellamaka 管理 — OpenAI, Anthropic, DeepSeek, Doubao (multi-provider fallback)
+
+**Key Decision:** Agent 引擎迁移到 ellamaka，gesp backend 作为业务代理层。提示词后端组织，agent 只做生成。
 
 ---
 
@@ -51,27 +53,43 @@
 **Monorepo Structure:**
 ```
 packages/
-├── backend/        # Hono API + AI Agents
+├── backend/        # Hono API + ellamaka SDK 代理层 + 业务逻辑 + 知识库
 ├── student-app/    # NextJS 学习界面
 ├── admin-app/      # React + Semi 管理后台
-├── sdk/            # Shared API client
+├── sdk/            # gesp SDK（供 ellamaka plugin 使用）
 ├── shared/         # Types, utilities
 └── ui/             # Shared components
 ```
 
-**Data Flow:**
-- Student App → SSE → Backend → AI Agent → LanceDB（知识库）
-- Admin App → REST → Backend → SQLite（关系数据）
+**ellamaka 项目新增（不在 gesp monorepo 内）：**
+```
+ellamaka/
+├── .opencode/agents/
+│   ├── assessor.md     # 测评定级智能体
+│   ├── teacher.md      # 教学讲解智能体
+│   └── grader.md       # 判题分析智能体
+│
+└── gesp-plugin/        # 嵌入式 plugin（封装少量 gesp API）
+    ├── submit_answer   # 提交学员答案
+    ├── query_progress  # 查询学员进度
+    └── get_knowledge   # 获取知识库内容
+```
 
-**Three Core Agents:**
+**Data Flow:**
+- Student App → SSE → gesp Backend → ellamaka SDK → Agent → AI Provider
+- gesp Backend → LanceDB（知识库查询 + 提示词组织）
+- ellamaka Agent → plugin tool → gesp Backend API（answer/progress）
+
+**Three Core Agents（在 ellamaka）：**
 1. Assessment Agent（测评定级）— 自适应题目生成 + 等级评定
 2. Teaching Agent（教学讲解）— 知识点讲解 + 代码示例 + Q&A
 3. Grading Agent（判题分析）— AI 模拟判题 + 错误诊断
 
 **Build Order:**
 1. shared → sdk → db（Phase 1）
-2. provider → service → agent → server（Phase 2）
-3. ui → student-app → admin-app（Phase 3）
+2. service → ellamaka 代理层 → server（Phase 2）
+3. ellamaka agents + gesp-plugin（Phase 2 同步）
+4. ui → student-app → admin-app（Phase 3）
 
 ---
 
@@ -94,22 +112,23 @@ packages/
 
 ## Recommendations
 
-### Phase Structure（建议阶段划分）
+### Phase Structure（ROADMAP 已定义 7 阶段）
 
-基于研究分析，推荐以下阶段结构：
+已正式化的阶段划分（参见 `.planning/ROADMAP.md`）：
 
-| Phase | Name | Goal | Est. Hours |
-|-------|------|------|------------|
-| 1 | Project Foundation | Monorepo 初始化，数据库 Schema，SDK 结构 | 20-30 |
-| 2 | Knowledge Base & AI Layer | LanceDB 初始化，Provider 抽象层，智能体基础 | 40-60 |
-| 3 | Assessment Agent | 测评定级智能体完整实现 | 30-50 |
-| 4 | Teaching Agent | 教学讲解智能体 + SSE 流式传输 | 30-50 |
-| 5 | Practice Agent | 判题分析智能体 + 错误诊断 | 30-50 |
-| 6 | Student App | NextJS 学习界面（测评、课程、练习）| 50-70 |
-| 7 | Admin App | React + Semi 管理后台 | 30-50 |
-| 8 | Integration & Polish | E2E 测试，UX 优化，部署 | 20-30 |
+| Phase | Name | Goal |
+|-------|------|------|
+| 1 | 基础设施与认证 | 开发环境就绪，用户注册登录，gesp backend 框架 |
+| 2 | 知识库 | LanceDB 知识库、向量检索、数据导入 |
+| 3 | 测评定级智能体 | ellamaka assessor agent + gesp SDK 代理 |
+| 4 | 教学讲解智能体 | ellamaka teacher agent + SSE 流式 |
+| 5 | 练习判题智能体 | ellamaka grader agent + 判题反馈 |
+| 6 | 学员学习应用 | NextJS 学习界面整合三个智能体 |
+| 7 | 管理后台应用 | React 管理端 |
 
-**Total:** ~220-360 小时（Standard granularity，8 个阶段）
+**关键架构决策：**
+- Phase 3-5 同时涉及 gesp backend（SDK 代理层）和 ellamaka（agent + plugin）
+- 提示词组织在 gesp backend，不在 agent 内
 
 ---
 
@@ -135,4 +154,13 @@ packages/
 
 ## Next Step
 
-进入 `/wsf-define-requirements` 以正式化 v1 需求并分配 REQ-ID，然后基于此研究创建包含阶段结构的 Roadmap。
+ROADMAP 已完成定义，进入 Phase 1 规划（`/wsf-plan-phase 1`）。
+
+**Phase 1 关键任务：**
+- gesp backend 框架搭建（Hono + Drizzle + SQLite）
+- ellamaka 项目配置（不需要 agent，Phase 1 无 AI 调用）
+- 用户认证系统（学员/管理员双认证）
+
+---
+
+*Last updated: 2026-04-22 after architecture redesign*

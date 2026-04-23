@@ -8,7 +8,8 @@
     "auto_advance": true,
     "nyquist_validation": true,
     "security_enforcement": false,
-    "discuss_mode": "discuss"
+    "discuss_mode": "discuss",
+    "_auto_chain_active": false
   },
   "planning": {
     "commit_docs": true,
