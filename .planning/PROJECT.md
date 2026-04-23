@@ -162,4 +162,4 @@ packages/
 4. 用当前状态更新 Context
 
 ---
-*Last updated: 2026-04-22 after architecture redesign*
+*Last updated: 2026-04-23 after Phase 01.1 security fixes*
