@@ -55,8 +55,8 @@ describe("Auth Register (D-R5)", () => {
   });
 
   it("should preserve password validation error message (not security-sensitive)", async () => {
-    // Mock: no existing user
-    (db.query.users.findFirst as any).mockResolvedValueOnce(undefined);
+    // No mock needed: password check happens BEFORE DB query (CR-01 fix)
+    // registerUser returns early without calling findFirst
 
     const result = await registerUser("newuser", "short", "Test");
 
