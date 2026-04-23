@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+bun.lock
+
+# Build output
+dist/
+
+# Database (generated)
+data/
+
+# IDE
+.idea/
+.vscode/
+
+# Turbo cache
+.turbo/
