@@ -1,57 +1,57 @@
 ---
-status: resolved
+status: complete
 phase: 01.1-phase-1
 source: [01.1-01-SUMMARY.md, 01.1-02-SUMMARY.md, 01.1-03-SUMMARY.md]
 started: 2026-04-23T18:08:11Z
-updated: 2026-04-23T19:30:00Z
+updated: 2026-04-23T19:52:51Z
 ---
 
 ## Current Test
 
-[testing paused — 2 issues diagnosed]
+[testing complete]
 
 ## Tests
 
 ### 1. Cold Start Smoke Test
 expected: Kill server, clear temp state, start from scratch. bun run dev boots without errors, seed completes, health check returns live data.
-result: issue
-reported: "服务器可以启动，但 bun run test 有 1 个失败。Debug 界面可打开但按钮无响应，后台和界面均无日志"
-severity: major
+result: pass
+note: Issue resolved by 01.1-03; verified by user
 
 ### 2. Session ID Entropy (256-bit)
 expected: After successful login or registration, the session cookie value is a base64url string of ~43 characters (32 bytes encoded). Not a UUID format (no hyphens).
-result: pending
+result: pass
 
 ### 3. Registration Error Obfuscation
 expected: Register with existing username returns generic error "Registration failed. Please try different credentials." Not "Username already exists" or similar specific message.
-result: pending
+result: pass
 
 ### 4. Production Password Enforcement
 expected: Set NODE_ENV=production without ADMIN_PASSWORD. Server startup fails with Error thrown (not just warning). Seed does not create admin with default password.
-result: pending
+result: pass
 
 ### 5. Debug Interface Accessible
 expected: In development mode, navigate to /debug. Page loads with HTML interface showing Register, Login, GetUser, Logout buttons and a log output area.
-result: pending
+result: pass
 
 ### 6. Debug Buttons Functional
 expected: Click Register button → fills form, submits, shows success message in log. Click Login → authenticates with created user, shows success. Click GetUser → displays user info. Click Logout → clears session.
-result: pending
+result: pass
+note: Issue resolved by 01.1-03; verified by user
 
 ### 7. Debug Production Gate
 expected: Set NODE_ENV=production (without ENABLE_DEBUG). /debug returns 404 or access denied. Setting ENABLE_DEBUG=true restores access.
-result: pending
+result: pass
 
 ### 8. Health Endpoint Working
 expected: /debug/health returns JSON {status: "ok", phase: 1} (or similar health check response). No authentication required.
-result: pending
+result: pass
 
 ## Summary
 
 total: 8
-passed: 0
-issues: 2
-pending: 6
+passed: 8
+issues: 0
+pending: 0
 skipped: 0
 blocked: 0
 
