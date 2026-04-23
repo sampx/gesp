@@ -10,6 +10,22 @@ import { requestLogger } from "./middleware/request-logger";
 
 const app = new Hono();
 
+async function findAvailablePort(startPort: number, maxAttempts = 10): Promise<number> {
+  for (let port = startPort; port < startPort + maxAttempts; port++) {
+    try {
+      const probe = Bun.serve({
+        fetch: () => new Response("probe"),
+        port,
+      });
+      probe.stop();
+      return port;
+    } catch {
+      continue;
+    }
+  }
+  throw new Error(`No available port found between ${startPort} and ${startPort + maxAttempts - 1}`);
+}
+
 async function pushSchema(): Promise<void> {
   const result = spawnSync({
     cmd: ["bun", "run", "db:push"],
@@ -55,7 +71,8 @@ async function bootstrap() {
     },
   }));
 
-  const port = process.env.PORT || 3000;
+  const basePort = parseInt(process.env.PORT || "3000", 10);
+  const port = await findAvailablePort(basePort);
   logger.info({ port }, "Server started");
 
   Bun.serve({
