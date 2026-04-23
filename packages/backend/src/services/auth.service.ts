@@ -15,7 +15,7 @@ export async function registerUser(
   });
 
   if (existing) {
-    return { success: false, error: "Username already exists" };
+    return { success: false, error: "Registration failed. Please try different credentials." };
   }
 
   // Validate password length
