@@ -2,28 +2,43 @@ import { Hono } from "hono";
 import { openAPISpecs } from "hono-openapi";
 import type { Context } from "hono";
 import authRoutes from "./routes/auth";
+import { runSeeds } from "./db/seed/admin.seed";
 
 const app = new Hono();
 
-app.get("/", (c: Context) => c.json({ success: true, message: "GESP Backend API", data: { version: "0.0.1" } }));
+// Run seeds before starting server
+async function bootstrap() {
+  console.log("Running seeds...");
+  await runSeeds();
+  console.log("Seeds completed");
 
-app.route("/api/auth", authRoutes);
+  app.get("/", (c: Context) => c.json({ success: true, message: "GESP Backend API", data: { version: "0.0.1" } }));
 
-// TODO: Mount admin and student routes
-// app.route("/api/admin", adminRoutes);
-// app.route("/api/student", studentRoutes);
+  app.route("/api/auth", authRoutes);
 
-// OpenAPI spec export
-app.use("/api/doc", openAPISpecs(app, {
-  documentation: {
-    info: {
-      title: "GESP Learning Platform API",
-      version: "1.0.0",
+  // TODO: Mount admin and student routes
+  // app.route("/api/admin", adminRoutes);
+  // app.route("/api/student", studentRoutes);
+
+  // OpenAPI spec export
+  app.use("/api/doc", openAPISpecs(app, {
+    documentation: {
+      info: {
+        title: "GESP Learning Platform API",
+        version: "1.0.0",
+      },
     },
-  },
-}));
+  }));
 
-const port = process.env.PORT || 3000;
-console.log(`GESP Backend running on http://localhost:${port}`);
+  const port = process.env.PORT || 3000;
+  console.log(`GESP Backend running on http://localhost:${port}`);
+
+  Bun.serve({
+    fetch: app.fetch,
+    port,
+  });
+}
+
+bootstrap();
 
 export default app;
