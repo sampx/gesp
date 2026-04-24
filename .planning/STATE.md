@@ -3,15 +3,15 @@ wsf_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01.1-02 Debug Interface plan
-last_updated: "2026-04-23T11:24:00.000Z"
-last_activity: 2026-04-23 - Completed quick task 260423-qpk: add pino logger and request logging middleware
+stopped_at: ROADMAP redesign complete - Phase 2 ready to discuss
+last_updated: "2026-04-24T10:00:00.000Z"
+last_activity: 2026-04-24 - ROADMAP redesign: frontend binding strategy
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 8
   completed_plans: 8
-  percent: 100
+  percent: 25
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-22)
 
 **Core Value:** AI 全流程自动化 — 测评定级、教学讲解、练习判题全部由 AI 智能体驱动
-**Current Focus:** Phase 01.1 — 基础设施与认证（Debug Interface 已完成）
+**Current Focus:** Phase 2 — 知识库 + 双端骨架
 
 ## Current Position
 
-Phase: 01.1 (phase-1) — COMPLETE
-Plan: Not started
-**Phase:** 2 of 7 (知识库)
-**Status:** Ready to plan
-**Last Activity:** 2026-04-23
+Phase: 2 (knowledge-base-and-skeleton) — Not Started
+Plan: TBD
+**Phase:** 2 of 8 (知识库 + 双端骨架)
+**Status:** Ready to discuss
+**Last Activity:** 2026-04-24
 
-**Progress:** [██░░░░░░░░] 29% (2/7 phases, Phase 01.1 complete)
+**Progress:** [███░░░░░░] 25% (2/8 phases complete)
 
 ## Performance Metrics
 
@@ -82,7 +82,15 @@ None yet.
 
 ### Roadmap Evolution
 
-- Phase 1.1 inserted after Phase 1: 修复 Phase 1 评审高优先级问题 (INSERTED)
+- Phase 01.1 inserted after Phase 1: 修复 Phase 1 评审高优先级问题 (INSERTED) ✓ 2026-04-23
+- **ROADMAP Redesign (2026-04-24):**
+  - 采用"前端绑定每阶段"策略（Phase 2 建骨架，Phase 3-5 填充页面）
+  - Phase 2 增加：学员端骨架（NextJS）+ 管理端骨架（React + Vite）+ 登录界面
+  - Phase 3-5 各增加学员端功能页面（测评/教学/练习）
+  - Phase 6 增加：仪表板整合 + 首页导航
+  - Phase 7 增加：管理端完整界面
+  - 新增 UI requirements: UI-SKEL-01/02, UI-ASSESS-01, UI-TEACH-01, UI-PRAC-01, UI-DASH-01, UI-ADMIN-01
+  - REQUIREMENTS.md Traceability 更新：40 v1 requirements 全部映射
 
 ### Quick Tasks Completed
 
@@ -96,6 +104,7 @@ None yet.
 
 ## Session Continuity
 
-**Last Session:** 2026-04-23T09:12:22Z
-**Stopped At:** Completed 01.1-02 Debug Interface plan
-**Resume File:** .planning/phases/01.1-phase-1/01.1-02-SUMMARY.md
+**Last Session:** 2026-04-24T10:00:00Z
+**Stopped At:** ROADMAP redesign complete - Phase 2 ready to discuss
+**Resume File:** .planning/ROADMAP.md (updated structure)
+**Next Action:** `/wsf-discuss-phase 2` — 讨论 Phase 2（知识库 + 双端骨架）实现方案
