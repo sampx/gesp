@@ -1,6 +1,6 @@
 ---
-phase: 2
-slug: 知识库-双端骨架
+phase: 02
+slug: knowledge-base-and-skeleton
 status: draft
 shadcn_initialized: false
 preset: default
@@ -259,11 +259,11 @@ Accent reserved for: primary action buttons (保存, 添加知识点, 搜索), a
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-04-24
