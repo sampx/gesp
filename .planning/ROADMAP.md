@@ -2,9 +2,9 @@
 
 ## Overview
 
-构建面向 GESP 1~4 级 C++ 等级考试的 AI 自适应学习平台。采用"每阶段绑定前端界面"策略，确保每个核心阶段都有可视化验证界面。Phase 2 建立学员端/管理端骨架，后续 Phase 3-5 填充具体功能页面，Phase 6 整合仪表板，Phase 7 完善管理功能。
+构建面向 GESP 1~8 级 C++ 等级考试的 AI 自适应学习平台。采用"每阶段绑定前端界面"策略，确保每个核心阶段都有可视化验证界面。Phase 2 建立学员端/管理端骨架（统一为 NextJS + shadcn/ui），后续 Phase 3-5 填充具体功能页面，Phase 6 整合仪表板，Phase 7 完善管理功能。
 
-**架构变更：** Agent 引擎运行在 ellamaka，gesp backend 作为业务层代理调用。
+**架构变更：** Agent 引擎运行在 ellamaka，gesp backend 作为业务层代理调用。Phase 2 新增：前端统一（学员端+管理端合并），Embedding 使用 Ollama 本地模型。
 
 ## Phase Checklist
 
@@ -16,7 +16,7 @@ Decimal phases appear between integer phases in numerical order.
 
 - [x] **Phase 1: 基础设施与认证** — 项目初始化、gesp backend 框架、用户认证 ✓ 2026-04-23
 - [x] **Phase 01.1: 安全修复 + Debug 界面** — 修复 Phase 1 评审高优先级问题 + 验证界面 (INSERTED) ✓ 2026-04-23
-- [ ] **Phase 2: 知识库 + 双端骨架** — LanceDB 知识库、向量检索、学员端骨架、管理端骨架、登录界面
+- [ ] **Phase 2: 知识库 + 统一前端骨架** — LanceDB 知识库、向量检索、统一前端骨架（NextJS + shadcn）、登录界面
 - [ ] **Phase 3: 测评定级智能体 + 测评界面** — ellamaka assessor agent + gesp SDK 代理 + 学员端测评页面
 - [ ] **Phase 4: 教学讲解智能体 + 教学界面** — ellamaka teacher agent + SSE 流式 + 学员端教学页面
 - [ ] **Phase 5: 练习判题智能体 + 练习界面** — ellamaka grader agent + 判题反馈 + 学员端练习页面

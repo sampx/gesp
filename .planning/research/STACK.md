@@ -2,6 +2,7 @@
 
 **Domain:** GESP C++ AI 自适应学习平台
 **Researched:** 2026-04-22
+**Updated:** 2026-04-24（Phase 2: 前端合并、Embedding Ollama）
 **Confidence:** HIGH（基于 ellamaka 参考 + 官方文档验证）
 
 ## Recommended Stack
@@ -18,16 +19,36 @@
 | **Relational DB** | SQLite | 3.x | 轻量、嵌入式，适合 MVP。基于文件，无需额外服务器。 |
 | **Vector DB** | LanceDB | 0.10.x | 嵌入式向量数据库，与 Bun 兼容。适用于知识库语义检索。 |
 
-### Frontend Stack
+### Frontend Stack（Phase 2 统一架构）
 
 | Layer | Technology | Version | Rationale |
 |-------|------------|---------|-----------|
-| **Student App** | NextJS | 15.x | App Router、React Server Components 支持 SEO 和流式渲染。 |
-| **Admin App** | React + Vite | 18.x / 6.x | 快速开发服务器，HMR。参考 new-api Web 结构。 |
-| **Admin UI Library** | Semi Design | 2.x | 企业级组件库，中文友好。new-api 使用。 |
-| **Student UI** | Tailwind CSS + Kobalte | 3.x / 0.13.x | 现代样式 + SolidJS 组件用于交互部分。 |
+| **统一前端** | NextJS 15 | 15.x | App Router、React Server Components。学员端+管理端合并为单一应用，通过路由区分。 |
+| **UI Library** | shadcn/ui | latest | Radix UI + Tailwind CSS，高度可定制。学员端和管理端使用同一组件库但不同风格。 |
+| **Styling** | Tailwind CSS | 3.x | 与 shadcn/ui 配合，支持主题切换（学员端活泼、管理端专业）|
 | **State Management** | TanStack Query | 5.x | 服务端状态管理，缓存。 |
 | **Forms** | React Hook Form + Zod | 7.x / 3.x | 类型安全的表单验证。 |
+
+**Phase 2 架构变更（2026-04-24）：**
+- 原 Student App + Admin App（React+Vite+Semi）→ 合并为 `apps/web/`（NextJS 15 + shadcn/ui）
+- 学员端路由：`/student/*`（趣味风格）
+- 管理端路由：`/admin/*`（专业风格）
+- 统一登录入口：`/login`（三角色切换）
+
+### Embedding Stack（Phase 2 新增）
+
+| Layer | Technology | Version | Rationale |
+|-------|------------|---------|-----------|
+| **Embedding Provider** | Ollama | local | 本地 embedding，无网络依赖，免费。macmini.local:11434 已可用。 |
+| **Embedding Model** | nomic-embed-text-v2-moe | — | 高质量开源 embedding 模型，适合中英文混合内容。 |
+| **Vector DB** | LanceDB | 0.10.x | 嵌入式向量数据库，与 Bun 兼容。文件模式存储 `./data/gesp.lance`。 |
+
+**配置环境变量：**
+```bash
+EMBEDDING_BASE_URL=http://macmini.local:11434/v1
+EMBEDDING_MODEL=nomic-embed-text-v2-moe
+EMBEDDING_PROVIDER=ollama  # 开发默认，生产可切 openai
+```
 
 ### Monorepo Tooling
 
@@ -73,6 +94,7 @@
 | Prisma | Drizzle 在 SQLite + Bun 组合下更好，更轻量。 |
 | MongoDB | 不适合结构化教育数据。SQLite 更简单。 |
 | Pinecone/Qdrant（云端向量数据库）| LanceDB 嵌入式、零配置用于 MVP。云端向量数据库增加复杂度。 |
+| Semi Design | Phase 2 改用 shadcn/ui，统一学员端和管理端组件库。 |
 | Redux | TanStack Query 处理服务端状态，本地状态用 React hooks 即可。 |
 | 经典 OJ 系统（Judge0、DOMjudge）| v1 使用 AI 模拟判题，不需要真实代码执行。无需沙盒。 |
 
@@ -179,9 +201,11 @@ export const practice_records = sqliteTable("practice_records", {
 {
   "name": "gesp-learning-platform",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "turbo dev",
+    "dev:backend": "turbo dev --filter=@gesp/backend",
+    "dev:web": "turbo dev --filter=@gesp/web",
     "build": "turbo build",
     "typecheck": "turbo typecheck",
     "test": "turbo test"

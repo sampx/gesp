@@ -1,7 +1,7 @@
 # Requirements: GESP C++ 智能学习系统
 
 **Defined:** 2026-04-22
-**Updated:** 2026-04-24（ROADMAP 重设计：前端绑定策略）
+**Updated:** 2026-04-24（Phase 2 context: 前端合并、级别扩展 1-8、Ollama embedding）
 **Core Value:** AI 全流程自动化 — 测评定级、教学讲解、练习判题全部由 AI 智能体驱动
 **Architecture:** Agent 引擎运行在 ellamaka，gesp backend 作为业务层代理调用
 
@@ -16,7 +16,7 @@
 
 ### Knowledge Base
 
-- [ ] **KNOW-01**: 系统以结构化数据存储 GESP 1-4 级课程大纲
+- [ ] **KNOW-01**: 系统以结构化数据存储 GESP 1-8 级课程大纲（C++，后续可扩展 Python）
 - [ ] **KNOW-02**: 系统存储历年真题及元数据（级别、主题、难度）
 - [ ] **KNOW-03**: 系统为知识点和题目提供向量检索（LanceDB）
 - [ ] **KNOW-04**: 管理员可查看和编辑知识库内容
@@ -30,7 +30,7 @@
 ### Assessment Agent (测评定级智能体)
 
 - [ ] **ASSESS-01**: 系统根据学员级别生成自适应测评题目
-- [ ] **ASSESS-02**: 题目覆盖 GESP 1-4 级课程范围（各级别定义的主题）
+- [ ] **ASSESS-02**: 题目覆盖 GESP 1-8 级课程范围（各级别定义的主题）
 - [ ] **ASSESS-03**: 系统自动为学员答案评分（客观题 + 编程题）
 - [ ] **ASSESS-04**: 初始测评完成后确定学员起始级别（5-10 道题）
 - [ ] **ASSESS-05**: 测评进度增量保存（支持中断后恢复）

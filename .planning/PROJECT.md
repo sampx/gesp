@@ -2,9 +2,11 @@
 
 ## What This Is
 
-面向 GESP 1~4 级 C++ 等级考试的 AI 自适应智能学习平台，以 AI 智能体替代传统录课和 OJ 判题模式，覆盖"测评-学习-练习"全流程自动化。目标用户为青少年学员（中小学生），需要趣味性、可视化、互动性强的学习体验。
+面向 GESP 1~8 级 C++ 等级考试的 AI 自适应智能学习平台，以 AI 智能体替代传统录课和 OJ 判题模式，覆盖"测评-学习-练习"全流程自动化。目标用户为青少年学员（中小学生），需要趣味性、可视化、互动性强的学习体验。
 
 **架构特点：** Agent 引擎运行在 ellamaka 项目，gesp backend 作为业务层负责知识库查询、提示词组织、以及代理 ellamaka SDK 调用。
+
+**Phase 2 架构调整：** 学员端和管理端合并为统一前端（NextJS 15 + shadcn/ui），通过路由和风格区分角色。
 
 ## Core Value
 
@@ -38,7 +40,7 @@
 
 ### 领域背景
 
-- GESP 是全国青少年软件编程等级考试，C++ 1~4 级覆盖基础语法到算法入门
+- GESP 是全国青少年软件编程等级考试，C++ 1~8 级覆盖基础语法到高级算法（Python 同样有 8 级）
 - 传统学习模式：录课 + OJ 判题 + 教师人工讲解，成本高、个性化弱
 - AI 智能体可以替代录课（自动生成讲解）和 OJ（智能判题），大幅降低成本
 
@@ -47,21 +49,22 @@
 ```
 ┌─────────────────────────────────────────────────────┐
 │                   frontend                          │
-│         (student-app / admin-app)                   │
+│         apps/web/ (NextJS 15 + shadcn/ui)           │
+│         /student/* 学员端  /admin/* 管理端           │
 └──────────────────────┬──────────────────────────────┘
-                       │ HTTP/SSE
-                       ▼
+                        │ HTTP/SSE
+                        ▼
 ┌─────────────────────────────────────────────────────┐
 │                  gesp backend                       │
 │  ┌──────────┐  ┌──────────┐  ┌────────────────┐    │
 │  │ 业务逻辑 │  │ 知识库  │  │ ellamaka SDK   │    │
 │  │ 测评路径 │  │ LanceDB │  │ 代理层         │    │
 │  │ 提示词   │  │ SQLite  │  │ SSE 转发       │    │
-│  │ 组织     │  │         │  │                │    │
+│  │ 组织     │  │ Embed   │  │                │    │
 │  └──────────┘  └──────────┘  └────────────────┘    │
 └──────────────────────┬──────────────────────────────┘
-                       │ HTTP (SDK)
-                       ▼
+                        │ HTTP (SDK)
+                        ▼
 ┌─────────────────────────────────────────────────────┐
 │                   ellamaka                          │
 │  .opencode/agents/         gesp-plugin (嵌入)      │
@@ -78,6 +81,8 @@
 - ellamaka 作为独立 Agent 引擎，gesp 通过 SDK 远程调用
 - gesp-plugin 嵌入 ellamaka（类似 wopal-plugin），封装少量 API
 - 提示词在 gesp backend 组织后喂给 agent（而非 agent 自主查询）
+- **Phase 2 新增:** 前端统一为 NextJS 15 + shadcn/ui，学员端和管理端合并为 `apps/web/`
+- **Phase 2 新增:** Embedding 使用 Ollama 本地模型（nomic-embed-text-v2-moe）
 
 ### 参考项目
 
@@ -88,7 +93,7 @@
 
 ### 知识资源
 
-- GESP 1~4 级考试大纲
+- GESP 1~8 级考试大纲（C++ 和 Python）
 - 历年真题（客观题 + 编程题）
 - 教案、课堂练习、课后练习
 - 评分标准手册
@@ -108,23 +113,22 @@
 |------|------|------|
 | Backend | Hono + hono-openapi | 轻量 Web 框架 + OpenAPI 路由生成 |
 | AI Layer | ellamaka SDK | 远程调用 Agent 引擎 |
+| Embedding | Ollama (nomic-embed-text-v2-moe) | 本地 embedding，Phase 2 默认 |
 | ORM | Drizzle | 类型安全 SQL 查询 |
 | Database | SQLite + LanceDB | 关系数据 + 向量检索 |
-| Student Frontend | NextJS 15 | 学员学习界面（App Router）|
-| Admin Frontend | React + Vite + Semi Design | 管理后台（参考 new-api）|
+| Frontend | NextJS 15 + shadcn/ui | 统一前端（学员端 + 管理端合并）|
 | Runtime | Bun | 高性能 TypeScript 运行时 |
 | Build | Turborepo | Monorepo 构建协调 |
 
 ## Monorepo Structure
 
 ```
+apps/
+  web/            # NextJS 15 统一前端（学员端 + 管理端）
 packages/
   backend/        # Hono API + ellamaka SDK 代理层
-  student-app/    # NextJS 学员端
-  admin-app/      # React 管理端
-  sdk/            # gesp SDK（供 plugin 使用）
   shared/         # 共享类型和工具
-  ui/             # 共享 UI 组件库
+  ui/             # shadcn/ui 组件库（新建）
 ```
 
 **ellamaka 项目新增：**
@@ -143,6 +147,8 @@ packages/
 | Hono | 参考 ellamaka 成功架构，更轻量、原生 Bun 支持 | — Pending |
 | LanceDB 向量数据库 | 知识库语义检索，支持多模态 | — Pending |
 | AI 模拟判题 | v1 不做真实代码沙盒，降低复杂度 | — Pending |
+| **Phase 2:** 前端合并 | MVP 减少部署复杂度，学员端+管理端统一为 NextJS + shadcn | ✓ 2026-04-24 |
+| **Phase 2:** Embedding 用 Ollama | 本地免费、无网络依赖，macmini.local:11434 已可用 | ✓ 2026-04-24 |
 
 ## Evolution
 
@@ -162,4 +168,4 @@ packages/
 4. 用当前状态更新 Context
 
 ---
-*Last updated: 2026-04-23 after Phase 01.1 security fixes*
+*Last updated: 2026-04-24 after Phase 2 context gathering*

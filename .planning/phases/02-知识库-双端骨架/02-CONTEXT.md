@@ -83,7 +83,8 @@ gesp/
 - **ID:** 统一使用 UUID v4
 - **向量计算:** `embedding(point + ": " + description)`，description 为空时仅用 point
 
-### D-06: Embedding Provider — 抽象接口 + 默认 OpenAI
+### D-06: Embedding Provider — 抽象接口 + 默认 OpenAI，Ollama 已配置
+
 ```typescript
 // packages/backend/src/services/embedding.ts
 interface EmbeddingProvider {
@@ -94,11 +95,22 @@ interface EmbeddingProvider {
 // Phase 2 默认实现: OpenAI (可通过 env 切换)
 class OpenAIEmbeddingProvider implements EmbeddingProvider { ... }
 
-// 预留扩展: Ollama (用户已有本地模型)
+// Ollama 本地模型实现 (用户已配置)
 class OllamaEmbeddingProvider implements EmbeddingProvider { ... }
 ```
 
-**配置:** `EMBEDDING_PROVIDER=openai|ollama`，默认 `openai`。
+**环境变量配置 (Ollama 已可用):**
+```bash
+# .env.local 或 .env.development
+EMBEDDING_BASE_URL=http://macmini.local:11434/v1
+EMBEDDING_MODEL=nomic-embed-text-v2-moe
+```
+
+**配置策略:**
+- `EMBEDDING_PROVIDER=openai|ollama`，默认 `openai`（fallback 安全）
+- 开发测试优先使用 Ollama（本地、免费、无网络依赖）
+- 生产环境可切换到 OpenAI 或其他云端 provider
+- 接口设计允许后续添加更多 provider（豆包、DeepSeek 等）
 
 ### D-07: LanceDB 部署 — 文件模式 + 兼容接口
 - **Phase 2 实现:** `LanceDBFileStore`，数据存储在 `./data/gesp.lance`
@@ -122,6 +134,7 @@ class OllamaEmbeddingProvider implements EmbeddingProvider { ... }
 3. 写入 LanceDB
 
 ### D-10: Dev 启动脚本 — Turborepo Pipeline
+
 ```json
 // root package.json
 {
@@ -136,6 +149,25 @@ class OllamaEmbeddingProvider implements EmbeddingProvider { ... }
 - `bun run dev` — 启动 backend + web（默认）
 - `bun run dev:backend` — 只调 API
 - `bun run dev:web` — 只启动前端
+
+### D-11: 环境变量配置清单
+
+**Required for Phase 2:**
+```bash
+# Database
+DATABASE_URL=./data/gesp.db
+
+# Session
+SESSION_SECRET=your-secret-key
+
+# Embedding (Ollama 本地，用于开发测试)
+EMBEDDING_BASE_URL=http://macmini.local:11434/v1
+EMBEDDING_MODEL=nomic-embed-text-v2-moe
+EMBEDDING_PROVIDER=ollama  # 开发用 ollama，生产可切 openai
+
+# OpenAI (optional fallback)
+# OPENAI_API_KEY=sk-...
+```
 
 ### the agent's Discretion
 - **UI 具体样式:** shadcn 组件的具体主题配置（colors, spacing, typography）
