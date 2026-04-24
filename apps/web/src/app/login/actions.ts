@@ -18,6 +18,7 @@ export async function loginAction(formData: FormData) {
 
   const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
 
+  let redirectPath = "";
   try {
     const res = await fetch(`${backendUrl}/api/auth/login`, {
       method: "POST",
@@ -49,18 +50,20 @@ export async function loginAction(formData: FormData) {
       });
     }
 
-    // Role-based redirect
+    // Role-based redirect path
     const user = data.data?.user;
     const userRole = user?.role;
 
     if (userRole >= ROLE.ROOT) {
-      redirect("/admin/dashboard");
+      redirectPath = "/admin/dashboard";
     } else if (userRole >= ROLE.ADMIN) {
-      redirect("/admin/dashboard");
+      redirectPath = "/admin/dashboard";
     } else {
-      redirect("/student/dashboard");
+      redirectPath = "/student/dashboard";
     }
   } catch {
     return { error: "用户名或密码错误" }; // generic on network error too
   }
+
+  if (redirectPath) redirect(redirectPath);
 }
