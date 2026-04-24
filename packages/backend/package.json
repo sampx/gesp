@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.6",
+    "@lancedb/lancedb": "0.22.3",
+    "@lancedb/lancedb-darwin-arm64": "0.27.2",
     "bcryptjs": "^3.0.0",
     "drizzle-orm": "^0.39.0",
     "hono": "^4.0.0",
