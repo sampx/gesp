@@ -45,6 +45,11 @@ const paginationSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
+const listPointsSchema = paginationSchema.extend({
+  level: z.coerce.number().int().min(1).max(8).optional(),
+  block: z.string().optional(),
+});
+
 // ---------------------------------------------------------------------------
 // Helper: get KB service from context
 // ---------------------------------------------------------------------------
@@ -63,15 +68,19 @@ function getKB(c: { get: (key: string) => KnowledgeBaseService }): KnowledgeBase
 
 const adminKnowledgeRouter = new Hono<{ Variables: Variables }>();
 
-// List knowledge points (paginated)
+// List knowledge points (paginated, with optional level/block filters)
 adminKnowledgeRouter.get(
   '/points',
   AdminAuth(),
-  zValidator('query', paginationSchema),
+  zValidator('query', listPointsSchema),
   async (c) => {
     const kb = getKB(c);
-    const { page, limit } = c.req.valid('query');
-    const result = await kb.list('points', page, limit);
+    const { page, limit, level, block } = c.req.valid('query');
+    const filterParts: string[] = [];
+    if (level) filterParts.push(`level = ${level}`);
+    if (block) filterParts.push(`block = '${block.replace(/'/g, "''")}'`);
+    const filter = filterParts.length > 0 ? filterParts.join(' AND ') : undefined;
+    const result = await kb.list('points', page, limit, filter);
     return c.json({ success: true, message: 'Success', data: result });
   },
 );
