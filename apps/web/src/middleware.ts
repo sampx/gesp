@@ -49,9 +49,10 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next();
   } catch {
-    // Network error — allow request through (degraded mode)
-    // For MVP, be lenient rather than blocking all access
-    return NextResponse.next();
+    // Fail closed: deny access when backend is unreachable
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    response.cookies.delete("session_id");
+    return response;
   }
 }
 
