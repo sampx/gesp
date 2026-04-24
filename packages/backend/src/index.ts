@@ -4,9 +4,13 @@ import type { Context } from "hono";
 import { spawnSync } from "bun";
 import authRoutes from "./routes/auth";
 import debugRoutes from "./routes/debug";
+import { adminKnowledgeRouter, studentKnowledgeRouter } from "./routes/knowledge";
 import { runSeeds } from "./db/seed/admin.seed";
 import { logger } from "./utils/logger";
 import { requestLogger } from "./middleware/request-logger";
+import { createEmbeddingProvider } from "./services/embedding";
+import { LanceDBFileStore } from "./services/vector-store";
+import { KnowledgeBaseService } from "./services/knowledge-base";
 
 // Services — embedding provider for knowledge base
 export { createEmbeddingProvider, type EmbeddingProvider } from './services/embedding';
@@ -57,16 +61,32 @@ async function bootstrap() {
   // Request logging middleware - mount before routes
   app.use(requestLogger);
 
+  // Initialize KnowledgeBaseService
+  const embeddingProvider = createEmbeddingProvider();
+  const vectorStore = new LanceDBFileStore({
+    dbPath: process.env.LANCEDB_PATH || './data/gesp.lance',
+    embeddingProvider,
+  });
+  const knowledgeBaseService = new KnowledgeBaseService(vectorStore, embeddingProvider);
+
+  // Inject KnowledgeBaseService into request context
+  app.use('/api/admin/knowledge/*', async (c, next) => {
+    c.set('knowledgeBaseService', knowledgeBaseService);
+    await next();
+  });
+  app.use('/api/student/knowledge/*', async (c, next) => {
+    c.set('knowledgeBaseService', knowledgeBaseService);
+    await next();
+  });
+
   app.route("/api/auth", authRoutes);
+  app.route("/api/admin/knowledge", adminKnowledgeRouter);
+  app.route("/api/student/knowledge", studentKnowledgeRouter);
 
   // Debug route - production disabled unless ENABLE_DEBUG=true
   if (process.env.NODE_ENV !== "production" || process.env.ENABLE_DEBUG === "true") {
     app.route("/debug", debugRoutes);
   }
-
-  // TODO: Mount admin and student routes
-  // app.route("/api/admin", adminRoutes);
-  // app.route("/api/student", studentRoutes);
 
   // OpenAPI spec export
   app.use("/api/doc", openAPISpecs(app, {
