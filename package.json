@@ -7,9 +7,11 @@
     "build": "turbo build",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
-    "db:push": "bunx drizzle-kit push"
+    "db:push": "bunx drizzle-kit push",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
     "turbo": "^2.0.0",
     "typescript": "^5.5.0"
   },

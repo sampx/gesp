@@ -39,9 +39,11 @@ async function pushSchema(): Promise<void> {
 }
 
 async function bootstrap() {
-  logger.info({ action: "schema_push" }, "Schema push started");
-  await pushSchema();
-  logger.info({ action: "schema_push" }, "Schema push completed");
+  if (process.env.NODE_ENV !== "production") {
+    logger.info({ action: "schema_push" }, "Schema push started");
+    await pushSchema();
+    logger.info({ action: "schema_push" }, "Schema push completed");
+  }
   await runSeeds();
   logger.info({ action: "seed_run" }, "Seeds completed");
 
