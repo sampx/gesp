@@ -5,16 +5,8 @@ import { redirect } from "next/navigation";
 import { ROLE } from "@gesp/shared";
 
 export async function loginAction(formData: FormData) {
-  const role = formData.get("role") as string;
   const username = formData.get("username") as string;
   const password = formData.get("password") as string;
-
-  // Map frontend role to backend role expectation
-  const roleMap: Record<string, number[]> = {
-    student: [ROLE.STUDENT], // 1
-    teacher: [ROLE.ADMIN], // 10
-    admin: [ROLE.ROOT], // 100
-  };
 
   const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
 
