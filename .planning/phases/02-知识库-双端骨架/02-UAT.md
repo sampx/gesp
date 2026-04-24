@@ -1,9 +1,6 @@
 ---
-status: complete
-phase: 02-知识库-双端骨架
-source: [02-01-SUMMARY.md, 02-02-SUMMARY.md, 02-03-SUMMARY.md, 02-04-SUMMARY.md, 02-05-SUMMARY.md]
-started: 2026-04-24T14:12:39Z
-updated: 2026-04-24T14:45:00Z
+status: resolved
+updated: 2026-04-24T23:52:00Z
 ---
 
 ## Current Test
@@ -105,17 +102,18 @@ diagnosis: Automated test verified — admin session can access student search, 
 
 total: 13
 passed: 4
-issues: 4
+issues: 0 (resolved via gap closure 02-06/02-07)
 pending: 0
 skipped: 0
-blocked: 5
+blocked: 5 (navigation blocker resolved; awaiting re-test)
 
 ## Gaps
 
 ```yaml
 - truth: "Login page displays with proper shadcn/ui styling"
-  status: failed
+  status: resolved
   reason: "User reported: login 页面能打开, 页面太难看, 几乎无样式"
+  resolved_by: "02-06-PLAN: added @import tailwindcss to globals.css"
   severity: cosmetic
   test: 2
   artifacts:
@@ -125,8 +123,9 @@ blocked: 5
   root_cause: "Tailwind/shadcn styles not rendering - need investigation"
 
 - truth: "Admin login redirects to accessible dashboard at /admin/dashboard"
-  status: failed
+  status: resolved
   reason: "User reported: root(admin)可以登录, 但 dashboard 界面 404"
+  resolved_by: "02-06-PLAN: flattened route groups to /admin/ and /student/"
   severity: blocker
   test: 3
   artifacts:
@@ -139,8 +138,9 @@ blocked: 5
   fix_recommendation: "Remove Route Groups, restructure to flat `/admin/dashboard/page.tsx` and `/student/dashboard/page.tsx`"
 
 - truth: "Seed pipeline populates all 4 LanceDB tables from workspace seed data"
-  status: failed
+  status: resolved
   reason: "3 of 4 seed data files not found (practice/exam/lesson). Path resolution off by one directory level."
+  resolved_by: "02-07-PLAN: fixed resolveWorkspacePath to 5 levels + existence check uses dbPath"
   severity: major
   test: 6
   artifacts:
@@ -153,8 +153,9 @@ blocked: 5
   root_cause: "resolveWorkspacePath uses 4 `..` from packages/backend/src/seed/ = gesp project root, needs 5 `..` for workspace root. Also, seed existence check uses data/ dir instead of gesp.lance file."
 
 - truth: "Knowledge API PUT update returns success"
-  status: failed
+  status: resolved
   reason: "PUT /points/:id returns 500 - Record not found after create"
+  resolved_by: "02-07-PLAN: added tableCache.delete() to insert/update/delete methods"
   severity: major
   test: 8
   artifacts:
