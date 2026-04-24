@@ -95,8 +95,8 @@ export default function AdminKnowledgePointsPage() {
     try {
       if (sheetMode === "create") {
         await createPoint(formDataFromSchema(formData));
-      } else {
-        await updatePoint(selectedPoint!.id, formDataFromSchema(formData));
+      } else if (selectedPoint) {
+        await updatePoint(selectedPoint.id, formDataFromSchema(formData));
       }
       setSheetOpen(false);
       setSelectedPoint(null);
