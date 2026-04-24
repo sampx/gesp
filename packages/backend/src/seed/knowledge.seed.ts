@@ -13,8 +13,7 @@
  * instead of `bun` due to LanceDB native binding compatibility.
  */
 
-import { existsSync, readdirSync } from 'fs';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
@@ -37,8 +36,9 @@ function resolveSeedPath(relativePath: string): string {
 
 /** Resolve path relative to the workspace root (for external seed files) */
 function resolveWorkspacePath(relativePath: string): string {
-  // Navigate up from packages/backend/src/seed/ to project root
-  return join(__dirname, '..', '..', '..', '..', relativePath);
+  // Navigate up from packages/backend/src/seed/ to workspace root
+  // 5 levels: seed/ → src/ → backend/ → packages/ → gesp/ → workspace root
+  return join(__dirname, '..', '..', '..', '..', '..', relativePath);
 }
 
 // ---------------------------------------------------------------------------
@@ -297,25 +297,14 @@ async function seedLessonPlans(
  */
 export async function seedAll(force = false): Promise<void> {
   const dbPath = join(__dirname, '..', '..', 'data', 'gesp.lance');
-  const dbDir = join(__dirname, '..', '..', 'data');
 
   logger.info({ db_path: dbPath }, 'GESP Knowledge Base Seed Pipeline');
 
-  // Check if already seeded
-  if (!force && existsSync(dbDir)) {
-    try {
-      const files = readdirSync(dbDir);
-      if (files.length > 0) {
-        logger.info('Database directory already exists and is not empty. Use --force to re-seed.');
-        return;
-      }
-    } catch {
-      // Directory may be empty or inaccessible, proceed with seeding
-    }
-  }
-
-  if (force && existsSync(dbDir)) {
-    logger.info('Force mode: existing data will be replaced by new LanceDB tables.');
+  // Check for LanceDB data specifically, not the shared data/ directory
+  // which also contains SQLite's gesp.db
+  if (!force && existsSync(dbPath)) {
+    logger.info({ db_path: dbPath }, 'LanceDB data already exists. Use --force to re-seed.');
+    return;
   }
 
   // Create embedding provider
