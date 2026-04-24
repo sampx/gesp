@@ -30,11 +30,13 @@ async function pushSchema(): Promise<void> {
   const result = spawnSync({
     cmd: ["bun", "run", "db:push"],
     cwd: import.meta.dir,
-    stdout: "inherit",
-    stderr: "inherit",
+    stdout: "pipe",
+    stderr: "pipe",
   });
   if (result.exitCode !== 0) {
-    throw new Error(`Schema push failed with exit code ${result.exitCode}`);
+    const stderr = result.stderr.toString();
+    logger.error({ action: "schema_push", exit_code: result.exitCode }, "Schema push failed");
+    throw new Error(stderr || `Schema push failed with exit code ${result.exitCode}`);
   }
 }
 
