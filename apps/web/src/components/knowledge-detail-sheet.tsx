@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -37,6 +37,11 @@ export function KnowledgeDetailSheet({
   saving,
 }: Props) {
   const [editing, setEditing] = useState(mode === "edit" || mode === "create");
+
+  // Reset editing state when mode or open state changes
+  useEffect(() => {
+    setEditing(mode === "edit" || mode === "create");
+  }, [mode, open]);
 
   const title =
     mode === "create"
