@@ -19,13 +19,13 @@
 - [ ] **KNOW-01**: 系统以结构化数据存储 GESP 1-8 级课程大纲（C++，后续可扩展 Python）
 - [ ] **KNOW-02**: 系统存储历年真题及元数据（级别、主题、难度）
 - [ ] **KNOW-03**: 系统为知识点和题目提供向量检索（LanceDB）
-- [ ] **KNOW-04**: 管理员可查看和编辑知识库内容
-- [ ] **KNOW-05**: 管理员可添加新题目并进行元数据标签标注
+- [x] **KNOW-04**: 管理员可查看和编辑知识库内容
+- [x] **KNOW-05**: 管理员可添加新题目并进行元数据标签标注
 
 ### Frontend Skeleton (Phase 2 新增)
 
-- [ ] **UI-SKEL-01**: 学员可登录并看到学员端界面框架（路由、布局、导航）
-- [ ] **UI-SKEL-02**: 管理员可登录并看到管理端界面框架（路由、布局、导航）
+- [x] **UI-SKEL-01**: 学员可登录并看到学员端界面框架（路由、布局、导航）
+- [x] **UI-SKEL-02**: 管理员可登录并看到管理端界面框架（路由、布局、导航）
 
 ### Assessment Agent (测评定级智能体)
 
@@ -162,10 +162,10 @@
 | KNOW-01 | Phase 2 | Pending | gesp backend + LanceDB |
 | KNOW-02 | Phase 2 | Pending | gesp backend + LanceDB |
 | KNOW-03 | Phase 2 | Pending | gesp backend + LanceDB |
-| KNOW-04 | Phase 2 | Pending | gesp backend + 管理端界面 |
-| KNOW-05 | Phase 2 | Pending | gesp backend + 管理端界面 |
-| UI-SKEL-01 | Phase 2 | Pending | NextJS 学员端骨架 |
-| UI-SKEL-02 | Phase 2 | Pending | React + Vite 管理端骨架 |
+| KNOW-04 | Phase 2 | Complete | gesp backend + 管理端界面 |
+| KNOW-05 | Phase 2 | Complete | gesp backend + 管理端界面 |
+| UI-SKEL-01 | Phase 2 | Complete | NextJS 学员端骨架 |
+| UI-SKEL-02 | Phase 2 | Complete | React + Vite 管理端骨架 |
 | ASSESS-01 | Phase 3 | Pending | ellamaka assessor + gesp SDK |
 | ASSESS-02 | Phase 3 | Pending | ellamaka assessor + gesp SDK |
 | ASSESS-03 | Phase 3 | Pending | ellamaka assessor + gesp SDK |
