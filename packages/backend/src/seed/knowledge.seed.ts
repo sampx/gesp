@@ -21,6 +21,7 @@ import { randomUUID } from 'crypto';
 
 import { createEmbeddingProvider } from '../services/embedding';
 import { LanceDBFileStore, TABLES } from '../services/vector-store';
+import { logger } from '../utils/logger';
 
 // ---------------------------------------------------------------------------
 // Path helpers
@@ -63,7 +64,7 @@ async function embedInBatches(
 
   for (let i = 0; i < texts.length; i += BATCH_SIZE) {
     const batch = texts.slice(i, i + BATCH_SIZE);
-    console.log(`  Embedding batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(texts.length / BATCH_SIZE)} (${batch.length} texts)`);
+    logger.info({ batch: Math.floor(i / BATCH_SIZE) + 1, total_batches: Math.ceil(texts.length / BATCH_SIZE), count: batch.length }, 'Embedding batch');
     const embeddings = await provider.embedBatch(batch);
     allEmbeddings.push(...embeddings);
   }
@@ -92,12 +93,12 @@ async function seedKnowledgePoints(
   store: LanceDBFileStore,
   provider: ReturnType<typeof createEmbeddingProvider>
 ): Promise<number> {
-  console.log('\n📖 Seeding knowledge_points...');
+  logger.info('Seeding knowledge_points...');
 
   const filePath = resolveSeedPath('knowledge-points-gesp-cpp-1-8.json');
   const points = readJsonFile(filePath) as KnowledgePoint[];
 
-  console.log(`  Found ${points.length} knowledge points`);
+  logger.info({ count: points.length }, 'Found knowledge points');
 
   // Build embedding texts
   const texts = points.map((p) => {
@@ -116,7 +117,7 @@ async function seedKnowledgePoints(
   }));
 
   await store.insert(TABLES.KNOWLEDGE_POINTS, records);
-  console.log(`  ✅ Inserted ${records.length} knowledge points`);
+  logger.info({ count: records.length }, 'Inserted knowledge points');
   return records.length;
 }
 
@@ -144,7 +145,7 @@ async function seedPracticeQuestions(
   store: LanceDBFileStore,
   provider: ReturnType<typeof createEmbeddingProvider>
 ): Promise<number> {
-  console.log('\n📝 Seeding practice_questions...');
+  logger.info('Seeding practice_questions...');
 
   const filePath = resolveWorkspacePath(
     'docs/products/gesp/seed/practice-cpp-l1.json'
@@ -152,7 +153,7 @@ async function seedPracticeQuestions(
   const data = readJsonFile(filePath) as { practice_questions: PracticeQuestion[] };
   const questions = data.practice_questions;
 
-  console.log(`  Found ${questions.length} practice questions`);
+  logger.info({ count: questions.length }, 'Found practice questions');
 
   // Build embedding texts
   const texts = questions.map((q) => {
@@ -170,7 +171,7 @@ async function seedPracticeQuestions(
   }));
 
   await store.insert(TABLES.PRACTICE_QUESTIONS, records);
-  console.log(`  ✅ Inserted ${records.length} practice questions`);
+  logger.info({ count: records.length }, 'Inserted practice questions');
   return records.length;
 }
 
@@ -194,7 +195,7 @@ async function seedExamQuestions(
   store: LanceDBFileStore,
   provider: ReturnType<typeof createEmbeddingProvider>
 ): Promise<number> {
-  console.log('\n📋 Seeding exam_questions...');
+  logger.info('Seeding exam_questions...');
 
   const filePath = resolveWorkspacePath(
     'docs/products/gesp/seed/exam-cpp-l1-2026-03.json'
@@ -202,7 +203,7 @@ async function seedExamQuestions(
   const data = readJsonFile(filePath) as { exam_questions: ExamQuestion[] };
   const questions = data.exam_questions;
 
-  console.log(`  Found ${questions.length} exam questions`);
+  logger.info({ count: questions.length }, 'Found exam questions');
 
   // Build embedding texts
   const texts = questions.map((q) => {
@@ -232,7 +233,7 @@ async function seedExamQuestions(
   }));
 
   await store.insert(TABLES.EXAM_QUESTIONS, records);
-  console.log(`  ✅ Inserted ${records.length} exam questions`);
+  logger.info({ count: records.length }, 'Inserted exam questions');
   return records.length;
 }
 
@@ -255,7 +256,7 @@ async function seedLessonPlans(
   store: LanceDBFileStore,
   provider: ReturnType<typeof createEmbeddingProvider>
 ): Promise<number> {
-  console.log('\n📚 Seeding lesson_plans...');
+  logger.info('Seeding lesson_plans...');
 
   const filePath = resolveWorkspacePath(
     'docs/products/gesp/seed/lesson-cpp-g3-05.json'
@@ -263,7 +264,7 @@ async function seedLessonPlans(
   const data = readJsonFile(filePath) as { lesson_plans: LessonPlan[] };
   const plans = data.lesson_plans;
 
-  console.log(`  Found ${plans.length} lesson plans`);
+  logger.info({ count: plans.length }, 'Found lesson plans');
 
   // Build embedding texts
   const texts = plans.map((p) => {
@@ -281,7 +282,7 @@ async function seedLessonPlans(
   }));
 
   await store.insert(TABLES.LESSON_PLANS, records);
-  console.log(`  ✅ Inserted ${records.length} lesson plans`);
+  logger.info({ count: records.length }, 'Inserted lesson plans');
   return records.length;
 }
 
@@ -298,15 +299,14 @@ export async function seedAll(force = false): Promise<void> {
   const dbPath = join(__dirname, '..', '..', 'data', 'gesp.lance');
   const dbDir = join(__dirname, '..', '..', 'data');
 
-  console.log('🚀 GESP Knowledge Base Seed Pipeline');
-  console.log(`   DB path: ${dbPath}`);
+  logger.info({ db_path: dbPath }, 'GESP Knowledge Base Seed Pipeline');
 
   // Check if already seeded
   if (!force && existsSync(dbDir)) {
     try {
       const files = readdirSync(dbDir);
       if (files.length > 0) {
-        console.log('⏭️  Database directory already exists and is not empty. Use --force to re-seed.');
+        logger.info('Database directory already exists and is not empty. Use --force to re-seed.');
         return;
       }
     } catch {
@@ -315,16 +315,16 @@ export async function seedAll(force = false): Promise<void> {
   }
 
   if (force && existsSync(dbDir)) {
-    console.log('🔄 Force mode: existing data will be replaced by new LanceDB tables.');
+    logger.info('Force mode: existing data will be replaced by new LanceDB tables.');
   }
 
   // Create embedding provider
-  console.log('\n🔧 Creating EmbeddingProvider...');
+  logger.info('Creating EmbeddingProvider...');
   const embeddingProvider = createEmbeddingProvider();
-  console.log(`   Provider: ${process.env.EMBEDDING_PROVIDER || 'ollama'}`);
+  logger.info({ provider: process.env.EMBEDDING_PROVIDER || 'ollama' }, 'EmbeddingProvider created');
 
   // Create vector store
-  console.log('🔧 Creating LanceDBFileStore...');
+  logger.info('Creating LanceDBFileStore...');
   const store = new LanceDBFileStore({
     dbPath,
     embeddingProvider,
@@ -339,13 +339,8 @@ export async function seedAll(force = false): Promise<void> {
   results[TABLES.LESSON_PLANS] = await seedLessonPlans(store, embeddingProvider);
 
   // Summary
-  console.log('\n' + '='.repeat(50));
-  console.log('📊 Seed Summary:');
-  for (const [table, count] of Object.entries(results)) {
-    console.log(`   ${table}: ${count} records`);
-  }
-  console.log('='.repeat(50));
-  console.log('✅ Knowledge base seeding complete!');
+  logger.info({ results }, 'Seed summary');
+  logger.info('Knowledge base seeding complete');
 }
 
 // ---------------------------------------------------------------------------
@@ -356,6 +351,6 @@ const args = process.argv.slice(2);
 const forceMode = args.includes('--force') || args.includes('-f');
 
 seedAll(forceMode).catch((err) => {
-  console.error('❌ Seed failed:', err);
+  logger.error({ err }, 'Seed failed');
   process.exit(1);
 });
