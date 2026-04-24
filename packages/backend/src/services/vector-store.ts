@@ -183,6 +183,8 @@ export class LanceDBFileStore implements VectorStore {
     if (existingTables.includes(tableName)) {
       const table = await this.getOrConnectTable(tableName);
       await table.add(records);
+      // Invalidate cache after mutation
+      this.tableCache.delete(tableName);
     } else {
       // Create table with first batch of records
       const table = await db.createTable(tableName, records);
@@ -229,12 +231,17 @@ export class LanceDBFileStore implements VectorStore {
     const table = await this.getOrConnectTable(tableName);
     await table.delete(`id = '${safeId}'`);
     await table.add([data]);
+    // Invalidate cache — LanceDB table reference may return stale data
+    // after delete+add mutation
+    this.tableCache.delete(tableName);
   }
 
   async delete(tableName: string, id: string): Promise<void> {
     const safeId = sanitizeId(id);
     const table = await this.getOrConnectTable(tableName);
     await table.delete(`id = '${safeId}'`);
+    // Invalidate cache after mutation
+    this.tableCache.delete(tableName);
   }
 
   async count(tableName: string): Promise<number> {
