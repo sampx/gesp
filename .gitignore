@@ -3,4 +3,5 @@ node_modules
 packages/*/.turbo/
 data/
 dist/
+packages/backend/data/
 .DS_Store

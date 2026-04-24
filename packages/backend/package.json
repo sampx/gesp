@@ -8,7 +8,8 @@
     "db:push": "drizzle-kit push --force",
     "build": "bun build ./src/index.ts --outdir ./dist",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "seed:knowledge": "bun run src/seed/knowledge.seed.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.6",
