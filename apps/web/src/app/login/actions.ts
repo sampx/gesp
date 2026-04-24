@@ -45,7 +45,7 @@ export async function loginAction(formData: FormData) {
       cookieStore.set("session_id", sessionId, {
         path: "/",
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60,
       });
     }
