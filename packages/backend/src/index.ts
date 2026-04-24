@@ -8,6 +8,9 @@ import { runSeeds } from "./db/seed/admin.seed";
 import { logger } from "./utils/logger";
 import { requestLogger } from "./middleware/request-logger";
 
+// Services — embedding provider for knowledge base
+export { createEmbeddingProvider, type EmbeddingProvider } from './services/embedding';
+
 const app = new Hono();
 
 async function findAvailablePort(startPort: number, maxAttempts = 10): Promise<number> {
