@@ -96,5 +96,6 @@ declare module "hono" {
   interface ContextVariableMap {
     user: typeof users.$inferSelect;
     session: typeof sessions.$inferSelect;
+    knowledgeBaseService: import('../services/knowledge-base').KnowledgeBaseService;
   }
 }

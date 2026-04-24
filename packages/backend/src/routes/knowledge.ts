@@ -104,7 +104,8 @@ adminKnowledgeRouter.get(
   AdminAuth(),
   async (c) => {
     const kb = getKB(c);
-    const result = await kb.get('points', c.req.param('id'));
+    const id = c.req.param('id')!;
+    const result = await kb.get('points', id);
     if (!result) return error(c, 'Not found', 404);
     return c.json({ success: true, message: 'Success', data: result });
   },
@@ -131,7 +132,7 @@ adminKnowledgeRouter.put(
   async (c) => {
     const kb = getKB(c);
     const data = c.req.valid('json');
-    const result = await kb.update('points', c.req.param('id'), data);
+    const result = await kb.update('points', c.req.param('id')!, data);
     return c.json({ success: true, message: 'Success', data: result });
   },
 );
@@ -142,7 +143,7 @@ adminKnowledgeRouter.delete(
   AdminAuth(),
   async (c) => {
     const kb = getKB(c);
-    await kb.delete('points', c.req.param('id'));
+    await kb.delete('points', c.req.param('id')!);
     return c.json({ success: true, message: '已删除' });
   },
 );
