@@ -1,9 +1,11 @@
 {
   "name": "gesp-learning-platform",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "turbo dev",
+    "dev:web": "turbo run dev --filter=@gesp/web",
+    "dev:backend": "turbo run dev --filter=@gesp/backend",
     "build": "turbo build",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
