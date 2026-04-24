@@ -1,10 +1,11 @@
 ---
 phase: 02
 slug: knowledge-base-and-skeleton
-status: draft
+status: approved
 shadcn_initialized: false
 preset: default
 created: 2026-04-24
+approved: 2026-04-24
 ---
 
 # Phase 2 — UI Design Contract
