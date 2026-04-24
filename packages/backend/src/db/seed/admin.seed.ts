@@ -2,6 +2,7 @@ import { db } from "../index";
 import { users } from "../schema/users";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "../../utils/password";
+import { logger } from "../../utils/logger";
 import { ROLE, USER_STATUS } from "@gesp/shared";
 
 export async function seedAdmin(): Promise<void> {
@@ -11,7 +12,7 @@ export async function seedAdmin(): Promise<void> {
   });
 
   if (existingRoot) {
-    console.log("Admin already exists, skipping seed");
+    logger.info({ action: "seed_skip" }, "Admin already exists, skipping seed");
     return;
   }
 
@@ -26,8 +27,10 @@ export async function seedAdmin(): Promise<void> {
 
   // Development: warn when using default password
   if (!password) {
-    console.warn("WARNING: Using default password 'admin123'. CHANGE IMMEDIATELY!");
-    console.warn("WARNING: Set ADMIN_PASSWORD environment variable for security.");
+    logger.warn(
+      { action: "seed_default_password", env: "development" },
+      "Using default password 'admin123'. Set ADMIN_PASSWORD environment variable for security"
+    );
   }
 
   // Hash password
@@ -43,7 +46,7 @@ export async function seedAdmin(): Promise<void> {
     status: USER_STATUS.ENABLED,
   });
 
-  console.log(`Root admin seeded: ${username}`);
+  logger.info({ action: "seed_admin", username }, "Root admin seeded");
 }
 
 // Export function to run seed
