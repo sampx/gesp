@@ -58,13 +58,18 @@ export type TableName = (typeof TABLES)[keyof typeof TABLES];
 let lancedb: typeof import('@lancedb/lancedb') | null = null;
 let lancedbLoadError: string | null = null;
 
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  lancedb = require('@lancedb/lancedb');
-} catch (err) {
-  lancedbLoadError = `LanceDB native binding not available: ${err instanceof Error ? err.message : String(err)}. ` +
-    'On Intel Mac, use `node --import tsx` instead of `bun`. ' +
-    'Ensure @lancedb/lancedb is installed with the correct platform-specific optional dependency.';
+async function loadLancedb(): Promise<typeof import('@lancedb/lancedb')> {
+  if (lancedb) return lancedb;
+  try {
+    const mod = await import('@lancedb/lancedb');
+    lancedb = mod;
+    return lancedb;
+  } catch (err) {
+    lancedbLoadError = `LanceDB native binding not available: ${err instanceof Error ? err.message : String(err)}. ` +
+      'On Intel Mac, use `node --import tsx` instead of `bun`. ' +
+      'Ensure @lancedb/lancedb is installed with the correct platform-specific optional dependency.';
+    throw new Error(lancedbLoadError);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -90,9 +95,6 @@ export class LanceDBFileStore implements VectorStore {
   private tableCache: Map<string, unknown> = new Map();
 
   constructor(opts: { dbPath: string; embeddingProvider: EmbeddingProvider }) {
-    if (!lancedb) {
-      throw new Error(lancedbLoadError || 'LanceDB not available');
-    }
     this.dbPath = opts.dbPath;
     this.embeddingProvider = opts.embeddingProvider;
   }
@@ -100,7 +102,8 @@ export class LanceDBFileStore implements VectorStore {
   /** Connect to (or create) the LanceDB database */
   private async getDb() {
     if (!this.db) {
-      this.db = await lancedb!.connect(this.dbPath);
+      const mod = await loadLancedb();
+      this.db = await mod.connect(this.dbPath);
     }
     return this.db;
   }

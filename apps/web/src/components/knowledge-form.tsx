@@ -77,10 +77,10 @@ export function KnowledgeForm({
         <div className="space-y-2">
           <Label>GESP 级别 *</Label>
           <Select
+            value={String(watch("level"))}
             onValueChange={(val) => {
               if (val) setValue("level", Number(val));
             }}
-            defaultValue={String(defaultValues?.level || 1)}
           >
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -99,10 +99,10 @@ export function KnowledgeForm({
         <div className="space-y-2">
           <Label>掌握程度</Label>
           <Select
+            value={watch("mastery_verb") ?? "了解"}
             onValueChange={(val) => {
               if (val) setValue("mastery_verb", val as KnowledgePointFormData["mastery_verb"]);
             }}
-            defaultValue={defaultValues?.mastery_verb || "了解"}
           >
             <SelectTrigger className="w-full">
               <SelectValue />

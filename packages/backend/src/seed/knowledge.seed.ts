@@ -13,10 +13,9 @@
  * instead of `bun` due to LanceDB native binding compatibility.
  */
 
-import { existsSync, readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { randomUUID } from 'crypto';
 
 import { createEmbeddingProvider } from '../services/embedding';
 import { LanceDBFileStore, TABLES } from '../services/vector-store';
@@ -37,8 +36,8 @@ function resolveSeedPath(relativePath: string): string {
 /** Resolve path relative to the workspace root (for external seed files) */
 function resolveWorkspacePath(relativePath: string): string {
   // Navigate up from packages/backend/src/seed/ to workspace root
-  // 5 levels: seed/ → src/ → backend/ → packages/ → gesp/ → workspace root
-  return join(__dirname, '..', '..', '..', '..', '..', relativePath);
+  // 6 levels: seed/ → src/ → backend/ → packages/ → gesp/ → projects/ → workspace root
+  return join(__dirname, '..', '..', '..', '..', '..', '..', relativePath);
 }
 
 // ---------------------------------------------------------------------------
@@ -89,7 +88,7 @@ interface KnowledgePoint {
   tags: string[];
 }
 
-async function seedKnowledgePoints(
+export async function seedKnowledgePoints(
   store: LanceDBFileStore,
   provider: ReturnType<typeof createEmbeddingProvider>
 ): Promise<number> {
@@ -141,7 +140,7 @@ interface PracticeQuestion {
   status: string;
 }
 
-async function seedPracticeQuestions(
+export async function seedPracticeQuestions(
   store: LanceDBFileStore,
   provider: ReturnType<typeof createEmbeddingProvider>
 ): Promise<number> {
@@ -166,11 +165,25 @@ async function seedPracticeQuestions(
   const vectors = await embedInBatches(provider, texts);
 
   const records = questions.map((q, i) => ({
-    ...q,
+    id: q.id,
+    lesson_ref: q.lesson_ref ?? '',
+    language: q.language,
+    level: q.level,
+    difficulty: q.difficulty,
+    question_type: q.question_type,
+    point_ids: JSON.stringify(q.point_ids || []),
+    content: q.content,
+    options: JSON.stringify(q.options),
+    answer: q.answer,
+    score: q.score,
+    explanation: q.explanation,
+    hints: JSON.stringify(q.hints || []),
+    common_mistakes: JSON.stringify(q.common_mistakes || []),
+    test_cases: JSON.stringify(q.test_cases || []),
+    tags: JSON.stringify(q.tags || []),
+    status: q.status,
     vector: vectors[i],
   }));
-
-  await store.insert(TABLES.PRACTICE_QUESTIONS, records);
   logger.info({ count: records.length }, 'Inserted practice questions');
   return records.length;
 }
@@ -191,7 +204,7 @@ interface ExamQuestion {
   test_cases?: Array<{ input: string; output: string; hidden?: boolean }>;
 }
 
-async function seedExamQuestions(
+export async function seedExamQuestions(
   store: LanceDBFileStore,
   provider: ReturnType<typeof createEmbeddingProvider>
 ): Promise<number> {
@@ -221,14 +234,14 @@ async function seedExamQuestions(
     question_type: q.question_type,
     question_number: q.question_number,
     content: q.content,
-    options: q.options,
+    options: JSON.stringify(q.options),
     answer: q.answer,
     score: q.score,
-    tags: q.tags || [],
+    tags: JSON.stringify(q.tags || []),
     explanation: q.explanation || '',
     reference_code: q.reference_code || '',
-    point_ids: q.point_ids || [],
-    test_cases: q.test_cases || [],
+    point_ids: JSON.stringify(q.point_ids || []),
+    test_cases: JSON.stringify(q.test_cases || []),
     vector: vectors[i],
   }));
 
@@ -252,7 +265,7 @@ interface LessonPlan {
   source_file: string;
 }
 
-async function seedLessonPlans(
+export async function seedLessonPlans(
   store: LanceDBFileStore,
   provider: ReturnType<typeof createEmbeddingProvider>
 ): Promise<number> {
@@ -277,7 +290,18 @@ async function seedLessonPlans(
   const vectors = await embedInBatches(provider, texts);
 
   const records = plans.map((p, i) => ({
-    ...p,
+    id: p.id,
+    language: p.language,
+    level: p.level,
+    phase: p.phase,
+    title: p.title,
+    objectives: JSON.stringify(p.objectives || []),
+    key_points: JSON.stringify(p.key_points || []),
+    difficulties: JSON.stringify(p.difficulties || []),
+    teaching_design: JSON.stringify(p.teaching_design || []),
+    evaluation: p.evaluation || '',
+    tags: JSON.stringify(p.tags || []),
+    source_file: p.source_file || '',
     vector: vectors[i],
   }));
 
@@ -286,60 +310,4 @@ async function seedLessonPlans(
   return records.length;
 }
 
-// ---------------------------------------------------------------------------
-// Main seed function
-// ---------------------------------------------------------------------------
-
-/**
- * Seed all knowledge base tables into LanceDB.
- *
- * @param force - If true, re-seed even if data directory already exists.
- */
-export async function seedAll(force = false): Promise<void> {
-  const dbPath = join(__dirname, '..', '..', 'data', 'gesp.lance');
-
-  logger.info({ db_path: dbPath }, 'GESP Knowledge Base Seed Pipeline');
-
-  // Check for LanceDB data specifically, not the shared data/ directory
-  // which also contains SQLite's gesp.db
-  if (!force && existsSync(dbPath)) {
-    logger.info({ db_path: dbPath }, 'LanceDB data already exists. Use --force to re-seed.');
-    return;
-  }
-
-  // Create embedding provider
-  logger.info('Creating EmbeddingProvider...');
-  const embeddingProvider = createEmbeddingProvider();
-  logger.info({ provider: process.env.EMBEDDING_PROVIDER || 'ollama' }, 'EmbeddingProvider created');
-
-  // Create vector store
-  logger.info('Creating LanceDBFileStore...');
-  const store = new LanceDBFileStore({
-    dbPath,
-    embeddingProvider,
-  });
-
-  // Seed all tables
-  const results: Record<string, number> = {};
-
-  results[TABLES.KNOWLEDGE_POINTS] = await seedKnowledgePoints(store, embeddingProvider);
-  results[TABLES.PRACTICE_QUESTIONS] = await seedPracticeQuestions(store, embeddingProvider);
-  results[TABLES.EXAM_QUESTIONS] = await seedExamQuestions(store, embeddingProvider);
-  results[TABLES.LESSON_PLANS] = await seedLessonPlans(store, embeddingProvider);
-
-  // Summary
-  logger.info({ results }, 'Seed summary');
-  logger.info('Knowledge base seeding complete');
-}
-
-// ---------------------------------------------------------------------------
-// CLI entry point
-// ---------------------------------------------------------------------------
-
-const args = process.argv.slice(2);
-const forceMode = args.includes('--force') || args.includes('-f');
-
-seedAll(forceMode).catch((err) => {
-  logger.error({ err }, 'Seed failed');
-  process.exit(1);
-});
+// CLI entry point: scripts/seed-knowledge.ts

@@ -9,7 +9,7 @@
     "build": "bun build ./src/index.ts --outdir ./dist",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "seed:knowledge": "bun run src/seed/knowledge.seed.ts"
+    "seed:knowledge": "EMBEDDING_PROVIDER=mock bun run src/seed/knowledge.seed.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.6",
