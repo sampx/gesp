@@ -115,7 +115,8 @@ gesp/
 │           ├── types/        # ApiResponse, User
 │           └── constants/    # ROLE (1/10/100), USER_STATUS (1/2)
 ├── scripts/
-│   └── verify-auth.ts   # 端到端验证脚本
+│   ├── seed-knowledge.ts # 知识库 seed 脚本（手动执行）
+│   └── verify-auth.ts    # 端到端验证脚本
 ├── turbo.json
 └── package.json
 ```
@@ -126,11 +127,27 @@ gesp/
 
 | 命令 | 说明 |
 |------|------|
-| `bun run dev` | 启动开发服务器（自动建表 + seed） |
+| `bun run dev` | 启动开发服务器（自动建表 + seed root admin） |
 | `bun run db:push` | 同步表结构 |
 | `bun run typecheck` | 类型检查 |
 | `bun run test` | 单元测试 |
+| `bun run seed:knowledge` | 知识库 seed（补 seed 缺失表） |
+| `bun run seed:knowledge -- --force` | 知识库 seed（强制重建全部表） |
+| `EMBEDDING_PROVIDER=mock bun run seed:knowledge` | 知识库 seed（mock embedding，无需 Ollama） |
 | `bun scripts/verify-auth.ts` | 认证系统 E2E 验证（需先 dev） |
+
+### 知识库 Seed 说明
+
+知识库（LanceDB）的 4 张表需要手动 seed，后端启动时不会自动执行：
+
+| 表 | 数据源 | 说明 |
+|---|---|---|
+| knowledge_points | `packages/backend/src/seed/knowledge-points-gesp-cpp-1-8.json` | GESP 1-8 级知识点 |
+| practice_questions | `docs/products/gesp/seed/practice-cpp-l1.json`（空间仓库） | 练习题 |
+| exam_questions | `docs/products/gesp/seed/exam-cpp-l1-2026-03.json`（空间仓库） | 真题 |
+| lesson_plans | `docs/products/gesp/seed/lesson-cpp-g3-05.json`（空间仓库） | 教案 |
+
+逐表检测：已有数据的表自动跳过，只 seed 空表。`--force` 跳过检测强制重建。
 
 ---
 

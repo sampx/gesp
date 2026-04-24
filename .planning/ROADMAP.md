@@ -16,7 +16,7 @@ Decimal phases appear between integer phases in numerical order.
 
 - [x] **Phase 1: 基础设施与认证** — 项目初始化、gesp backend 框架、用户认证 ✓ 2026-04-23
 - [x] **Phase 01.1: 安全修复 + Debug 界面** — 修复 Phase 1 评审高优先级问题 + 验证界面 (INSERTED) ✓ 2026-04-23
-- [ ] **Phase 2: 知识库 + 统一前端骨架** — LanceDB 知识库、向量检索、统一前端骨架（NextJS + shadcn）、登录界面
+- [x] **Phase 2: 知识库 + 统一前端骨架** — LanceDB 知识库、向量检索、统一前端骨架（NextJS + shadcn）、登录界面 ✓ 2026-04-25
 - [ ] **Phase 3: 测评定级智能体 + 测评界面** — ellamaka assessor agent + gesp SDK 代理 + 学员端测评页面
 - [ ] **Phase 4: 教学讲解智能体 + 教学界面** — ellamaka teacher agent + SSE 流式 + 学员端教学页面
 - [ ] **Phase 5: 练习判题智能体 + 练习界面** — ellamaka grader agent + 判题反馈 + 学员端练习页面
@@ -71,7 +71,17 @@ Plans:
   8. 教员可登录并看到管理端界面框架（路由、布局、导航）
   9. 登录界面支持学员和教员和管理员(当前是 admin, 需要改成 root)角色切换
   10. (架构调整) 管理前端与学员前端系统统一技术栈为 shadcn, 采用不同风格组件
-**Plans:** TBD
+**Plans:** 7/7 complete
+**Status:** Complete (2026-04-25)
+
+Plans:
+- [x] 02-01-PLAN.md — LanceDB 集成 + 向量检索 API
+- [x] 02-02-PLAN.md — 知识库 CRUD API
+- [x] 02-03-PLAN.md — 统一前端项目初始化
+- [x] 02-04-PLAN.md — 登录界面 + 路由守卫
+- [x] 02-05-PLAN.md — 管理端 + 学员端骨架
+- [x] 02-06-PLAN.md — Frontend Gap Closure
+- [x] 02-07-PLAN.md — Backend Gap Closure
 
 ### Phase 3: 测评定级智能体 + 测评界面
 **Goal:** 新学员可完成自适应测评并获得等级定位，可在学员端界面看到测评题目和结果
