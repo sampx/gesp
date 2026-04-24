@@ -68,6 +68,18 @@ try {
 }
 
 // ---------------------------------------------------------------------------
+// ID sanitization — prevent filter injection in LanceDB queries
+// ---------------------------------------------------------------------------
+
+function sanitizeId(id: string): string {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(id)) {
+    throw new Error(`Invalid ID format: ${id}`);
+  }
+  return id;
+}
+
+// ---------------------------------------------------------------------------
 // LanceDBFileStore implementation
 // ---------------------------------------------------------------------------
 
@@ -202,8 +214,9 @@ export class LanceDBFileStore implements VectorStore {
   }
 
   async getById(tableName: string, id: string): Promise<KnowledgeResult | null> {
+    const safeId = sanitizeId(id);
     const table = await this.getOrConnectTable(tableName);
-    const results = await table.query().where(`id = '${id}'`).limit(1).toArray();
+    const results = await table.query().where(`id = '${safeId}'`).limit(1).toArray();
 
     if (results.length === 0) return null;
     return results[0] as KnowledgeResult;
@@ -212,14 +225,16 @@ export class LanceDBFileStore implements VectorStore {
   async update(tableName: string, id: string, data: Record<string, unknown>): Promise<void> {
     // LanceDB doesn't support in-place update — use delete + re-insert pattern.
     // The record must include all fields including the vector.
+    const safeId = sanitizeId(id);
     const table = await this.getOrConnectTable(tableName);
-    await table.delete(`id = '${id}'`);
+    await table.delete(`id = '${safeId}'`);
     await table.add([data]);
   }
 
   async delete(tableName: string, id: string): Promise<void> {
+    const safeId = sanitizeId(id);
     const table = await this.getOrConnectTable(tableName);
-    await table.delete(`id = '${id}'`);
+    await table.delete(`id = '${safeId}'`);
   }
 
   async count(tableName: string): Promise<number> {
