@@ -106,7 +106,7 @@ Plans:
 - [x] 02.1-03-PLAN.md — 前端设置/管理：密码修改表单、设置页面、管理员用户管理页面 + Dialogs
 - [x] 02.1-04-PLAN.md — Gap: Admin 侧边栏 sticky + Badge 对齐 + 登出确认
 - [x] 02.1-05-PLAN.md — Gap: 移除注册页教师角色卡
-- [ ] 02.1-06-PLAN.md — Gap: 重复用户名注册防护
+- [x] 02.1-06-PLAN.md — Gap: 重复用户名注册防护
 - [x] 02.1-07-PLAN.md — Gap: Analytics 占位页
 
 ### Phase 3: 测评定级智能体 + 测评界面
