@@ -4,6 +4,7 @@ import { Scalar } from "@scalar/hono-api-reference";
 import type { Context } from "hono";
 import { spawnSync } from "bun";
 import authRoutes from "./routes/auth";
+import adminUsersRoutes from "./routes/admin-users";
 import debugRoutes from "./routes/debug";
 import { adminKnowledgeRouter, studentKnowledgeRouter } from "./routes/knowledge";
 import { runSeeds } from "./db/seed/admin.seed";
@@ -81,6 +82,7 @@ async function bootstrap() {
   });
 
   app.route("/api/auth", authRoutes);
+  app.route("/api/admin/users", adminUsersRoutes);
   app.route("/api/admin/knowledge", adminKnowledgeRouter);
   app.route("/api/student/knowledge", studentKnowledgeRouter);
 
