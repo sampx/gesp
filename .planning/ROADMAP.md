@@ -101,11 +101,11 @@ Plans:
 **Plans:** 7 planned
 
 Plans:
-- [ ] 02.1-01-PLAN.md — 后端 API：Seed 迁移、注册 role 支持、修改密码 API、管理员用户管理 CRUD
-- [ ] 02.1-02-PLAN.md — 前端认证：注册页面、登录页更新、学员 Navbar、管理端侧边栏用户区、登出
-- [ ] 02.1-03-PLAN.md — 前端设置/管理：密码修改表单、设置页面、管理员用户管理页面 + Dialogs
+- [x] 02.1-01-PLAN.md — 后端 API：Seed 迁移、注册 role 支持、修改密码 API、管理员用户管理 CRUD
+- [x] 02.1-02-PLAN.md — 前端认证：注册页面、登录页更新、学员 Navbar、管理端侧边栏用户区、登出
+- [x] 02.1-03-PLAN.md — 前端设置/管理：密码修改表单、设置页面、管理员用户管理页面 + Dialogs
 - [ ] 02.1-04-PLAN.md — Gap: Admin 侧边栏 sticky + Badge 对齐 + 登出确认
-- [ ] 02.1-05-PLAN.md — Gap: 移除注册页教师角色卡
+- [x] 02.1-05-PLAN.md — Gap: 移除注册页教师角色卡
 - [ ] 02.1-06-PLAN.md — Gap: 重复用户名注册防护
 - [ ] 02.1-07-PLAN.md — Gap: Analytics 占位页
 
