@@ -54,7 +54,10 @@ async function main() {
   const results: Record<string, number> = {};
 
   for (const { name, seed } of tables) {
-    if (!force) {
+    if (force) {
+      await store.dropTable(name);
+      logger.info({ table: name }, 'Dropped existing table (force mode)');
+    } else {
       try {
         const rowCount = await store.count(name);
         if (rowCount > 0) {

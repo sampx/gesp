@@ -251,4 +251,13 @@ export class LanceDBFileStore implements VectorStore {
     const table = await this.getOrConnectTable(tableName);
     return table.countRows();
   }
+
+  async dropTable(tableName: string): Promise<void> {
+    const db = await this.getDb();
+    const existingTables = await db.tableNames();
+    if (existingTables.includes(tableName)) {
+      await db.dropTable(tableName);
+      this.tableCache.delete(tableName);
+    }
+  }
 }
