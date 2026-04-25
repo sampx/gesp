@@ -1,7 +1,7 @@
 # Requirements: GESP C++ 智能学习系统
 
 **Defined:** 2026-04-22
-**Updated:** 2026-04-24（Phase 2 context: 前端合并、级别扩展 1-8、Ollama embedding）
+**Updated:** 2026-04-25（Phase 2.1: 用户基础流程补齐）
 **Core Value:** AI 全流程自动化 — 测评定级、教学讲解、练习判题全部由 AI 智能体驱动
 **Architecture:** Agent 引擎运行在 ellamaka，gesp backend 作为业务层代理调用
 
@@ -13,6 +13,9 @@
 - [x] **AUTH-02**: 学员登录后跨会话保持登录状态
 - [x] **AUTH-03**: 管理员可以使用用户名和密码登录
 - [x] **AUTH-04**: 管理员会话保持更长的 TTL（24 小时 vs 学员 1 小时）
+- [ ] **AUTH-05**: 所有用户可登出，登出后清除会话并跳转登录页
+- [ ] **AUTH-06**: 学员和教员可修改自己的密码（需验证旧密码）
+- [ ] **AUTH-07**: 管理员可修改自己的密码（需验证旧密码）
 
 ### Knowledge Base
 
@@ -21,6 +24,12 @@
 - [ ] **KNOW-03**: 系统为知识点和题目提供向量检索（LanceDB）
 - [x] **KNOW-04**: 管理员可查看和编辑知识库内容
 - [x] **KNOW-05**: 管理员可添加新题目并进行元数据标签标注
+
+### Authentication UI (Phase 2.1 新增)
+
+- [ ] **UI-AUTH-01**: 学员和教员可通过用户名+密码+确认密码自助注册，注册成功自动登录跳转对应角色首页。用户名 3-20 字符、密码 6+ 字符，表单实时验证+错误提示。登录页需提供"去注册"链接(管理员不可自助注册)
+- [ ] **UI-AUTH-02**: 学员\教员和管理源界面的导航区域均有登出按钮/入口，点击后清除会话跳转登录页
+- [ ] **UI-AUTH-03**: 所有用户设置页面，可修改密码（旧密码+新密码+确认新密码），修改成功后提示并保持登录
 
 ### Frontend Skeleton (Phase 2 新增)
 
@@ -81,6 +90,9 @@
 - [ ] **ADMIN-02**: 管理员可查看单个学员的学习数据和进度
 - [ ] **ADMIN-03**: 管理员可查看汇总统计数据（学员总数、完成率）
 - [ ] **ADMIN-04**: 管理员可管理系统配置（AI Provider 设置）
+- [ ] **ADMIN-05**: 管理员可管理学员账号（查看列表、禁用/启用账号、重置学员密码）
+- [ ] **ADMIN-06**: 管理员可通过管理端界面添加教员账号（用户名+密码）
+- [ ] **ADMIN-07**: 管理员可通过管理端界面添加学员账号（用户名+密码）
 
 ### Admin UI (Phase 7 新增)
 
@@ -90,8 +102,8 @@
 
 ### Enhanced Authentication
 
-- **AUTH-05**: OAuth 登录（微信/QQ）用于学员
-- **AUTH-06**: 家长账号关联以查看孩子进度
+- **AUTH-08**: OAuth 登录（微信/QQ）用于学员
+- **AUTH-09**: 家长账号关联以查看孩子进度
 
 ### Gamification
 
@@ -123,8 +135,8 @@
 
 ### Multi-Admin Roles
 
-- **ADMIN-05**: 基于角色的访问控制（超级管理员、内容管理员、查看者）
-- **ADMIN-06**: 管理员操作审计日志
+- **ADMIN-08**: 基于角色的访问控制（超级管理员、内容管理员、查看者）
+- **ADMIN-09**: 管理员操作审计日志
 
 ## Out of Scope
 
@@ -153,17 +165,30 @@
 - Phase 6 增加仪表板整合
 - Phase 7 增加管理端完整界面
 
+**Phase 2.1 用户基础流程补齐（2026-04-25）：**
+- 新增 AUTH-05/06/07（登出、修改密码）
+- 新增 UI-AUTH-01/02/03（注册界面、登出入口、密码修改页面）
+- 新增 ADMIN-05/06/07（学员账号管理、添加教员/学员）
+- v2 原 AUTH-05/06 重编号为 AUTH-08/09
+- v2 原 ADMIN-05/06 重编号为 ADMIN-08/09
+
 | Requirement | Phase | Status | Implementation Approach |
 |-------------|-------|--------|------------------------|
 | AUTH-01 | Phase 1 | Complete | gesp backend |
 | AUTH-02 | Phase 1 | Complete | gesp backend |
 | AUTH-03 | Phase 1 | Complete | gesp backend |
 | AUTH-04 | Phase 1 | Complete | gesp backend |
+| AUTH-05 | Phase 2.1 | Pending | gesp backend + 前端登出 |
+| AUTH-06 | Phase 2.1 | Pending | gesp backend + 学员设置页 |
+| AUTH-07 | Phase 2.1 | Pending | gesp backend + 管理员设置 |
 | KNOW-01 | Phase 2 | Pending | gesp backend + LanceDB |
 | KNOW-02 | Phase 2 | Pending | gesp backend + LanceDB |
 | KNOW-03 | Phase 2 | Pending | gesp backend + LanceDB |
 | KNOW-04 | Phase 2 | Complete | gesp backend + 管理端界面 |
 | KNOW-05 | Phase 2 | Complete | gesp backend + 管理端界面 |
+| UI-AUTH-01 | Phase 2.1 | Pending | NextJS /register 页面 |
+| UI-AUTH-02 | Phase 2.1 | Pending | 学员端/管理端导航登出 |
+| UI-AUTH-03 | Phase 2.1 | Pending | /student/settings 页面 |
 | UI-SKEL-01 | Phase 2 | Complete | NextJS 学员端骨架 |
 | UI-SKEL-02 | Phase 2 | Complete | React + Vite 管理端骨架 |
 | ASSESS-01 | Phase 3 | Pending | ellamaka assessor + gesp SDK |
@@ -194,13 +219,16 @@
 | ADMIN-02 | Phase 7 | Pending | admin-app |
 | ADMIN-03 | Phase 7 | Pending | admin-app |
 | ADMIN-04 | Phase 7 | Pending | admin-app |
+| ADMIN-05 | Phase 2.1 | Pending | admin-app 学员管理 |
+| ADMIN-06 | Phase 2.1 | Pending | admin-app 添加教员 |
+| ADMIN-07 | Phase 2.1 | Pending | admin-app 添加学员 |
 | UI-ADMIN-01 | Phase 7 | Pending | 管理端完整界面 |
 
 **Coverage:**
-- v1 requirements: 40 total
-- Mapped to phases: 40
+- v1 requirements: 49 total
+- Mapped to phases: 49
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-04-24 after ROADMAP redesign (frontend binding strategy)*
+*Last updated: 2026-04-25 — Phase 2.1 user flow requirements added*

@@ -17,6 +17,7 @@ Decimal phases appear between integer phases in numerical order.
 - [x] **Phase 1: 基础设施与认证** — 项目初始化、gesp backend 框架、用户认证 ✓ 2026-04-23
 - [x] **Phase 01.1: 安全修复 + Debug 界面** — 修复 Phase 1 评审高优先级问题 + 验证界面 (INSERTED) ✓ 2026-04-23
 - [x] **Phase 2: 知识库 + 统一前端骨架** — LanceDB 知识库、向量检索、统一前端骨架（NextJS + shadcn）、登录界面 ✓ 2026-04-25
+- [ ] **Phase 2.1: 用户基础流程补齐** — 注册界面、登出功能、密码修改、管理员添加教员/学员、学员账号管理 (INSERTED)
 - [ ] **Phase 3: 测评定级智能体 + 测评界面** — ellamaka assessor agent + gesp SDK 代理 + 学员端测评页面
 - [ ] **Phase 4: 教学讲解智能体 + 教学界面** — ellamaka teacher agent + SSE 流式 + 学员端教学页面
 - [ ] **Phase 5: 练习判题智能体 + 练习界面** — ellamaka grader agent + 判题反馈 + 学员端练习页面
@@ -82,6 +83,22 @@ Plans:
 - [x] 02-05-PLAN.md — 管理端 + 学员端骨架
 - [x] 02-06-PLAN.md — Frontend Gap Closure
 - [x] 02-07-PLAN.md — Backend Gap Closure
+
+### Phase 2.1: 用户基础流程补齐 (INSERTED)
+
+**Goal:** 补齐注册→登录→使用→登出完整用户流程，管理员可管理教员和学员账号，使系统具备基本可用性
+**Depends on:** Phase 2
+**Requirements:** AUTH-05, AUTH-06, AUTH-07, UI-AUTH-01, UI-AUTH-02, UI-AUTH-03, ADMIN-05, ADMIN-06, ADMIN-07
+**Success Criteria** (must be TRUE):
+  1. 学员可通过 /register 页面自助注册（用户名+密码+确认密码），注册成功自动登录跳转学员端首页
+  2. 登录页有"去注册"链接，注册页有"去登录"链接
+  3. 学员端导航有登出按钮，点击后清除会话跳转登录页
+  4. 管理端导航有登出按钮，点击后清除会话跳转登录页
+  5. 学员可通过 /student/settings 修改密码（旧密码+新密码+确认新密码）
+  6. 管理员可通过管理端界面添加教员账号（用户名+密码）
+  7. 管理员可通过管理端界面添加学员账号（用户名+密码）
+  8. 管理员可查看学员列表，支持禁用/启用账号和重置密码
+**Plans:** TBD
 
 ### Phase 3: 测评定级智能体 + 测评界面
 **Goal:** 新学员可完成自适应测评并获得等级定位，可在学员端界面看到测评题目和结果
@@ -156,13 +173,14 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phase executed in numerical order: 1 → 01.1 → 2 → 3 → 4 → 5 → 6 → 7
+Phase executed in numerical order: 1 → 01.1 → 2 → 2.1 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed Date |
 |-------|----------------|--------|----------------|
 | 1. 基础设施与认证 | 5/5 | Complete | 2026-04-23 |
 | 01.1 安全修复 + Debug | 3/3 | Complete | 2026-04-23 |
-| 2. 知识库 + 双端骨架 | 0/TBD | Not Started | - |
+| 2. 知识库 + 双端骨架 | 7/7 | Complete | 2026-04-25 |
+| 2.1 用户基础流程补齐 | 0/TBD | Not Started | - |
 | 3. 测评定级 + 测评界面 | 0/TBD | Not Started | - |
 | 4. 教学讲解 + 教学界面 | 0/TBD | Not Started | - |
 | 5. 练习判题 + 练习界面 | 0/TBD | Not Started | - |
