@@ -9,10 +9,21 @@ import {
   BarChart3,
   Settings,
   Menu,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useState, useEffect } from "react";
+
+interface UserInfo {
+  id: number;
+  username: string;
+  display_name: string;
+  role: number;
+}
 
 const navItems = [
   { href: "/admin/dashboard", label: "仪表板", icon: LayoutDashboard },
@@ -22,14 +33,48 @@ const navItems = [
   { href: "/admin/settings", label: "设置", icon: Settings },
 ];
 
+function getRoleLabel(role: number) {
+  if (role >= 100) return "超级管理员";
+  if (role >= 10) return "教员";
+  return "学员";
+}
+
+async function handleLogout() {
+  const backendUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+  await fetch(`${backendUrl}/api/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
+  document.cookie =
+    "session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  window.location.href = "/login";
+}
+
 export function AdminSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [user, setUser] = useState<UserInfo | null>(null);
+
+  useEffect(() => {
+    const backendUrl =
+      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+    fetch(`${backendUrl}/api/auth/me`, {
+      credentials: "include",
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.data?.user) {
+          setUser(data.data.user);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <aside
       className={cn(
-        "border-r bg-card flex flex-col transition-all duration-300",
+        "border-r bg-card flex flex-col min-h-screen transition-all duration-300",
         collapsed ? "w-16" : "w-60"
       )}
     >
@@ -65,6 +110,46 @@ export function AdminSidebar() {
           );
         })}
       </nav>
+
+      <div className="mt-auto border-t p-3">
+        {!collapsed ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-7 w-7">
+                <AvatarFallback>
+                  {user?.display_name?.[0] || "?"}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-semibold truncate">
+                {user?.username}
+              </span>
+            </div>
+            <Badge variant="secondary" className="text-xs">
+              {user ? getRoleLabel(user.role) : ""}
+            </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-destructive hover:text-destructive"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              登出
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <Avatar className="h-7 w-7">
+              <AvatarFallback>
+                {user?.display_name?.[0] || "?"}
+              </AvatarFallback>
+            </Avatar>
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
     </aside>
   );
 }
