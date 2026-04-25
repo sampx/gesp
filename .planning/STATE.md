@@ -3,14 +3,14 @@ wsf_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-04-25T04:18:11.484Z"
+stopped_at: Completed 02.1-01-PLAN.md
+last_updated: "2026-04-25T04:26:42Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 83
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-22)
 
 **Core Value:** AI 全流程自动化 — 测评定级、教学讲解、练习判题全部由 AI 智能体驱动
-**Current Focus:** Phase 02 — 知识库-双端骨架
+**Current Focus:** Phase 2.1 — 用户基础流程补齐
 
 ## Current Position
 
-Phase: 02 (知识库-双端骨架) — EXECUTING
-Plan: Not started
+Phase: 2.1 (用户基础流程补齐) — EXECUTING
+Plan: 2 of 3
 **Phase:** 3 of 8 (测评定级智能体 + 测评界面)
-**Status:** Ready to execute
+**Status:** Executing Phase 2.1
 **Last Activity:** 2026-04-25
 
 - Frontend merged (student + admin in single NextJS app)
@@ -59,6 +59,7 @@ Plan: Not started
 *Updated after each plan completion*
 | Phase 02 P01 | 14min | 4 tasks | 30 files |
 | Phase 02 P05 | 11min | 5 tasks | 10 files |
+| Phase 02.1 P01 | 6min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -76,7 +77,7 @@ Recent decisions affecting current work:
 
 - Session ID 使用 256-bit 熵（crypto.getRandomValues + base64url）替代 UUID v4
 - 注册错误消息模糊化，防止用户枚举攻击
-- 生产环境强制 ADMIN_PASSWORD，阻止不安全默认密码部署
+- 生产环境强制 ROOT_PASSWORD，阻止不安全默认密码部署（Phase 2.1: 从 ADMIN_PASSWORD 迁移）
 
 **Phase 01.1 Debug Interface (2026-04-23):**
 
@@ -114,7 +115,7 @@ None yet.
 
 ## Session Continuity
 
-**Last Session:** 2026-04-24T11:35:01.226Z
-**Stopped At:** Completed 02-05-PLAN.md
+**Last Session:** 2026-04-25T04:26:42Z
+**Stopped At:** Completed 02.1-01-PLAN.md
 **Resume File:** None
-**Next Action:** `/wsf-discuss-phase 2` — 讨论 Phase 2（知识库 + 双端骨架）实现方案
+**Next Action:** `/wsf-execute-phase 2.1` — 继续 Plan 02（前端注册+登出+密码修改）
