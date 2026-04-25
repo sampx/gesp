@@ -15,7 +15,16 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useState, useEffect } from "react";
 import { getCurrentUser, logout as logoutAction } from "@/lib/server-api";
 
@@ -44,6 +53,7 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState<UserInfo | null>(null);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
   useEffect(() => {
     getCurrentUser()
@@ -124,7 +134,7 @@ export function AdminSidebar() {
               variant="ghost"
               size="sm"
               className="w-full text-destructive hover:text-destructive"
-              onClick={handleLogout}
+              onClick={() => setLogoutDialogOpen(true)}
             >
               <LogOut className="h-4 w-4 mr-2" />
               登出
@@ -137,12 +147,29 @@ export function AdminSidebar() {
                 {user?.display_name?.[0] || "?"}
               </AvatarFallback>
             </Avatar>
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
+            <Button variant="ghost" size="icon" onClick={() => setLogoutDialogOpen(true)}>
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         )}
       </div>
+
+      <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认登出</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要退出登录吗？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout}>
+              确认登出
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </aside>
   );
 }
