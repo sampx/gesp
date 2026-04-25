@@ -9,7 +9,7 @@
     "nyquist_validation": true,
     "security_enforcement": false,
     "discuss_mode": "discuss",
-    "_auto_chain_active": false
+    "_auto_chain_active": true
   },
   "planning": {
     "commit_docs": true,
