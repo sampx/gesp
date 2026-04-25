@@ -2,9 +2,10 @@ import { Hono } from "hono";
 import { describeRoute, resolver } from "hono-openapi";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { registerUser, loginUser } from "../services/auth.service";
+import { registerUser, registerUserWithRole, loginUser, changePassword } from "../services/auth.service";
 import { createSession, validateSession, destroySession } from "../middleware/session";
 import { success, error, unauthorized } from "../utils/response";
+import { ROLE } from "@gesp/shared";
 
 const app = new Hono();
 
@@ -12,7 +13,8 @@ const app = new Hono();
 const registerBodySchema = z.object({
   username: z.string().min(3).max(50),
   password: z.string().min(6),
-  display_name: z.string().min(1).max(100),
+  display_name: z.string().min(1).max(100).optional(),
+  role: z.number().int().optional(),
 });
 
 const registerResponseSchema = z.object({
@@ -38,7 +40,7 @@ app.post(
   zValidator("json", registerBodySchema),
   describeRoute({
     summary: "Register a new user",
-    description: "Create a new student account",
+    description: "Create a new user account (STUDENT or ADMIN). ROOT role is not allowed for self-registration.",
     responses: {
       200: {
         description: "Registration successful",
@@ -59,17 +61,23 @@ app.post(
     },
   }),
   async (c) => {
-    const { username, password, display_name } = c.req.valid("json");
-    
-    const result = await registerUser(username, password, display_name);
-    
+    const { username, password, display_name, role } = c.req.valid("json");
+    const resolvedDisplayName = display_name ?? username;
+
+    let result;
+    if (role !== undefined) {
+      result = await registerUserWithRole(username, password, role, resolvedDisplayName);
+    } else {
+      result = await registerUser(username, password, resolvedDisplayName);
+    }
+
     if (!result.success) {
       return error(c, result.error ?? "Registration failed");
     }
-    
+
     // Create session for new user
     await createSession(c, result.user!.id, result.user!.role);
-    
+
     return success(c, {
       user: {
         id: result.user!.id,
@@ -78,6 +86,60 @@ app.post(
         role: result.user!.role,
       },
     }, "Registration successful");
+  }
+);
+
+// Change password route
+const changePasswordBodySchema = z.object({
+  old_password: z.string(),
+  new_password: z.string().min(6),
+});
+
+app.post(
+  "/change-password",
+  validateSession,
+  zValidator("json", changePasswordBodySchema),
+  describeRoute({
+    summary: "Change password",
+    description: "Change current user's password. Requires old password verification.",
+    responses: {
+      200: {
+        description: "Password changed successfully",
+        content: {
+          "application/json": {
+            schema: resolver(errorResponseSchema),
+          },
+        },
+      },
+      400: {
+        description: "Password change failed",
+        content: {
+          "application/json": {
+            schema: resolver(errorResponseSchema),
+          },
+        },
+      },
+      401: {
+        description: "Unauthorized",
+        content: {
+          "application/json": {
+            schema: resolver(errorResponseSchema),
+          },
+        },
+      },
+    },
+  }),
+  async (c) => {
+    const { old_password, new_password } = c.req.valid("json");
+    const user = c.get("user");
+
+    const result = await changePassword(user.id, old_password, new_password);
+
+    if (!result.success) {
+      return error(c, result.error ?? "Password change failed");
+    }
+
+    return success(c, undefined, "Password changed successfully");
   }
 );
 
@@ -127,16 +189,16 @@ app.post(
   }),
   async (c) => {
     const { username, password } = c.req.valid("json");
-    
+
     const result = await loginUser(username, password);
-    
+
     if (!result.success) {
       return unauthorized(c, result.error ?? "Login failed");
     }
-    
+
     // Create session
     await createSession(c, result.user!.id, result.user!.role);
-    
+
     return success(c, {
       user: {
         id: result.user!.id,
@@ -214,7 +276,7 @@ app.get(
   }),
   async (c) => {
     const user = c.get("user");
-    
+
     return success(c, {
       user: {
         id: user.id,

@@ -12,29 +12,29 @@ export async function seedAdmin(): Promise<void> {
   });
 
   if (existingRoot) {
-    logger.info({ action: "seed_skip" }, "Admin already exists, skipping seed");
+    logger.info({ action: "seed_skip" }, "Root user already exists, skipping seed");
     return;
   }
 
-  // Production: require ADMIN_PASSWORD
-  const password = process.env.ADMIN_PASSWORD;
+  // Production: require ROOT_PASSWORD
+  const password = process.env.ROOT_PASSWORD;
   if (process.env.NODE_ENV === "production" && !password) {
-    throw new Error("ADMIN_PASSWORD must be set in production environment");
+    throw new Error("ROOT_PASSWORD must be set in production environment");
   }
 
-  const username = process.env.ADMIN_USERNAME || "admin";
-  const displayName = process.env.ADMIN_DISPLAY_NAME || "System Admin";
+  const username = process.env.ROOT_USERNAME || "root";
+  const displayName = process.env.ROOT_DISPLAY_NAME || "超级管理员";
 
   // Development: warn when using default password
   if (!password) {
     logger.warn(
       { action: "seed_default_password", env: "development" },
-      "Using default password 'admin123'. Set ADMIN_PASSWORD environment variable for security"
+      "Using default password 'root123'. Set ROOT_PASSWORD environment variable for security"
     );
   }
 
   // Hash password
-  const passwordHash = await hashPassword(password || "admin123");
+  const passwordHash = await hashPassword(password || "root123");
 
   // Insert root admin
   await db.insert(users).values({
@@ -46,7 +46,7 @@ export async function seedAdmin(): Promise<void> {
     status: USER_STATUS.ENABLED,
   });
 
-  logger.info({ action: "seed_admin", username }, "Root admin seeded");
+  logger.info({ action: "seed_root", username }, "Root user seeded");
 }
 
 // Export function to run seed
