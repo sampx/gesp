@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
     // Admin pages: require role >= 10
     if (pathname.startsWith("/admin/")) {
       if (role < 10) {
-        return NextResponse.redirect(new URL("/403", request.url));
+        return NextResponse.redirect(new URL("/login?error=forbidden", request.url));
       }
     }
 

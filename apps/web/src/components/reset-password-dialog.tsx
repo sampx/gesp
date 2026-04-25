@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { resetUserPassword } from "@/lib/server-api";
 
 interface ResetPasswordDialogProps {
   open: boolean;
@@ -49,26 +50,7 @@ export function ResetPasswordDialog({
     setLoading(true);
 
     try {
-      const backendUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-      const sessionId = document.cookie
-        .split(";")
-        .find((c) => c.trim().startsWith("session_id="))
-        ?.split("=")[1];
-
-      const res = await fetch(
-        `${backendUrl}/api/admin/users/${userId}/reset-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(sessionId ? { Cookie: `session_id=${sessionId}` } : {}),
-          },
-          body: JSON.stringify({ new_password: newPassword }),
-        }
-      );
-
-      const data = await res.json();
+      const data = await resetUserPassword(userId, newPassword);
 
       if (data.success) {
         toast.success(`已重置 ${username} 的密码`);

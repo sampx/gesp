@@ -11,7 +11,7 @@ const app = new Hono();
 
 // Register route
 const registerBodySchema = z.object({
-  username: z.string().min(3).max(50),
+  username: z.string().min(3).max(20),
   password: z.string().min(6),
   display_name: z.string().min(1).max(100).optional(),
   role: z.number().int().optional(),
@@ -64,15 +64,15 @@ app.post(
     const { username, password, display_name, role } = c.req.valid("json");
     const resolvedDisplayName = display_name ?? username;
 
-    let result;
-    if (role !== undefined) {
-      result = await registerUserWithRole(username, password, role, resolvedDisplayName);
-    } else {
-      result = await registerUser(username, password, resolvedDisplayName);
+    // Public self-registration only allows STUDENT role
+    if (role !== undefined && role !== ROLE.STUDENT) {
+      return error(c, "自助注册仅支持学员角色");
     }
 
+    const result = await registerUser(username, password, resolvedDisplayName);
+
     if (!result.success) {
-      return error(c, result.error ?? "Registration failed");
+      return error(c, result.error ?? "注册失败");
     }
 
     // Create session for new user
@@ -85,7 +85,7 @@ app.post(
         display_name: result.user!.display_name,
         role: result.user!.role,
       },
-    }, "Registration successful");
+    }, "注册成功");
   }
 );
 

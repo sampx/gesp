@@ -76,10 +76,10 @@ describe("Auth Register — Security (D-R5)", () => {
     const result = await registerUser("newuser", "short", "Test");
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain("Password must be at least 6 characters");
+    expect(result.error).toContain("密码至少需要6个字符");
   });
 
-  it("should return error message containing 'failed' for duplicate username", async () => {
+  it("should return error message containing '失败' for duplicate username", async () => {
     (db.query.users.findFirst as any).mockResolvedValueOnce({
       id: "existing-id",
       username: "existinguser",
@@ -89,7 +89,7 @@ describe("Auth Register — Security (D-R5)", () => {
     const result = await registerUser("existinguser", "password123", "Test");
 
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/failed/i);
+    expect(result.error).toContain("失败");
   });
 });
 
@@ -120,7 +120,7 @@ describe("registerUserWithRole", () => {
     const result = await registerUserWithRole("bad", "pass123", ROLE.ROOT);
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe("Registration not allowed for this role");
+    expect(result.error).toBe("不允许该角色注册");
     expect(db.insert).not.toHaveBeenCalled();
   });
 

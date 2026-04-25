@@ -20,12 +20,12 @@ export async function registerUserWithRole(
 ): Promise<{ success: boolean; user?: typeof users.$inferSelect; error?: string }> {
   // Validate role — only STUDENT(1) and ADMIN(10) allowed
   if (role !== ROLE.STUDENT && role !== ROLE.ADMIN) {
-    return { success: false, error: "Registration not allowed for this role" };
+    return { success: false, error: "不允许该角色注册" };
   }
 
   // Validate password FIRST (before DB query) - prevents user enumeration
   if (password.length < 6) {
-    return { success: false, error: "Password must be at least 6 characters" };
+    return { success: false, error: "密码至少需要6个字符" };
   }
 
   // Check username uniqueness
@@ -34,7 +34,7 @@ export async function registerUserWithRole(
   });
 
   if (existing) {
-    return { success: false, error: "Registration failed. Please try different credentials." };
+    return { success: false, error: "注册失败，请尝试不同的凭据" };
   }
 
   // Create user
@@ -150,12 +150,12 @@ export async function createUserByAdmin(
 ): Promise<{ success: boolean; user?: Omit<typeof users.$inferSelect, "password_hash">; error?: string }> {
   // Validate role — only STUDENT(1) and ADMIN(10) allowed
   if (role !== ROLE.STUDENT && role !== ROLE.ADMIN) {
-    return { success: false, error: "Invalid role. Only STUDENT and ADMIN roles are allowed." };
+    return { success: false, error: "无效角色，仅支持学员和教员" };
   }
 
   // Validate password
   if (password.length < 6) {
-    return { success: false, error: "Password must be at least 6 characters" };
+    return { success: false, error: "密码至少需要6个字符" };
   }
 
   // Check username uniqueness
@@ -193,6 +193,10 @@ export async function toggleUserStatus(
     return { success: false, error: "用户不存在" };
   }
 
+  if (user.role === ROLE.ROOT) {
+    return { success: false, error: "不能修改超级管理员状态" };
+  }
+
   const newStatus = user.status === USER_STATUS.ENABLED ? USER_STATUS.DISABLED : USER_STATUS.ENABLED;
 
   await db.update(users).set({
@@ -217,6 +221,10 @@ export async function resetUserPassword(
 
   if (!user) {
     return { success: false, error: "用户不存在" };
+  }
+
+  if (user.role === ROLE.ROOT) {
+    return { success: false, error: "不能重置超级管理员密码" };
   }
 
   const passwordHash = await hashPassword(newPassword);

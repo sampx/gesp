@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { AddUserDialog } from "@/components/add-user-dialog";
 import { ResetPasswordDialog } from "@/components/reset-password-dialog";
+import { getUsers, toggleUserStatus as toggleStatusAction } from "@/lib/server-api";
 
 interface User {
   id: string;
@@ -66,23 +67,7 @@ export default function AdminStudentsPage() {
 
   const fetchUsers = async () => {
     try {
-      const backendUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-      const sessionId = document.cookie
-        .split(";")
-        .find((c) => c.trim().startsWith("session_id="))
-        ?.split("=")[1];
-
-      const res = await fetch(
-        `${backendUrl}/api/admin/users?page=1&pageSize=20`,
-        {
-          headers: {
-            ...(sessionId ? { Cookie: `session_id=${sessionId}` } : {}),
-          },
-        }
-      );
-
-      const data = await res.json();
+      const data = await getUsers();
 
       if (data.success) {
         setUsers(data.data.users);
@@ -102,24 +87,7 @@ export default function AdminStudentsPage() {
 
   const toggleStatus = async (userId: string, currentStatus: number, username: string) => {
     try {
-      const backendUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-      const sessionId = document.cookie
-        .split(";")
-        .find((c) => c.trim().startsWith("session_id="))
-        ?.split("=")[1];
-
-      const res = await fetch(
-        `${backendUrl}/api/admin/users/${userId}/status`,
-        {
-          method: "PUT",
-          headers: {
-            ...(sessionId ? { Cookie: `session_id=${sessionId}` } : {}),
-          },
-        }
-      );
-
-      const data = await res.json();
+      const data = await toggleStatusAction(userId);
 
       if (data.success) {
         const action = currentStatus === 1 ? "禁用" : "启用";

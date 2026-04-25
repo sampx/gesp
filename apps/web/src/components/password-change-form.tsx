@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { changePassword as changePasswordAction } from "@/lib/server-api";
 
 interface PasswordChangeFormProps {
   className?: string;
@@ -33,25 +34,7 @@ export function PasswordChangeForm({ className }: PasswordChangeFormProps) {
     setLoading(true);
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-      const sessionId = document.cookie
-        .split(";")
-        .find((c) => c.trim().startsWith("session_id="))
-        ?.split("=")[1];
-
-      const res = await fetch(`${backendUrl}/api/auth/change-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(sessionId ? { Cookie: `session_id=${sessionId}` } : {}),
-        },
-        body: JSON.stringify({
-          old_password: oldPassword,
-          new_password: newPassword,
-        }),
-      });
-
-      const data = await res.json();
+      const data = await changePasswordAction(oldPassword, newPassword);
 
       if (data.success) {
         toast.success("密码修改成功");

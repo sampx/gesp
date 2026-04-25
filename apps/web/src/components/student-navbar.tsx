@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getCurrentUser, logout as logoutAction } from "@/lib/server-api";
 
 interface UserInfo {
   id: number;
@@ -19,35 +20,23 @@ interface UserInfo {
   role: number;
 }
 
-async function handleLogout() {
-  const backendUrl =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-  await fetch(`${backendUrl}/api/auth/logout`, {
-    method: "POST",
-    credentials: "include",
-  });
-  document.cookie =
-    "session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-  window.location.href = "/login";
-}
-
 export function StudentNavbar() {
   const [user, setUser] = useState<UserInfo | null>(null);
 
   useEffect(() => {
-    const backendUrl =
-      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-    fetch(`${backendUrl}/api/auth/me`, {
-      credentials: "include",
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.data?.user) {
-          setUser(data.data.user);
-        }
+    getCurrentUser()
+      .then((u) => {
+        if (u) setUser(u);
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("Failed to fetch user info:", err);
+      });
   }, []);
+
+  const handleLogout = async () => {
+    await logoutAction();
+    window.location.href = "/login";
+  };
 
   return (
     <header className="h-14 flex items-center justify-between px-4 border-b bg-card sticky top-0 z-50">

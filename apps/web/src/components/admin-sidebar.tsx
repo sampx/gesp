@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useState, useEffect } from "react";
+import { getCurrentUser, logout as logoutAction } from "@/lib/server-api";
 
 interface UserInfo {
   id: number;
@@ -39,37 +40,25 @@ function getRoleLabel(role: number) {
   return "学员";
 }
 
-async function handleLogout() {
-  const backendUrl =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-  await fetch(`${backendUrl}/api/auth/logout`, {
-    method: "POST",
-    credentials: "include",
-  });
-  document.cookie =
-    "session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-  window.location.href = "/login";
-}
-
 export function AdminSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState<UserInfo | null>(null);
 
   useEffect(() => {
-    const backendUrl =
-      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-    fetch(`${backendUrl}/api/auth/me`, {
-      credentials: "include",
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.data?.user) {
-          setUser(data.data.user);
-        }
+    getCurrentUser()
+      .then((u) => {
+        if (u) setUser(u);
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("Failed to fetch user info:", err);
+      });
   }, []);
+
+  const handleLogout = async () => {
+    await logoutAction();
+    window.location.href = "/login";
+  };
 
   return (
     <aside
