@@ -63,7 +63,7 @@ export function AdminSidebar() {
   return (
     <aside
       className={cn(
-        "border-r bg-card flex flex-col min-h-screen transition-all duration-300",
+        "border-r bg-card flex flex-col h-screen sticky top-0 transition-all duration-300 overflow-y-auto",
         collapsed ? "w-16" : "w-60"
       )}
     >
@@ -109,13 +109,17 @@ export function AdminSidebar() {
                   {user?.display_name?.[0] || "?"}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-semibold truncate">
-                {user?.username}
-              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-semibold truncate">
+                    {user?.username}
+                  </span>
+                  <Badge variant="secondary" className="text-xs shrink-0">
+                    {user ? getRoleLabel(user.role) : ""}
+                  </Badge>
+                </div>
+              </div>
             </div>
-            <Badge variant="secondary" className="text-xs">
-              {user ? getRoleLabel(user.role) : ""}
-            </Badge>
             <Button
               variant="ghost"
               size="sm"
