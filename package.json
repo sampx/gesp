@@ -11,6 +11,7 @@
     "test": "turbo test",
     "db:push": "bunx drizzle-kit push",
     "seed:knowledge": "bun run scripts/seed-knowledge.ts",
+    "gesp": "bash scripts/gesp.sh",
     "prepare": "husky"
   },
   "devDependencies": {
