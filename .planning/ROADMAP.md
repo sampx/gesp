@@ -17,7 +17,7 @@ Decimal phases appear between integer phases in numerical order.
 - [x] **Phase 1: 基础设施与认证** — 项目初始化、gesp backend 框架、用户认证 ✓ 2026-04-23
 - [x] **Phase 01.1: 安全修复 + Debug 界面** — 修复 Phase 1 评审高优先级问题 + 验证界面 (INSERTED) ✓ 2026-04-23
 - [x] **Phase 2: 知识库 + 统一前端骨架** — LanceDB 知识库、向量检索、统一前端骨架（NextJS + shadcn）、登录界面 ✓ 2026-04-25
-- [ ] **Phase 2.1: 用户基础流程补齐** — 注册界面、登出功能、密码修改、管理员添加教员/学员、学员账号管理 (INSERTED)
+- [x] **Phase 2.1: 用户基础流程补齐** — 注册界面、登出功能、密码修改、管理员添加教员/学员、学员账号管理 ✓ 2026-04-25
 - [ ] **Phase 3: 测评定级智能体 + 测评界面** — ellamaka assessor agent + gesp SDK 代理 + 学员端测评页面
 - [ ] **Phase 4: 教学讲解智能体 + 教学界面** — ellamaka teacher agent + SSE 流式 + 学员端教学页面
 - [ ] **Phase 5: 练习判题智能体 + 练习界面** — ellamaka grader agent + 判题反馈 + 学员端练习页面
@@ -84,7 +84,7 @@ Plans:
 - [x] 02-06-PLAN.md — Frontend Gap Closure
 - [x] 02-07-PLAN.md — Backend Gap Closure
 
-### Phase 2.1: 用户基础流程补齐 (INSERTED)
+### Phase 2.1: 用户基础流程补齐 ✅
 
 **Goal:** 补齐注册→登录→使用→登出完整用户流程，管理员可管理教员和学员账号，使系统具备基本可用性
 **Depends on:** Phase 2
