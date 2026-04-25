@@ -5,9 +5,13 @@ import { redirect } from "next/navigation";
 import { ROLE } from "@gesp/shared";
 
 export async function registerAction(formData: FormData) {
-  const username = formData.get("username") as string;
-  const password = formData.get("password") as string;
-  const confirmPassword = formData.get("confirmPassword") as string;
+  const username = formData.get("username");
+  const password = formData.get("password");
+  const confirmPassword = formData.get("confirmPassword");
+
+  if (!username || !password || !confirmPassword) {
+    return { error: "请填写所有必填字段" };
+  }
 
   if (password !== confirmPassword) {
     return { error: "两次输入的密码不一致" };
@@ -45,7 +49,8 @@ export async function registerAction(formData: FormData) {
     }
 
     redirectPath = "/student/dashboard";
-  } catch {
+  } catch (err) {
+    console.error("Registration failed:", err);
     return { error: "注册失败，请稍后重试" };
   }
 

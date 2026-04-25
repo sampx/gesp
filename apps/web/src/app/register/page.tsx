@@ -26,20 +26,26 @@ function SubmitButton() {
 
 export default function RegisterPage() {
   async function handleSubmit(formData: FormData) {
-    const password = formData.get("password") as string;
-    const confirmPassword = formData.get("confirmPassword") as string;
+    const username = formData.get("username");
+    const password = formData.get("password");
+    const confirmPassword = formData.get("confirmPassword");
+
+    if (!username || !password || !confirmPassword) {
+      toast.error("请填写所有必填字段");
+      return;
+    }
 
     if (password !== confirmPassword) {
       toast.error("两次输入的密码不一致");
       return;
     }
 
-    if (password.length < 6) {
+    if ((password as string).length < 6) {
       toast.error("密码至少6个字符");
       return;
     }
 
-    if ((formData.get("username") as string).length < 3) {
+    if ((username as string).length < 3) {
       toast.error("用户名至少3个字符");
       return;
     }
