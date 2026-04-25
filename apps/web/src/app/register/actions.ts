@@ -8,17 +8,10 @@ export async function registerAction(formData: FormData) {
   const username = formData.get("username") as string;
   const password = formData.get("password") as string;
   const confirmPassword = formData.get("confirmPassword") as string;
-  const roleStr = formData.get("role") as string;
 
   if (password !== confirmPassword) {
     return { error: "两次输入的密码不一致" };
   }
-
-  const roleMap: Record<string, number> = {
-    student: ROLE.STUDENT,
-    teacher: ROLE.ADMIN,
-  };
-  const role = roleMap[roleStr] ?? ROLE.STUDENT;
 
   const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
 
@@ -27,7 +20,7 @@ export async function registerAction(formData: FormData) {
     const res = await fetch(`${backendUrl}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password, role }),
+      body: JSON.stringify({ username, password, role: ROLE.STUDENT }),
     });
 
     const data = await res.json();
@@ -51,12 +44,7 @@ export async function registerAction(formData: FormData) {
       });
     }
 
-    const userRole = data.data?.user?.role;
-    if (userRole >= ROLE.ADMIN) {
-      redirectPath = "/admin/dashboard";
-    } else {
-      redirectPath = "/student/dashboard";
-    }
+    redirectPath = "/student/dashboard";
   } catch {
     return { error: "注册失败，请稍后重试" };
   }

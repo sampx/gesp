@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { registerAction } from "./actions";
-import { RoleCard } from "@/components/role-card";
 import {
   Card,
   CardContent,
@@ -27,10 +25,6 @@ function SubmitButton() {
 }
 
 export default function RegisterPage() {
-  const [selectedRole, setSelectedRole] = useState<"student" | "teacher">(
-    "student"
-  );
-
   async function handleSubmit(formData: FormData) {
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
@@ -50,7 +44,6 @@ export default function RegisterPage() {
       return;
     }
 
-    formData.set("role", selectedRole);
     const result = await registerAction(formData);
     if (result?.error) {
       toast.error(result.error);
@@ -62,24 +55,11 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">创建账号</CardTitle>
-          <CardDescription>选择角色并填写信息注册</CardDescription>
+          <CardDescription>填写信息注册学员账号</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <RoleCard
-              role="student"
-              emoji="🎮"
-              label="学员"
-              selected={selectedRole === "student"}
-              onClick={() => setSelectedRole("student")}
-            />
-            <RoleCard
-              role="teacher"
-              emoji="📚"
-              label="教员"
-              selected={selectedRole === "teacher"}
-              onClick={() => setSelectedRole("teacher")}
-            />
+          <div className="mb-6 p-3 bg-secondary/50 rounded-lg text-center text-sm text-muted-foreground">
+            🎮 注册为学员
           </div>
 
           <form action={handleSubmit} className="space-y-4">
