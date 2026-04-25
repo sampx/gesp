@@ -46,14 +46,15 @@ Base URL: `http://localhost:3000`
 | POST | `/api/auth/login` | - | 登录（设 cookie） |
 | POST | `/api/auth/logout` | session | 登出 |
 | GET | `/api/auth/me` | session | 获取当前用户 |
-| GET | `/api/doc` | - | OpenAPI spec |
+| GET | `/api/doc` | - | OpenAPI spec (JSON) |
+| GET | `/api/doc/ui` | - | Scalar API 调试界面 |
 
 ### 响应格式
 
 ```typescript
 { success: true, message: "Success", data: T }           // 成功
 { success: false, message: "错误信息" }                   // 业务失败
-{ success: false, error: { issues: [{ code, message, path }] } }  // Zod 验证失败
+{ success: false, error: { name: "ZodError", message: "<JSON string>" } }  // Zod v4 验证失败
 ```
 
 ### Session 机制
@@ -124,6 +125,7 @@ const [newUser] = await db.insert(users).values({ ... }).returning();
 ```typescript
 // src/routes/xxx.ts
 import { Hono } from "hono";
+import { describeRoute, resolver } from "hono-openapi";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { AdminAuth } from "../middleware/auth";
@@ -131,10 +133,20 @@ import { success } from "../utils/response";
 
 const app = new Hono();
 const bodySchema = z.object({ /* ... */ });
+const responseSchema = z.object({ success: z.boolean() });
 
 app.post("/xxx",
   AdminAuth(),
   zValidator("json", bodySchema),
+  describeRoute({
+    summary: "XXX 操作",
+    responses: {
+      200: {
+        description: "成功",
+        content: { "application/json": { schema: resolver(responseSchema) } },
+      },
+    },
+  }),
   async (c) => {
     const body = c.req.valid("json");
     return success(c, result);

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
-import { openAPISpecs } from "hono-openapi";
+import { openAPIRouteHandler } from "hono-openapi";
+import { Scalar } from "@scalar/hono-api-reference";
 import type { Context } from "hono";
 import { spawnSync } from "bun";
 import authRoutes from "./routes/auth";
@@ -88,15 +89,20 @@ async function bootstrap() {
     app.route("/debug", debugRoutes);
   }
 
-  // OpenAPI spec export
-  app.use("/api/doc", openAPISpecs(app, {
-    documentation: {
-      info: {
-        title: "GESP Learning Platform API",
-        version: "1.0.0",
+  // OpenAPI spec + Scalar UI
+  app.get(
+    "/api/doc",
+    openAPIRouteHandler(app, {
+      documentation: {
+        info: {
+          title: "GESP Learning Platform API",
+          version: "1.0.0",
+        },
       },
-    },
-  }));
+    })
+  );
+
+  app.get("/api/doc/ui", Scalar({ url: "/api/doc" }));
 
   const basePort = parseInt(process.env.PORT || "3000", 10);
   const port = await findAvailablePort(basePort);

@@ -30,7 +30,9 @@
 |-------|------------|---------|-----------|
 | **Runtime** | Bun | 1.3.11+ | 高性能 JS/TS 运行时，原生 TypeScript 支持，快速启动。ellamaka 中已验证成功使用。 |
 | **Web Framework** | Hono | 4.x | 轻量、类型安全，原生支持 Bun。优于 Express/NestJS 的选型。 |
-| **OpenAPI** | hono-openapi | 0.4.x | 从路由生成 OpenAPI 规范，支持 SDK 生成。参考 ellamaka。 |
+| **OpenAPI** | hono-openapi | 1.3.x | 从路由生成 OpenAPI 规范。1.x 使用 Standard Schema 协议，配套 zod v4。 |
+| **API Docs UI** | @scalar/hono-api-reference | 0.10.x | 现代 API 调试界面，挂载 /api/doc/ui。 |
+| **Validation** | Zod | 4.x | 类型安全校验，v4 原生支持 OpenAPI schema 生成。 |
 | **Agent Engine** | ellamaka SDK | — | 远程调用 Agent 引擎（HTTP SDK）。AI Provider 多协议支持由 ellamaka 处理。 |
 | **ORM** | Drizzle ORM | 0.39.x | 类型安全 SQL，SQLite 下比 Prisma 更轻量。ellamaka 使用。 |
 | **Relational DB** | SQLite | 3.x | 轻量、嵌入式，适合 MVP。基于文件，无需额外服务器。 |
@@ -42,7 +44,7 @@
 | **UI Library** | shadcn/ui | latest | Radix UI + Tailwind CSS，高度可定制。学员端和管理端使用同一组件库但不同风格。 |
 | **Styling** | Tailwind CSS | 3.x | 与 shadcn/ui 配合，支持主题切换（学员端活泼、管理端专业）|
 | **State Management** | TanStack Query | 5.x | 服务端状态管理，缓存。 |
-| **Forms** | React Hook Form + Zod | 7.x / 3.x | 类型安全的表单验证。 |
+| **Forms** | React Hook Form + Zod | 7.x / 4.x | 类型安全的表单验证。 |
 - 原 Student App + Admin App（React+Vite+Semi）→ 合并为 `apps/web/`（NextJS 15 + shadcn/ui）
 - 学员端路由：`/student/*`（趣味风格）
 - 管理端路由：`/admin/*`（专业风格）

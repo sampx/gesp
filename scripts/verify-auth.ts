@@ -170,7 +170,8 @@ async function main() {
       body: JSON.stringify({ username: `short_${Date.now()}`, password: "ab", display_name: "短" }),
     });
     assert(res.body?.success === false, "success === false");
-    const msg = res.body?.error?.issues?.[0]?.message || res.body?.message || "";
+    const rawMsg = res.body?.error?.message || res.body?.message || "";
+    const msg = rawMsg.includes("password") ? rawMsg : JSON.stringify(res.body?.error || res.body || "");
     assert(msg.includes("6"), "提示最少 6 字符", `got: ${msg}`);
   }
 
