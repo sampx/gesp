@@ -98,7 +98,8 @@ Plans:
   6. 管理员可通过管理端界面添加教员账号（用户名+密码）
   7. 管理员可通过管理端界面添加学员账号（用户名+密码）
   8. 管理员可查看学员列表，支持禁用/启用账号和重置密码
-**Plans:** 7 planned
+**Plans:** 7/7 complete
+**Status:** Complete (2026-04-25)
 
 Plans:
 - [x] 02.1-01-PLAN.md — 后端 API：Seed 迁移、注册 role 支持、修改密码 API、管理员用户管理 CRUD
