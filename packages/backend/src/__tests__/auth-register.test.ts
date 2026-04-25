@@ -35,7 +35,7 @@ vi.mock("../db", () => ({
 }));
 
 // Import after mocks
-import { registerUser, registerUserWithRole, changePassword } from "../services/auth.service";
+import { registerUser, registerUserWithRole, changePassword, createUserByAdmin } from "../services/auth.service";
 import { verifyPassword } from "../utils/password";
 import { db } from "../db";
 
@@ -130,6 +130,64 @@ describe("registerUserWithRole", () => {
     const result = await registerUserWithRole("auto1", "pass123", ROLE.STUDENT);
 
     expect(result.success).toBe(true);
+  });
+});
+
+describe("duplicate username registration", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("rejects duplicate username via registerUserWithRole", async () => {
+    // First call: no existing user → register succeeds
+    (db.query.users.findFirst as any).mockResolvedValueOnce(null);
+    const first = await registerUserWithRole("duplicate_user", "password123", ROLE.STUDENT);
+    expect(first.success).toBe(true);
+
+    // Second call: user now exists → register fails
+    (db.query.users.findFirst as any).mockResolvedValueOnce({
+      id: "dup-id",
+      username: "duplicate_user",
+      role: ROLE.STUDENT,
+    });
+    const second = await registerUserWithRole("duplicate_user", "password456", ROLE.STUDENT);
+    expect(second.success).toBe(false);
+    expect(second.error).toContain("注册失败");
+  });
+
+  it("rejects duplicate username via createUserByAdmin", async () => {
+    // First call: no existing user → create succeeds
+    (db.query.users.findFirst as any).mockResolvedValueOnce(null);
+    const first = await createUserByAdmin("admin_dup", "password123", ROLE.ADMIN);
+    expect(first.success).toBe(true);
+
+    // Second call: user now exists → create fails
+    (db.query.users.findFirst as any).mockResolvedValueOnce({
+      id: "dup-id",
+      username: "admin_dup",
+      role: ROLE.ADMIN,
+    });
+    const second = await createUserByAdmin("admin_dup", "password456", ROLE.ADMIN);
+    expect(second.success).toBe(false);
+    expect(second.error).toContain("已被使用");
+  });
+
+  it("defensive: catches DB constraint violation on insert for duplicate username", async () => {
+    // Simulate race condition: findFirst returns null (user doesn't seem to exist)
+    // but insert throws SQLITE_CONSTRAINT_UNIQUE because another request won the race
+    (db.query.users.findFirst as any).mockResolvedValueOnce(null);
+
+    // Make insert throw a constraint error
+    const constraintError = new Error("SQLITE_CONSTRAINT_UNIQUE: UNIQUE constraint failed: users.username");
+    (db.insert as any).mockReturnValueOnce({
+      values: vi.fn().mockReturnValue({
+        returning: vi.fn().mockRejectedValue(constraintError),
+      }),
+    });
+
+    const result = await registerUserWithRole("race_user", "password123", ROLE.STUDENT);
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("注册失败");
   });
 });
 

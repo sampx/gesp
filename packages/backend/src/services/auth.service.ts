@@ -37,18 +37,25 @@ export async function registerUserWithRole(
     return { success: false, error: "注册失败，请尝试不同的凭据" };
   }
 
-  // Create user
-  const passwordHash = await hashPassword(password);
-  const resolvedDisplayName = displayName ?? username;
-  const [user] = await db.insert(users).values({
-    username,
-    password_hash: passwordHash,
-    display_name: resolvedDisplayName,
-    role,
-    status: USER_STATUS.ENABLED,
-  }).returning();
+  // Create user (defensive: catch DB constraint violation in case of race condition)
+  try {
+    const passwordHash = await hashPassword(password);
+    const resolvedDisplayName = displayName ?? username;
+    const [user] = await db.insert(users).values({
+      username,
+      password_hash: passwordHash,
+      display_name: resolvedDisplayName,
+      role,
+      status: USER_STATUS.ENABLED,
+    }).returning();
 
-  return { success: true, user };
+    return { success: true, user };
+  } catch (err: any) {
+    if (err?.message?.includes("UNIQUE constraint failed") || err?.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      return { success: false, error: "注册失败，请尝试不同的凭据" };
+    }
+    throw err;
+  }
 }
 
 export async function loginUser(
@@ -167,19 +174,26 @@ export async function createUserByAdmin(
     return { success: false, error: "该用户名已被使用" };
   }
 
-  // Create user
-  const passwordHash = await hashPassword(password);
-  const [newUser] = await db.insert(users).values({
-    username,
-    password_hash: passwordHash,
-    display_name: username,
-    role,
-    status: USER_STATUS.ENABLED,
-  }).returning();
+  // Create user (defensive: catch DB constraint violation in case of race condition)
+  try {
+    const passwordHash = await hashPassword(password);
+    const [newUser] = await db.insert(users).values({
+      username,
+      password_hash: passwordHash,
+      display_name: username,
+      role,
+      status: USER_STATUS.ENABLED,
+    }).returning();
 
-  // Return without password_hash
-  const { password_hash: _, ...safeUser } = newUser;
-  return { success: true, user: safeUser };
+    // Return without password_hash
+    const { password_hash: _, ...safeUser } = newUser;
+    return { success: true, user: safeUser };
+  } catch (err: any) {
+    if (err?.message?.includes("UNIQUE constraint failed") || err?.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      return { success: false, error: "该用户名已被使用" };
+    }
+    throw err;
+  }
 }
 
 export async function toggleUserStatus(
