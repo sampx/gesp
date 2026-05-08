@@ -308,7 +308,7 @@ export async function seedAssessmentQuestions(
 ): Promise<{ sqliteCount: number; lanceCount: number }> {
   logger.info("Seeding assessment questions...");
 
-  // Idempotency check: count existing questions in SQLite
+  // Idempotency check: find which questions already exist by content
   const existingRecords = await db.query.assessmentQuestions.findMany();
   const existingCount = existingRecords.length;
 
@@ -320,11 +320,34 @@ export async function seedAssessmentQuestions(
     return { sqliteCount: 0, lanceCount: 0 };
   }
 
+  // Build a set of existing question fingerprints for deduplication
+  const existingFingerprints = new Set(
+    existingRecords.map((r) => `${r.course_id}|${r.level}|${r.knowledge_point}|${r.question_type}|${r.content}`)
+  );
+
+  // Filter out questions that already exist
+  const newQuestions = QUESTIONS.filter(
+    (q) => !existingFingerprints.has(`${q.course_id}|${q.level}|${q.knowledge_point}|${q.question_type}|${q.content}`)
+  );
+
+  if (newQuestions.length === 0) {
+    logger.info(
+      { existing_count: existingCount },
+      "All assessment questions already seeded, skipping"
+    );
+    return { sqliteCount: 0, lanceCount: 0 };
+  }
+
+  logger.info(
+    { new_count: newQuestions.length, existing_count: existingCount },
+    "Seeding new assessment questions"
+  );
+
   // Insert into SQLite
   const inserted = await db
     .insert(assessmentQuestions)
     .values(
-      QUESTIONS.map((q) => ({
+      newQuestions.map((q) => ({
         ...q,
         id: crypto.randomUUID(),
         created_at: new Date(),
@@ -339,7 +362,7 @@ export async function seedAssessmentQuestions(
   );
 
   // Prepare LanceDB records with embeddings
-  const texts = QUESTIONS.map(
+  const texts = newQuestions.map(
     (q) => `${q.content} ${q.knowledge_point} ${q.explanation || ""}`
   );
   const embeddings = await embedInBatches(embedder, texts);
