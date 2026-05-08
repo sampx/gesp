@@ -38,9 +38,9 @@
 
 ### Assessment Agent (测评定级智能体)
 
-- [ ] **ASSESS-01**: 系统根据学员级别生成自适应测评题目
+- [x] **ASSESS-01**: 系统根据学员级别生成自适应测评题目
 - [ ] **ASSESS-02**: 题目覆盖 GESP 1-8 级课程范围（各级别定义的主题）
-- [ ] **ASSESS-03**: 系统自动为学员答案评分（客观题 + 编程题）
+- [x] **ASSESS-03**: 系统自动为学员答案评分（客观题 + 编程题）
 - [ ] **ASSESS-04**: 初始测评完成后确定学员起始级别（5-10 道题）
 - [ ] **ASSESS-05**: 测评进度增量保存（支持中断后恢复）
 
@@ -191,9 +191,9 @@
 | UI-AUTH-03 | Phase 2.1 | Pending | /student/settings 页面 |
 | UI-SKEL-01 | Phase 2 | Complete | NextJS 学员端骨架 |
 | UI-SKEL-02 | Phase 2 | Complete | React + Vite 管理端骨架 |
-| ASSESS-01 | Phase 3 | Pending | ellamaka assessor + gesp SDK |
+| ASSESS-01 | Phase 3 | Complete | ellamaka assessor + gesp SDK |
 | ASSESS-02 | Phase 3 | Pending | ellamaka assessor + gesp SDK |
-| ASSESS-03 | Phase 3 | Pending | ellamaka assessor + gesp SDK |
+| ASSESS-03 | Phase 3 | Complete | ellamaka assessor + gesp SDK |
 | ASSESS-04 | Phase 3 | Pending | ellamaka assessor + gesp SDK |
 | ASSESS-05 | Phase 3 | Pending | ellamaka assessor + gesp SDK |
 | UI-ASSESS-01 | Phase 3 | Pending | 学员端测评页面 |
