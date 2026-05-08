@@ -110,20 +110,70 @@ async function waitForFirstQuestion(
   return null;
 }
 
+const ROUND_SIZE = 5; // questions per round (D-16)
+
 /**
- * Check round completion and convergence
- * Returns done=true when assessment should terminate
+ * Check round completion and convergence at round boundaries.
+ * Uses evaluateRound from assessment service for proper adaptive logic.
+ * Convergence: same level for 2 consecutive rounds (D-07, D-09).
  */
-function checkRoundCompletion(
+async function checkRoundCompletion(
   sessionId: string,
   session: typeof assessmentSessions.$inferSelect,
-): { done: boolean; final_level?: number } {
-  // For MVP: convergence when total_answered >= question_limit
-  // TODO: implement proper convergence logic with evaluateRound
-  const done = (session.total_answered ?? 0) >= (session.config_question_limit ?? 5);
+): Promise<{ done: boolean; final_level?: number }> {
+  const totalAnswered = session.total_answered ?? 0;
+  const questionLimit = session.config_question_limit ?? 5;
+
+  // Not enough answers yet, or max reached as safety cap
+  if (totalAnswered >= questionLimit) {
+    logger.info({ session_id: sessionId, total_answered: totalAnswered }, "Assessment terminated by question limit cap");
+    return { done: true, final_level: session.current_level };
+  }
+
+  // Only evaluate at round boundaries
+  if (totalAnswered < ROUND_SIZE || totalAnswered % ROUND_SIZE !== 0) {
+    return { done: false };
+  }
+
+  // Load this round's answers
+  const roundAnswers = await db
+    .select()
+    .from(assessmentAnswers)
+    .where(eq(assessmentAnswers.session_id, sessionId))
+    .orderBy(assessmentAnswers.question_order)
+    .limit(ROUND_SIZE)
+    .offset(totalAnswered - ROUND_SIZE);
+
+  const results: boolean[] = roundAnswers.map((a) => a.is_correct === 1);
+  const correctCount = results.filter(Boolean).length;
+
+  // Build level history from session (Drizzle JSON column auto-parsed as LevelHistoryEntry[])
+  const levelHistory: Array<{ level: number; round: number; correct: number; total: number }> = Array.isArray(session.level_history)
+    ? [...session.level_history]
+    : [];
+  const currentRound = Math.floor(totalAnswered / ROUND_SIZE);
+
+  const roundResult = assessment.evaluateRound(results, 3, 1, session.current_level ?? 1, levelHistory);
+
+  // Update session with new level and history
+  levelHistory.push({ level: roundResult.new_level, round: currentRound, correct: correctCount, total: ROUND_SIZE });
+  await db
+    .update(assessmentSessions)
+    .set({
+      current_level: roundResult.new_level,
+      level_history: levelHistory,
+      total_answered: totalAnswered,
+    })
+    .where(eq(assessmentSessions.id, sessionId));
+
+  logger.info(
+    { session_id: sessionId, round: currentRound, correct_count: correctCount, new_level: roundResult.new_level, done: roundResult.done },
+    "Round evaluated",
+  );
+
   return {
-    done,
-    final_level: done ? session.current_level : undefined,
+    done: roundResult.done,
+    final_level: roundResult.done ? roundResult.new_level : undefined,
   };
 }
 
@@ -423,7 +473,7 @@ app.post(
       }
 
       // Check round completion
-      const roundResult = checkRoundCompletion(payload.assessment_session_id, session!);
+      const roundResult = await checkRoundCompletion(payload.assessment_session_id, session!);
       
       // Persist completion state if done
       if (roundResult.done && roundResult.final_level) {
