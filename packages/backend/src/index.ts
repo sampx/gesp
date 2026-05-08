@@ -7,12 +7,14 @@ import authRoutes from "./routes/auth";
 import adminUsersRoutes from "./routes/admin-users";
 import debugRoutes from "./routes/debug";
 import { adminKnowledgeRouter, studentKnowledgeRouter } from "./routes/knowledge";
+import assessmentRoutes from "./routes/assessment";
 import { runSeeds } from "./db/seed/admin.seed";
 import { logger } from "./utils/logger";
 import { requestLogger } from "./middleware/request-logger";
 import { createEmbeddingProvider } from "./services/embedding";
 import { LanceDBFileStore } from "./services/vector-store";
 import { KnowledgeBaseService } from "./services/knowledge-base";
+import { seedAssessmentQuestions } from "./seed/assessment-questions.seed";
 
 // Services — embedding provider for knowledge base
 export { createEmbeddingProvider, type EmbeddingProvider } from './services/embedding';
@@ -71,6 +73,16 @@ async function bootstrap() {
   });
   const knowledgeBaseService = new KnowledgeBaseService(vectorStore, embeddingProvider);
 
+  // Log Ellamaka client configuration
+  logger.info({ ellamaka_url: process.env.ELLAMAKA_URL || "http://localhost:4141" }, "Ellamaka client configured");
+
+  // Seed assessment questions into SQLite + LanceDB
+  try {
+    await seedAssessmentQuestions(vectorStore, embeddingProvider);
+  } catch (err) {
+    logger.warn({ err }, "Assessment questions seed failed — assessment will use limited questions");
+  }
+
   // Inject KnowledgeBaseService into request context
   app.use('/api/admin/knowledge/*', async (c, next) => {
     c.set('knowledgeBaseService', knowledgeBaseService);
@@ -85,6 +97,7 @@ async function bootstrap() {
   app.route("/api/admin/users", adminUsersRoutes);
   app.route("/api/admin/knowledge", adminKnowledgeRouter);
   app.route("/api/student/knowledge", studentKnowledgeRouter);
+  app.route("/api/assessment", assessmentRoutes);
 
   // Debug route - production disabled unless ENABLE_DEBUG=true
   if (process.env.NODE_ENV !== "production" || process.env.ENABLE_DEBUG === "true") {
