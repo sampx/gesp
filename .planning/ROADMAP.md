@@ -122,7 +122,15 @@ Plans:
   5. 学员完成 5-10 道题后获得级别定级结果
   6. 测评进度增量保存，可中断后恢复继续
   7. 学员可通过学员端界面参与测评并查看定级结果
-**Plans:** TBD
+**Plans:** 5/5 complete
+**Status:** Planned (2026-05-08)
+
+Plans:
+- [ ] 03-01-PLAN.md — DB Schema + Assessment Service Core（3 Drizzle tables, JWT token, adaptive algorithm, scoring）
+- [ ] 03-02-PLAN.md — Ellamaka Client + gesp-plugin + assessor.md agent 定义
+- [ ] 03-03-PLAN.md — REST API Routes + SSE Stream（9 endpoints: 6 student + 3 internal）
+- [ ] 03-04-PLAN.md — Assessment Questions Seed（16 道 C++ 1-4 级题目，SQLite + LanceDB）
+- [ ] 03-05-PLAN.md — Frontend Assessment Pages（起测页 + 答题页 + 报告页 + 6 components）
 
 ### Phase 4: 教学讲解智能体 + 教学界面
 **Goal:** 学员可观看 AI 生成的知识点讲解并获得互动答疑，可在学员端界面看到教学内容
