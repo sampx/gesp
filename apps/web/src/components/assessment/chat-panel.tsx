@@ -83,11 +83,10 @@ export function ChatPanel({ token }: ChatPanelProps) {
           </ScrollArea>
           <div className="p-3 border-t shrink-0">
             <Input 
-              disabled 
-              placeholder="AI 顾问暂时只能接收消息，不能回复..." 
+              placeholder="输入消息与 AI 顾问交流..." 
               className="text-sm" 
             />
-            <Button size="icon" variant="ghost" disabled><Send className="h-4 w-4" /></Button>
+            <Button size="icon" variant="ghost"><Send className="h-4 w-4" /></Button>
           </div>
         </div>
       )}
