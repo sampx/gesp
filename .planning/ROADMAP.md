@@ -126,7 +126,7 @@ Plans:
 **Status:** Planned (2026-05-08)
 
 Plans:
-- [ ] 03-01-PLAN.md — DB Schema + Assessment Service Core（3 Drizzle tables, JWT token, adaptive algorithm, scoring）
+- [x] 03-01-PLAN.md — DB Schema + Assessment Service Core（3 Drizzle tables, JWT token, adaptive algorithm, scoring）
 - [x] 03-02-PLAN.md — Ellamaka Client + gesp-plugin + assessor.md agent 定义
 - [ ] 03-03-PLAN.md — REST API Routes + SSE Stream（9 endpoints: 6 student + 3 internal）
 - [ ] 03-04-PLAN.md — Assessment Questions Seed（16 道 C++ 1-4 级题目，SQLite + LanceDB）
