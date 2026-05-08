@@ -112,7 +112,7 @@ export const assessmentIndexes = {
   ),
   answerDuplicateIdx: index("asmt_answer_dup_idx").on(
     assessmentAnswers.session_id,
-    assessmentAnswers.knowledge_point,
+    assessmentAnswers.question_id,
   ),
   questionStatusIdx: index("asmt_q_status_idx").on(
     assessmentQuestions.status,

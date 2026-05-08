@@ -10,7 +10,7 @@ import { createEllamakaClient } from "../services/ellamaka-client";
 import * as assessment from "../services/assessment";
 import { db } from "../db";
 import { assessmentSessions, assessmentAnswers, assessmentQuestions } from "../db/schema/assessment";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 const app = new Hono();
 const ellamakaClient = createEllamakaClient();
@@ -359,7 +359,24 @@ app.post(
       return unauthorized(c, "Invalid or expired token");
     }
 
-    // 2. Get question from DB
+    // 2. Verify question is currently locked for this session
+    const lockedQuestionId = assessment.getLockedQuestionId(payload.assessment_session_id);
+    if (!lockedQuestionId || body.question_id !== lockedQuestionId) {
+      return error(c, "Question is not active for this session", 400);
+    }
+
+    // 3. Check if question already answered (prevent duplicates)
+    const existingAnswer = await db.query.assessmentAnswers.findFirst({
+      where: and(
+        eq(assessmentAnswers.session_id, payload.assessment_session_id),
+        eq(assessmentAnswers.question_id, body.question_id),
+      ),
+    });
+    if (existingAnswer) {
+      return error(c, "Question already answered", 400);
+    }
+
+    // 4. Get question from DB
     const question = await db.query.assessmentQuestions.findFirst({
       where: eq(assessmentQuestions.id, body.question_id),
     });
