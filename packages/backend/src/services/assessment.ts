@@ -463,6 +463,25 @@ export async function updateSessionAfterAnswer(
 }
 
 /**
+ * Mark session as completed with final level.
+ */
+export async function completeSession(
+  sessionId: string,
+  finalLevel: number,
+): Promise<void> {
+  await db
+    .update(assessmentSessions)
+    .set({
+      status: "completed",
+      final_level: finalLevel,
+      completed_at: new Date(),
+    })
+    .where(eq(assessmentSessions.id, sessionId));
+
+  logger.info({ session_id: sessionId, final_level: finalLevel }, "Session completed");
+}
+
+/**
  * Abandon a session (timeout or ellamaka session expired).
  * Per D-26: set status='abandoned'.
  */

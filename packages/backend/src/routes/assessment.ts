@@ -424,6 +424,11 @@ app.post(
 
       // Check round completion
       const roundResult = checkRoundCompletion(payload.assessment_session_id, session!);
+      
+      // Persist completion state if done
+      if (roundResult.done && roundResult.final_level) {
+        await assessment.completeSession(payload.assessment_session_id, roundResult.final_level);
+      }
 
       return success(c, {
         is_correct: correct,
