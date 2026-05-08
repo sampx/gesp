@@ -23,13 +23,13 @@ tech-stack:
 
 key-files:
   created:
-    - packages/backend/src/middleware/auth.ts — Role-based auth middleware with requireSession base
-    - packages/backend/src/services/auth.service.ts — Auth service functions
-    - packages/backend/src/routes/auth.ts — Auth API routes with OpenAPI specs
-    - packages/backend/src/__tests__/auth-middleware.test.ts — Auth middleware tests
+    - projects/gesp/packages/backend/src/middleware/auth.ts — Role-based auth middleware with requireSession base
+    - projects/gesp/packages/backend/src/services/auth.service.ts — Auth service functions
+    - projects/gesp/packages/backend/src/routes/auth.ts — Auth API routes with OpenAPI specs
+    - projects/gesp/packages/backend/src/__tests__/auth-middleware.test.ts — Auth middleware tests
   modified:
-    - packages/backend/src/index.ts — Mount auth routes
-    - packages/backend/package.json — Add @hono/zod-validator
+    - projects/gesp/packages/backend/src/index.ts — Mount auth routes
+    - projects/gesp/packages/backend/package.json — Add @hono/zod-validator
 
 key-decisions:
   - "Cleaner auth middleware pattern with validateSessionAndSetUser helper instead of nested callbacks (type error fix)"
@@ -79,12 +79,12 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 
-- `packages/backend/src/middleware/auth.ts` - Role-based auth middleware (StudentAuth, AdminAuth, RootAuth)
-- `packages/backend/src/services/auth.service.ts` - Auth service (registerUser, loginUser, getUserById)
-- `packages/backend/src/routes/auth.ts` - Auth API routes with OpenAPI documentation
-- `packages/backend/src/__tests__/auth-middleware.test.ts` - Auth middleware tests
-- `packages/backend/src/index.ts` - Mount auth routes at /api/auth
-- `packages/backend/package.json` - Add @hono/zod-validator dependency
+- `projects/gesp/packages/backend/src/middleware/auth.ts` - Role-based auth middleware (StudentAuth, AdminAuth, RootAuth)
+- `projects/gesp/packages/backend/src/services/auth.service.ts` - Auth service (registerUser, loginUser, getUserById)
+- `projects/gesp/packages/backend/src/routes/auth.ts` - Auth API routes with OpenAPI documentation
+- `projects/gesp/packages/backend/src/__tests__/auth-middleware.test.ts` - Auth middleware tests
+- `projects/gesp/packages/backend/src/index.ts` - Mount auth routes at /api/auth
+- `projects/gesp/packages/backend/package.json` - Add @hono/zod-validator dependency
 
 ## Decisions Made
 
@@ -100,7 +100,7 @@ Each task was committed atomically:
 - **Found during:** Task 04-01 (Auth middleware implementation)
 - **Issue:** Plan's nested `requireSession(c, async () => { ... await next() })` pattern caused TS2345 error — `Next` type expects `Promise<void>` but nested callback returns `Promise<Response | undefined>`
 - **Fix:** Refactored to flat pattern: `validateSessionAndSetUser(c)` helper returns error or sets user, then role check, then `await next()`. Added `requireSession` export to satisfy acceptance criteria.
-- **Files modified:** packages/backend/src/middleware/auth.ts
+- **Files modified:** projects/gesp/packages/backend/src/middleware/auth.ts
 - **Verification:** `bun run typecheck` passes
 - **Committed in:** ea1fea7 (Task 04-01 commit)
 
@@ -108,7 +108,7 @@ Each task was committed atomically:
 - **Found during:** Task 04-03 (Auth routes implementation)
 - **Issue:** Plan used `OpenAPIHono` and `createRoute` which don't exist in hono-openapi 0.4.x. Imports failed at typecheck.
 - **Fix:** Used correct API: `describeRoute` from hono-openapi, `resolver` from hono-openapi/zod, `zValidator` from @hono/zod-validator. Installed @hono/zod-validator package.
-- **Files modified:** packages/backend/src/routes/auth.ts, packages/backend/package.json
+- **Files modified:** projects/gesp/packages/backend/src/routes/auth.ts, projects/gesp/packages/backend/package.json
 - **Verification:** `bun run typecheck` passes, tests pass
 - **Committed in:** ebfc2fb (Task 04-03 commit)
 

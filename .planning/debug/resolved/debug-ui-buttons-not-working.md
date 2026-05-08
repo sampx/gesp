@@ -53,4 +53,4 @@ started: Discovered during UAT Test 1 (Cold Start Smoke Test)
 root_cause: JavaScript syntax error in inline HTML script - the '\n' escape sequence in debug.ts line 97 is interpreted by the template literal and output as a LITERAL NEWLINE character in the served HTML, breaking the string literal syntax. Browser throws SyntaxError, preventing all JavaScript functions (register, login, getCurrentUser, logout, log) from being defined. onclick handlers have undefined functions to call.
 fix: Use escaped newline '\\n' (double escape) in the template literal string to ensure literal backslash-n reaches the browser, OR use character code approach like '\u000a'
 verification: Test that browser can parse the script without syntax error
-files_changed: [packages/backend/src/routes/debug.ts]
+files_changed: [projects/gesp/packages/backend/src/routes/debug.ts]

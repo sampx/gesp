@@ -18,7 +18,7 @@ created: 2026-05-08
 | Property | Value |
 |----------|-------|
 | **Framework** | Vitest |
-| **Config file** | `packages/backend/vitest.config.ts`（后端） / `apps/web/vitest.config.ts`（前端） |
+| **Config file** | `projects/gesp/packages/backend/vitest.config.ts`（后端） / `apps/web/vitest.config.ts`（前端） |
 | **Quick run command** | `bun test --filter='./packages/backend'` |
 | **Full suite command** | `bun run test` |
 | **Estimated runtime** | ~30 seconds |
@@ -40,10 +40,10 @@ created: 2026-05-08
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 03-01-01 | 01 | 1 | ASSESS-04, ASSESS-05 | — | N/A | unit | `bun test packages/backend/src/__tests__/assessment-algorithm.test.ts` | ❌ W0 | ⬜ pending |
-| 03-01-02 | 01 | 1 | ASSESS-04, ASSESS-05 | — | N/A | unit | `bun test packages/backend/src/__tests__/assessment-token.test.ts` | ❌ W0 | ⬜ pending |
+| 03-01-01 | 01 | 1 | ASSESS-04, ASSESS-05 | — | N/A | unit | `bun test projects/gesp/packages/backend/src/__tests__/assessment-algorithm.test.ts` | ❌ W0 | ⬜ pending |
+| 03-01-02 | 01 | 1 | ASSESS-04, ASSESS-05 | — | N/A | unit | `bun test projects/gesp/packages/backend/src/__tests__/assessment-token.test.ts` | ❌ W0 | ⬜ pending |
 | 03-01-03 | 01 | 1 | — | — | N/A | schema | `bun run typecheck && bun run db:push` | ❌ W0 | ⬜ pending |
-| 03-02-01 | 02 | 1 | ASSESS-01 | — | N/A | unit | `bun test packages/backend/src/__tests__/ellamaka-client.test.ts` | ❌ W0 | ⬜ pending |
+| 03-02-01 | 02 | 1 | ASSESS-01 | — | N/A | unit | `bun test projects/gesp/packages/backend/src/__tests__/ellamaka-client.test.ts` | ❌ W0 | ⬜ pending |
 | 03-02-02 | 02 | 1 | ASSESS-01 | — | N/A | — | 无自动化（ellamaka 插件文件验证） | — | ⬜ pending |
 | 03-02-03 | 02 | 1 | ASSESS-01 | — | N/A | — | 无自动化（assessor.md 内容审查） | — | ⬜ pending |
 
@@ -51,9 +51,9 @@ created: 2026-05-08
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 03-03-01 | 03 | 2 | ASSESS-01, ASSESS-02 | — | N/A | integration | `bun test packages/backend/src/__tests__/assessment-api.test.ts` | ❌ W0 | ⬜ pending |
-| 03-03-02 | 03 | 2 | ASSESS-05 | — | N/A | integration | `bun test packages/backend/src/__tests__/assessment-resume.test.ts` | ❌ W0 | ⬜ pending |
-| 03-04-01 | 04 | 2 | ASSESS-02 | — | N/A | integration | `bun test packages/backend/src/__tests__/assessment-seed.test.ts` | ❌ W0 | ⬜ pending |
+| 03-03-01 | 03 | 2 | ASSESS-01, ASSESS-02 | — | N/A | integration | `bun test projects/gesp/packages/backend/src/__tests__/assessment-api.test.ts` | ❌ W0 | ⬜ pending |
+| 03-03-02 | 03 | 2 | ASSESS-05 | — | N/A | integration | `bun test projects/gesp/packages/backend/src/__tests__/assessment-resume.test.ts` | ❌ W0 | ⬜ pending |
+| 03-04-01 | 04 | 2 | ASSESS-02 | — | N/A | integration | `bun test projects/gesp/packages/backend/src/__tests__/assessment-seed.test.ts` | ❌ W0 | ⬜ pending |
 | 03-04-02 | 04 | 2 | — | — | N/A | schema | `bun run typecheck` | ❌ W0 | ⬜ pending |
 
 ### Wave 3: 前端界面
@@ -70,12 +70,12 @@ created: 2026-05-08
 
 ## Wave 0 Requirements
 
-- [ ] `packages/backend/src/__tests__/assessment-algorithm.test.ts` — 自适应算法单元测试（升/降/停留/收敛）
-- [ ] `packages/backend/src/__tests__/assessment-token.test.ts` — JWT token 签名/验证测试
-- [ ] `packages/backend/src/__tests__/ellamaka-client.test.ts` — ellamaka 客户端 mock 测试
-- [ ] `packages/backend/src/__tests__/assessment-api.test.ts` — 完整测评流程集成测试（start → submit → done）
-- [ ] `packages/backend/src/__tests__/assessment-resume.test.ts` — 中断恢复流程集成测试
-- [ ] `packages/backend/src/__tests__/assessment-seed.test.ts` — 种子数据完整性测试
+- [ ] `projects/gesp/packages/backend/src/__tests__/assessment-algorithm.test.ts` — 自适应算法单元测试（升/降/停留/收敛）
+- [ ] `projects/gesp/packages/backend/src/__tests__/assessment-token.test.ts` — JWT token 签名/验证测试
+- [ ] `projects/gesp/packages/backend/src/__tests__/ellamaka-client.test.ts` — ellamaka 客户端 mock 测试
+- [ ] `projects/gesp/packages/backend/src/__tests__/assessment-api.test.ts` — 完整测评流程集成测试（start → submit → done）
+- [ ] `projects/gesp/packages/backend/src/__tests__/assessment-resume.test.ts` — 中断恢复流程集成测试
+- [ ] `projects/gesp/packages/backend/src/__tests__/assessment-seed.test.ts` — 种子数据完整性测试
 
 ---
 

@@ -22,10 +22,10 @@ tech-stack:
 
 key-files:
   created:
-    - packages/backend/src/services/knowledge-base.ts
-    - packages/backend/src/routes/knowledge.ts
+    - projects/gesp/packages/backend/src/services/knowledge-base.ts
+    - projects/gesp/packages/backend/src/routes/knowledge.ts
   modified:
-    - packages/backend/src/index.ts
+    - projects/gesp/packages/backend/src/index.ts
 
 key-decisions:
   - "Used existing AdminAuth()/StudentAuth() middleware (not requireAuth/requireRole from plan) to match Phase 1 patterns"
@@ -71,9 +71,9 @@ Each task was committed atomically:
 2. **Task 2: Create knowledge routes + register in app** - `2f62995` (feat)
 
 ## Files Created/Modified
-- `packages/backend/src/services/knowledge-base.ts` - KnowledgeBaseService with CRUD + auto-embedding for 4 table types
-- `packages/backend/src/routes/knowledge.ts` - Admin + student knowledge API routes with auth and Zod validation
-- `packages/backend/src/index.ts` - Route registration, KnowledgeBaseService initialization and injection middleware
+- `projects/gesp/packages/backend/src/services/knowledge-base.ts` - KnowledgeBaseService with CRUD + auto-embedding for 4 table types
+- `projects/gesp/packages/backend/src/routes/knowledge.ts` - Admin + student knowledge API routes with auth and Zod validation
+- `projects/gesp/packages/backend/src/index.ts` - Route registration, KnowledgeBaseService initialization and injection middleware
 
 ## Decisions Made
 - **Used actual auth middleware patterns**: Plan referenced `requireAuth`/`requireRole` but actual codebase uses `AdminAuth()`/`StudentAuth()` — followed existing Phase 1 patterns

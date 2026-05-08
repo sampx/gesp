@@ -120,7 +120,7 @@
 #### 11. [task_completeness] Plan 02-03 context references nonexistent files
 
 * **Plan:** 02-03
-* **Issue:** `<context>` block references `@packages/backend/src/middleware/auth.ts` and `@packages/backend/src/routes/auth.ts`. These should be from Phase 1 output. If Phase 1 created them, fine. If not, Plan 02-03 can't import these patterns. Verify Phase 1 output first.
+* **Issue:** `<context>` block references `@projects/gesp/packages/backend/src/middleware/auth.ts` and `@projects/gesp/packages/backend/src/routes/auth.ts`. These should be from Phase 1 output. If Phase 1 created them, fine. If not, Plan 02-03 can't import these patterns. Verify Phase 1 output first.
 * **Suggestion:** Add these as `read_first` in the routes task as defensive checks.
 
 ---

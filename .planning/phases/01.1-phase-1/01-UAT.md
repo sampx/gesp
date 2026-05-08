@@ -64,9 +64,9 @@ blocked: 0
   test: 1
   root_cause: "Vitest mockResolvedValueOnce 队列污染：Test 3 (line 57) mock 了 findFirst(undefined)，但因 CR-01 修复后密码检查提前到 DB 查询之前，密码 'short' 触发 early return → findFirst 未被调用 → mock 未被消耗 → beforeEach 的 vi.clearAllMocks() 只清除 call history，不清除 queued mock values → Test 4 的队列变成 [undefined (stale), existing user (fresh)] → findFirst 返回 undefined → 用户被创建 → success=true"
   artifacts:
-    - path: "packages/backend/src/__tests__/auth-register.test.ts"
+    - path: "projects/gesp/packages/backend/src/__tests__/auth-register.test.ts"
       issue: "Test 3 不必要地 mock 了 findFirst（该 case 根本不调用 DB）；vi.clearAllMocks() 不清除 queued mocks"
-    - path: "packages/backend/src/services/auth.service.ts"
+    - path: "projects/gesp/packages/backend/src/services/auth.service.ts"
       issue: "CR-01 修复正确地将密码检查提前（安全正确），改变了执行顺序"
   missing:
     - "Test 3 删除不必要的 findFirst mock，或改用 vi.restoreAllMocks() 替代 vi.clearAllMocks()"
@@ -80,7 +80,7 @@ blocked: 0
   test: 1
   root_cause: "JavaScript 语法错误导致所有函数未定义：debug.ts line 97 的 document.createTextNode('\n') 在 TypeScript template literal 中被解释为真实换行符，HTML 输出的 JavaScript 字符串被断行（unclosed quote + continuation on next line）→ SyntaxError → 所有 onclick handler 函数 undefined → 点击无响应"
   artifacts:
-    - path: "packages/backend/src/routes/debug.ts"
+    - path: "projects/gesp/packages/backend/src/routes/debug.ts"
       issue: "line 97: document.createTextNode('\n') 需要双转义为 '\\n' 或使用 '\\u000a'"
   missing:
     - "将 '\n' 改为 '\\n' 或 '\\u000a'，确保浏览器收到正确的 JavaScript escape sequence"

@@ -23,11 +23,11 @@ tech-stack:
 
 key-files:
   created:
-    - packages/backend/src/db/seed/admin.seed.ts
-    - packages/backend/src/__tests__/seed.test.ts
-    - packages/backend/src/__tests__/openapi.test.ts
+    - projects/gesp/packages/backend/src/db/seed/admin.seed.ts
+    - projects/gesp/packages/backend/src/__tests__/seed.test.ts
+    - projects/gesp/packages/backend/src/__tests__/openapi.test.ts
   modified:
-    - packages/backend/src/index.ts
+    - projects/gesp/packages/backend/src/index.ts
 
 key-decisions:
   - "Default admin credentials: admin/admin123 (env overrideable)"
@@ -73,10 +73,10 @@ Each task was committed atomically:
 **Plan metadata:** No separate commit - tasks covered by individual commits
 
 ## Files Created/Modified
-- `packages/backend/src/db/seed/admin.seed.ts` — Admin seed with existing root check, bcrypt hashing, env overrideable credentials
-- `packages/backend/src/__tests__/seed.test.ts` — Seed function existence tests (placeholder)
-- `packages/backend/src/__tests__/openapi.test.ts` — OpenAPI spec placeholder tests
-- `packages/backend/src/index.ts` — Modified to include `await runSeeds()` in bootstrap function
+- `projects/gesp/packages/backend/src/db/seed/admin.seed.ts` — Admin seed with existing root check, bcrypt hashing, env overrideable credentials
+- `projects/gesp/packages/backend/src/__tests__/seed.test.ts` — Seed function existence tests (placeholder)
+- `projects/gesp/packages/backend/src/__tests__/openapi.test.ts` — OpenAPI spec placeholder tests
+- `projects/gesp/packages/backend/src/index.ts` — Modified to include `await runSeeds()` in bootstrap function
 
 ## Decisions Made
 - Default admin username: admin, password: admin123 — both env-overrideable

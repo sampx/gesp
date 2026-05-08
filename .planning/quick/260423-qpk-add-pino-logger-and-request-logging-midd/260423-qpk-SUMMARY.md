@@ -7,11 +7,11 @@ autonomous: true
 tags: [logging, infrastructure, pino, middleware]
 key_files:
   created:
-    - packages/backend/src/utils/logger.ts
-    - packages/backend/src/middleware/request-logger.ts
+    - projects/gesp/packages/backend/src/utils/logger.ts
+    - projects/gesp/packages/backend/src/middleware/request-logger.ts
   modified:
-    - packages/backend/package.json
-    - packages/backend/src/index.ts
+    - projects/gesp/packages/backend/package.json
+    - projects/gesp/packages/backend/src/index.ts
   deleted: []
 key_decisions:
   - "Pino selected as structured logging library (per AGENTS.md spec)"
@@ -84,8 +84,8 @@ Per PLAN.md threat model:
 ## Self-Check: PASSED
 
 ```bash
-[ -f "packages/backend/src/utils/logger.ts" ] && echo "FOUND: logger.ts"
-[ -f "packages/backend/src/middleware/request-logger.ts" ] && echo "FOUND: request-logger.ts"
+[ -f "projects/gesp/packages/backend/src/utils/logger.ts" ] && echo "FOUND: logger.ts"
+[ -f "projects/gesp/packages/backend/src/middleware/request-logger.ts" ] && echo "FOUND: request-logger.ts"
 git log --oneline | grep -q "04d64e1" && echo "FOUND: 04d64e1"
 git log --oneline | grep -q "5460acb" && echo "FOUND: 5460acb"
 git log --oneline | grep -q "2b55187" && echo "FOUND: 2b55187"

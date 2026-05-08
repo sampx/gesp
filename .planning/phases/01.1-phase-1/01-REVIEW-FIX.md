@@ -24,7 +24,7 @@ status: all_fixed
 
 ### CR-01: User Enumeration via Password Validation Error Ordering
 
-**Files modified:** `packages/backend/src/services/auth.service.ts`
+**Files modified:** `projects/gesp/packages/backend/src/services/auth.service.ts`
 **Commit:** `94d84ea`
 **Applied fix:** Reordered password validation to check BEFORE username existence lookup. Password length check now happens first (lines 12-15), preventing attackers from inferring username existence through different error messages.
 
@@ -34,7 +34,7 @@ status: all_fixed
 
 ### WR-01: Potential XSS via innerHTML in Debug Route
 
-**Files modified:** `packages/backend/src/routes/debug.ts`
+**Files modified:** `projects/gesp/packages/backend/src/routes/debug.ts`
 **Commit:** `c1f1a34`
 **Applied fix:** Replaced `innerHTML +=` with safe DOM manipulation using `textContent` and `appendChild`. The `log()` function now creates a span element, sets color via style property, and uses `textContent` for the message content (lines 91-97).
 

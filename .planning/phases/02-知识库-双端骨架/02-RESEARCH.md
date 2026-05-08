@@ -10,7 +10,7 @@
 - **Schema definition:** Use Arrow Schema (not Drizzle), matching the data model in `gesp-data-models.md`. Each table (`knowledge_points`, `lesson_plans`, `practice_questions`, `exam_questions`) gets an Arrow schema with a `vector` column
 - **Vector search:** LanceDB supports `table.search(vector).limit(N).toArray()` for cosine similarity. Also supports FTS via `table.search("text").toArray()`
 - **Embedding auto-generation:** LanceDB has `EmbeddingFunction` class — can wrap Ollama/OpenAI embedding calls to auto-generate vectors on insert. Use `EmbeddingFunction` with custom `embed()` method calling Ollama API
-- **Storage:** File mode at `packages/backend/data/gesp.lance` (`.gitignore`)
+- **Storage:** File mode at `projects/gesp/packages/backend/data/gesp.lance` (`.gitignore`)
 - **VectorStore abstraction:** Define `interface VectorStore { search(query, limit): Promise<Result[]>; insert(table, records): Promise<void> }`. Phase 2 implements `LanceDBFileStore`. Constructor pattern: `new LanceDBFileStore({ dbPath, embeddingProvider })`
 
 ## 2. NextJS 15 + shadcn/ui Setup
@@ -53,7 +53,7 @@
 
 ## 5. Embedding Provider Abstraction
 
-- **Interface** (in `packages/backend/src/services/embedding.ts`):
+- **Interface** (in `projects/gesp/packages/backend/src/services/embedding.ts`):
 
 ```typescript
 interface EmbeddingProvider {
@@ -76,18 +76,18 @@ interface EmbeddingProvider {
   - `practice-cpp-l1.json` — 40 practice questions
   - `lesson-cpp-g3-05.json` — 1 lesson plan
 - **Knowledge points:** Not yet in seed data. GESP 1-8 级大纲知识点需要先结构化（从官方大纲提取，存为 JSON），然后导入 LanceDB `knowledge_points` 表
-- **Pipeline script:** `packages/backend/src/seed/knowledge.seed.ts`:
+- **Pipeline script:** `projects/gesp/packages/backend/src/seed/knowledge.seed.ts`:
   1. Read JSON files from seed directory
   2. Map to LanceDB Arrow schema (generate UUIDs, construct embedding text)
   3. Call `EmbeddingProvider.embedBatch()` on all records
   4. Insert into LanceDB tables
-- **Run script:** `bun run packages/backend/src/seed/knowledge.seed.ts` or add as Turborepo task
+- **Run script:** `bun run projects/gesp/packages/backend/src/seed/knowledge.seed.ts` or add as Turborepo task
 - **Re-seed safety:** Check if LanceDB directory exists, skip if already seeded (or add `--force` flag)
 - **Knowledge point source:** GESP 1-8 级大纲在 `docs/products/gesp/` 下需创建 `knowledge-points-gesp-cpp-1-8.json`，按数据模型 Schema 的字段结构化。这是 Phase 2 的必要前置工作
 
 ## 7. Knowledge Base API Design
 
-- **Routes** (Hono, in `packages/backend/src/routes/knowledge.ts`):
+- **Routes** (Hono, in `projects/gesp/packages/backend/src/routes/knowledge.ts`):
 
 ```
 Admin routes (require AdminAuth):
@@ -107,7 +107,7 @@ Student routes (require StudentAuth):
 - **Semantic search:** `POST /api/admin/knowledge/points/search { query: "欧几里得算法", limit: 10 }` — calls `embeddingProvider.embed(query)` then `lancedb.store.search(vector, limit)`
 - **Validation:** Zod schemas for all request bodies (`zValidator` middleware, same pattern as Phase 1 auth routes)
 - **Response format:** `{ success: true, data: T }` — same as existing convention
-- **Service layer:** `packages/backend/src/services/knowledge-base.ts` — encapsulates LanceDB operations, exposed to route handlers
+- **Service layer:** `projects/gesp/packages/backend/src/services/knowledge-base.ts` — encapsulates LanceDB operations, exposed to route handlers
 
 ## 8. Frontend Component Architecture
 

@@ -36,13 +36,13 @@ status: all_fixed
 
 ### CR-03: Unsanitized string interpolation in LanceDB filter expressions
 
-**Files modified:** `packages/backend/src/services/vector-store.ts`
+**Files modified:** `projects/gesp/packages/backend/src/services/vector-store.ts`
 **Commit:** d74f699
 **Applied fix:** Added `sanitizeId()` function that validates IDs against a UUID regex before interpolation into LanceDB `where()`/`delete()` filter expressions. Applied in `getById()`, `update()`, and `delete()` methods.
 
 ### WR-01: Frontend filter parameters silently ignored by backend
 
-**Files modified:** `packages/backend/src/routes/knowledge.ts`
+**Files modified:** `projects/gesp/packages/backend/src/routes/knowledge.ts`
 **Commit:** a94d5ad
 **Applied fix:** Extended `paginationSchema` with `listPointsSchema` that accepts optional `level` (1-8) and `block` (string) query params. The `/points` GET handler now builds a LanceDB filter string from these params and passes it to `kb.list()`. Block values are escaped for single quotes.
 
@@ -66,7 +66,7 @@ status: all_fixed
 
 ### WR-05: Seed script uses console.log instead of project logger
 
-**Files modified:** `packages/backend/src/seed/knowledge.seed.ts`
+**Files modified:** `projects/gesp/packages/backend/src/seed/knowledge.seed.ts`
 **Commit:** 86c658b
 **Applied fix:** Imported `logger` from `../utils/logger` and replaced all `console.log()` calls with `logger.info()` (structured logging with context objects) and `console.error()` with `logger.error()`. Follows the project's pino logging convention with snake_case field names.
 

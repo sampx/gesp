@@ -132,7 +132,7 @@ Each task was committed atomically:
 **Impact on plan:** All deviations necessary to work with actual project's @base-ui/react components and Zod 4. No scope creep.
 
 ## Issues Encountered
-- Pre-existing backend typecheck errors in `packages/backend/src/routes/knowledge.ts` and `src/index.ts` from Plan 03 — not related to frontend changes, deferred.
+- Pre-existing backend typecheck errors in `projects/gesp/packages/backend/src/routes/knowledge.ts` and `src/index.ts` from Plan 03 — not related to frontend changes, deferred.
 
 ## Known Stubs
 

@@ -107,7 +107,7 @@ EMBEDDING_PROVIDER=ollama  # 开发默认，生产可切 openai
 ### 1. ellamaka SDK 代理模式（gesp → ellamaka）
 
 ```typescript
-// packages/backend/src/ellamaka/client.ts
+// projects/gesp/packages/backend/src/ellamaka/client.ts
 
 import { EllamakaClient } from "@ellamaka/sdk";
 
@@ -140,7 +140,7 @@ export async function callAgent(agent: string, params: CallParams): Promise<Agen
 ### 2. LanceDB 集成模式（gesp backend 内）
 
 ```typescript
-// packages/backend/src/db/lance/index.ts
+// projects/gesp/packages/backend/src/db/lance/index.ts
 
 import * as lancedb from "@lancedb/lancedb";
 
@@ -162,7 +162,7 @@ const results = await table
 ### 3. Drizzle SQLite Schema 模式（参考 ellamaka）
 
 ```typescript
-// packages/backend/src/db/sqlite/schema.ts
+// projects/gesp/packages/backend/src/db/sqlite/schema.ts
 
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 

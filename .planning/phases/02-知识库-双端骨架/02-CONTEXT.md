@@ -86,7 +86,7 @@ gesp/
 ### D-06: Embedding Provider — 抽象接口 + 默认 OpenAI，Ollama 已配置
 
 ```typescript
-// packages/backend/src/services/embedding.ts
+// projects/gesp/packages/backend/src/services/embedding.ts
 interface EmbeddingProvider {
   embed(text: string): Promise<number[]>;
   embedBatch(texts: string[]): Promise<number[][]>;
@@ -115,7 +115,7 @@ EMBEDDING_MODEL=nomic-embed-text-v2-moe
 ### D-07: LanceDB 部署 — 文件模式 + 兼容接口
 - **Phase 2 实现:** `LanceDBFileStore`，数据存储在 `./data/gesp.lance`
 - **接口设计:** 抽象 `VectorStore` 接口，预留 `LanceDBRemoteStore` 未来实现
-- **路径:** `packages/backend/data/gesp.lance`（gitignored）
+- **路径:** `projects/gesp/packages/backend/data/gesp.lance`（gitignored）
 
 ### D-08: 知识库管理界面 — 列表 + 详情页模式
 - **列表页:** shadcn `Table` + `DataTable`（支持排序、筛选、分页）
@@ -200,9 +200,9 @@ EMBEDDING_PROVIDER=ollama  # 开发用 ollama，生产可切 openai
 - `labs/fork/sampx/new-api/` — 管理端界面参考（React 设计模式）
 
 ### Backend Codebase
-- `packages/backend/src/db/schema/` — Drizzle schema（用户表已有）
-- `packages/backend/src/middleware/` — Auth middleware（复用 Phase 1）
-- `packages/backend/src/routes/auth.ts` — Auth API（复用 Phase 1）
+- `projects/gesp/packages/backend/src/db/schema/` — Drizzle schema（用户表已有）
+- `projects/gesp/packages/backend/src/middleware/` — Auth middleware（复用 Phase 1）
+- `projects/gesp/packages/backend/src/routes/auth.ts` — Auth API（复用 Phase 1）
 
 </canonical_refs>
 
@@ -211,7 +211,7 @@ EMBEDDING_PROVIDER=ollama  # 开发用 ollama，生产可切 openai
 
 ### Reusable Assets
 - **Auth System:** Phase 1 已实现完整的 session-based auth（bcrypt, cookie, middleware）
-- **User Schema:** `packages/backend/src/db/schema/users.ts` 已有 role 字段（1=student, 10=admin, 100=root）
+- **User Schema:** `projects/gesp/packages/backend/src/db/schema/users.ts` 已有 role 字段（1=student, 10=admin, 100=root）
 - **Debug Route:** `/debug` 页面可用于验证 Phase 2 功能
 
 ### Established Patterns
@@ -221,8 +221,8 @@ EMBEDDING_PROVIDER=ollama  # 开发用 ollama，生产可切 openai
 
 ### Integration Points
 - **Knowledge Base API:** 新增 `/api/admin/knowledge/*` 和 `/api/student/knowledge/*` 路由
-- **LanceDB Integration:** backend 需要新增 LanceDB client，建议在 `packages/backend/src/services/knowledge-base.ts`
-- **Seed Script:** 可在 `packages/backend/src/seed/` 新增 knowledge seed 脚本
+- **LanceDB Integration:** backend 需要新增 LanceDB client，建议在 `projects/gesp/packages/backend/src/services/knowledge-base.ts`
+- **Seed Script:** 可在 `projects/gesp/packages/backend/src/seed/` 新增 knowledge seed 脚本
 
 ### Frontend Pattern (待建立)
 - **NextJS App Router:** 尚未初始化，Phase 2 新建 `apps/web/`
@@ -256,7 +256,7 @@ EMBEDDING_PROVIDER=ollama  # 开发用 ollama，生产可切 openai
 - Markdown 编辑：使用 `react-markdown` + `react-textarea-autosize`
 
 ### Seed Data Location
-- 建议将 `docs/products/gesp/seed/` 的数据复制到 `packages/backend/seed-data/`
+- 建议将 `docs/products/gesp/seed/` 的数据复制到 `projects/gesp/packages/backend/seed-data/`
 - 或 backend 直接读取相对路径 `../../docs/products/gesp/seed/`
 
 </specifics>

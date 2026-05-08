@@ -52,7 +52,7 @@ result: issue
 severity: major
 diagnosis: |
   **Bug 1:** Seed script checks `data/` directory (contains gesp.db) instead of `data/gesp.lance` — falsely reports "already exists".
-  **Bug 2:** `resolveWorkspacePath` uses 4 levels of `..` from `packages/backend/src/seed/` which only reaches gesp project root, not workspace root (needs 5 levels). Missing 3 of 4 seed data files.
+  **Bug 2:** `resolveWorkspacePath` uses 4 levels of `..` from `projects/gesp/packages/backend/src/seed/` which only reaches gesp project root, not workspace root (needs 5 levels). Missing 3 of 4 seed data files.
   **Verified:** All seed JSON files exist in workspace `docs/products/gesp/seed/`. Only `knowledge-points-gesp-cpp-1-8.json` is in the backend package and works.
 
 ### 7. Knowledge API - List Points (WR-01 Fix)
@@ -144,13 +144,13 @@ blocked: 5 (navigation blocker resolved; awaiting re-test)
   severity: major
   test: 6
   artifacts:
-    - "packages/backend/src/seed/knowledge.seed.ts:39-42"
-    - "packages/backend/src/seed/knowledge.seed.ts:305"
+    - "projects/gesp/packages/backend/src/seed/knowledge.seed.ts:39-42"
+    - "projects/gesp/packages/backend/src/seed/knowledge.seed.ts:305"
   missing:
     - "docs/products/gesp/seed/practice-cpp-l1.json (exists but path resolution incorrect)"
     - "docs/products/gesp/seed/exam-cpp-l1-2026-03.json (exists but path resolution incorrect)"
     - "docs/products/gesp/seed/lesson-cpp-g3-05.json (exists but path resolution incorrect)"
-  root_cause: "resolveWorkspacePath uses 4 `..` from packages/backend/src/seed/ = gesp project root, needs 5 `..` for workspace root. Also, seed existence check uses data/ dir instead of gesp.lance file."
+  root_cause: "resolveWorkspacePath uses 4 `..` from projects/gesp/packages/backend/src/seed/ = gesp project root, needs 5 `..` for workspace root. Also, seed existence check uses data/ dir instead of gesp.lance file."
 
 - truth: "Knowledge API PUT update returns success"
   status: resolved
@@ -159,8 +159,8 @@ blocked: 5 (navigation blocker resolved; awaiting re-test)
   severity: major
   test: 8
   artifacts:
-    - "packages/backend/src/services/knowledge-base.ts:98-130"
-    - "packages/backend/src/services/vector-store.ts:225-232"
+    - "projects/gesp/packages/backend/src/services/knowledge-base.ts:98-130"
+    - "projects/gesp/packages/backend/src/services/vector-store.ts:225-232"
   missing: []
   root_cause: "LanceDB getById fails to find recently created record. Possibly a table cache issue where delete+re-insert pattern invalidates cached table reference, or LanceDB connection state inconsistency between requests."
 ```

@@ -101,10 +101,10 @@
 
 ### Data Models
 - `docs/products/gesp/research/gesp-data-models.md` — 现有知识库 schema
-- `packages/backend/src/db/schema/` — Drizzle ORM schema 参考（users 表已有）
+- `projects/gesp/packages/backend/src/db/schema/` — Drizzle ORM schema 参考（users 表已有）
 
 ### Technology Stack
-- `packages/backend/AGENTS.md` — 后端 Hono + Drizzle + SQLite 分层架构（routes → services → db）及代码规范
+- `projects/gesp/packages/backend/AGENTS.md` — 后端 Hono + Drizzle + SQLite 分层架构（routes → services → db）及代码规范
 - `AGENTS.md` § Technology Stack — NextJS 15, shadcn/ui, TanStack Query, react-hook-form + Zod, SSE EventSource
 
 </canonical_refs>
@@ -117,7 +117,7 @@
 - **shadcn/ui 组件库:** 完整组件可用（Card, Button, Input, Dialog, Badge, Table, DropdownMenu, Sheet, Slider, RadioGroup, Progress, Skeleton 等）
 - **Server Actions 模式:** `"use server"` + fetch backend + cookie 传递 + redirect（参考 `login/actions.ts`）
 - **Hono + Drizzle 分层架构:** routes → services → db 三层，`success()`/`error()` 统一响应，zValidator + hono-openapi
-- **LanceDB 集成:** 已有 `packages/backend/src/services/` 下 embedding service 和知识库查询
+- **LanceDB 集成:** 已有 `projects/gesp/packages/backend/src/services/` 下 embedding service 和知识库查询
 - **Ollama embedding:** `EMBEDDING_BASE_URL=http://macmini.local:11434/v1` / `EMBEDDING_MODEL=nomic-embed-text-v2-moe` 已配置可用
 
 ### Established Patterns
@@ -125,14 +125,14 @@
 - **API 响应格式:** `{ success: boolean, data?: any, message?: string }` 统一格式
 - **前端路由守卫:** NextJS middleware 检查 session cookie + PUBLIC_PATHS 白名单
 - **表单验证:** react-hook-form + Zod（参考 `knowledge-form.tsx`）
-- **Drizzle schema 文件:** `packages/backend/src/db/schema/*.ts`，新建 `assessment.ts` 遵循命名和导出规范
+- **Drizzle schema 文件:** `projects/gesp/packages/backend/src/db/schema/*.ts`，新建 `assessment.ts` 遵循命名和导出规范
 - **ID 策略:** 统一 UUID v4
 
 ### Integration Points
-- **新增路由:** `packages/backend/src/routes/assessment.ts` — 6 个 REST 端点 + SSE stream 端点
-- **新增 DB table schema:** `packages/backend/src/db/schema/assessment.ts` — 3 表
-- **新增 service:** `packages/backend/src/services/assessment.ts` — 核心测评逻辑（自适应算法、定级收敛、题目选择、进度聚合）
-- **新增 ellamaka SDK 客户端:** `packages/backend/src/services/ellamaka-client.ts` — 封装 `session.create` + `promptAsync` + SSE 转发
+- **新增路由:** `projects/gesp/packages/backend/src/routes/assessment.ts` — 6 个 REST 端点 + SSE stream 端点
+- **新增 DB table schema:** `projects/gesp/packages/backend/src/db/schema/assessment.ts` — 3 表
+- **新增 service:** `projects/gesp/packages/backend/src/services/assessment.ts` — 核心测评逻辑（自适应算法、定级收敛、题目选择、进度聚合）
+- **新增 ellamaka SDK 客户端:** `projects/gesp/packages/backend/src/services/ellamaka-client.ts` — 封装 `session.create` + `promptAsync` + SSE 转发
 - **gesp-plugin 新建:** 在 workspace 级或 ellamaka 项目中创建，3 个 tool，遵循 `@opencode-ai/plugin` 模式
 - **前端新增页面:** `apps/web/src/app/student/assessment/page.tsx`（起测）, `apps/web/src/app/student/assessment/[token]/page.tsx`（做题）, `apps/web/src/app/student/assessment/[token]/report/page.tsx`（报告）
 - **前端新增组件:** `AssessmentChatPanel`, `ObjectiveQuestion`, `CodingQuestion`, `LevelSlider`, `KnowledgeBreakdownChart` 等

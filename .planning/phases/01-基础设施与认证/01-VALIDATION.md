@@ -18,7 +18,7 @@ created: 2026-04-23
 | Property | Value |
 |----------|-------|
 | **Framework** | Vitest (Bun-native test runner) |
-| **Config file** | packages/backend/vitest.config.ts |
+| **Config file** | projects/gesp/packages/backend/vitest.config.ts |
 | **Quick run command** | `bun test --filter packages/backend` |
 | **Full suite command** | `bun test` |
 | **Estimated runtime** | ~30 seconds |
@@ -38,17 +38,17 @@ created: 2026-04-23
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 01-01-01 | 01 | 1 | AUTH-01 | — | Password hashed with bcrypt before storage | unit | `bun test packages/backend/src/__tests__/password.test.ts` | ❌ W0 | ⬜ pending |
-| 01-01-02 | 01 | 1 | AUTH-01 | T-01-01 | Username uniqueness enforced on registration | unit | `bun test packages/backend/src/__tests__/register.test.ts` | ❌ W0 | ⬜ pending |
-| 01-02-01 | 02 | 1 | AUTH-02 | T-01-02 | httpOnly cookie set on login, session stored in DB | unit | `bun test packages/backend/src/__tests__/session.test.ts` | ❌ W0 | ⬜ pending |
-| 01-02-02 | 02 | 1 | AUTH-02 | T-01-03 | Session validated from DB, not just cookie | unit | `bun test packages/backend/src/__tests__/session.test.ts` | ❌ W0 | ⬜ pending |
-| 01-03-01 | 03 | 1 | AUTH-03 | — | Admin login creates session with 24h TTL | unit | `bun test packages/backend/src/__tests__/auth-middleware.test.ts` | ❌ W0 | ⬜ pending |
-| 01-04-01 | 04 | 2 | AUTH-04 | T-01-04 | Student session expires after 1h, admin after 24h | unit | `bun test packages/backend/src/__tests__/session-ttl.test.ts` | ❌ W0 | ⬜ pending |
-| 01-04-02 | 04 | 2 | AUTH-04 | — | Expired sessions rejected with 401 | unit | `bun test packages/backend/src/__tests__/session-ttl.test.ts` | ❌ W0 | ⬜ pending |
-| 01-05-01 | 05 | 2 | — | T-01-05 | StudentAuth rejects admin-only routes (403) | unit | `bun test packages/backend/src/__tests__/auth-middleware.test.ts` | ❌ W0 | ⬜ pending |
-| 01-05-02 | 05 | 2 | — | T-01-06 | AdminAuth allows admin and root, rejects student (403) | unit | `bun test packages/backend/src/__tests__/auth-middleware.test.ts` | ❌ W0 | ⬜ pending |
-| 01-06-01 | 06 | 2 | — | T-01-07 | Root seed creates admin with hashed password | unit | `bun test packages/backend/src/__tests__/seed.test.ts` | ❌ W0 | ⬜ pending |
-| 01-07-01 | 07 | 2 | — | — | OpenAPI spec generated at /api/doc | integration | `bun test packages/backend/src/__tests__/openapi.test.ts` | ❌ W0 | ⬜ pending |
+| 01-01-01 | 01 | 1 | AUTH-01 | — | Password hashed with bcrypt before storage | unit | `bun test projects/gesp/packages/backend/src/__tests__/password.test.ts` | ❌ W0 | ⬜ pending |
+| 01-01-02 | 01 | 1 | AUTH-01 | T-01-01 | Username uniqueness enforced on registration | unit | `bun test projects/gesp/packages/backend/src/__tests__/register.test.ts` | ❌ W0 | ⬜ pending |
+| 01-02-01 | 02 | 1 | AUTH-02 | T-01-02 | httpOnly cookie set on login, session stored in DB | unit | `bun test projects/gesp/packages/backend/src/__tests__/session.test.ts` | ❌ W0 | ⬜ pending |
+| 01-02-02 | 02 | 1 | AUTH-02 | T-01-03 | Session validated from DB, not just cookie | unit | `bun test projects/gesp/packages/backend/src/__tests__/session.test.ts` | ❌ W0 | ⬜ pending |
+| 01-03-01 | 03 | 1 | AUTH-03 | — | Admin login creates session with 24h TTL | unit | `bun test projects/gesp/packages/backend/src/__tests__/auth-middleware.test.ts` | ❌ W0 | ⬜ pending |
+| 01-04-01 | 04 | 2 | AUTH-04 | T-01-04 | Student session expires after 1h, admin after 24h | unit | `bun test projects/gesp/packages/backend/src/__tests__/session-ttl.test.ts` | ❌ W0 | ⬜ pending |
+| 01-04-02 | 04 | 2 | AUTH-04 | — | Expired sessions rejected with 401 | unit | `bun test projects/gesp/packages/backend/src/__tests__/session-ttl.test.ts` | ❌ W0 | ⬜ pending |
+| 01-05-01 | 05 | 2 | — | T-01-05 | StudentAuth rejects admin-only routes (403) | unit | `bun test projects/gesp/packages/backend/src/__tests__/auth-middleware.test.ts` | ❌ W0 | ⬜ pending |
+| 01-05-02 | 05 | 2 | — | T-01-06 | AdminAuth allows admin and root, rejects student (403) | unit | `bun test projects/gesp/packages/backend/src/__tests__/auth-middleware.test.ts` | ❌ W0 | ⬜ pending |
+| 01-06-01 | 06 | 2 | — | T-01-07 | Root seed creates admin with hashed password | unit | `bun test projects/gesp/packages/backend/src/__tests__/seed.test.ts` | ❌ W0 | ⬜ pending |
+| 01-07-01 | 07 | 2 | — | — | OpenAPI spec generated at /api/doc | integration | `bun test projects/gesp/packages/backend/src/__tests__/openapi.test.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -56,14 +56,14 @@ created: 2026-04-23
 
 ## Wave 0 Requirements
 
-- [ ] `packages/backend/src/__tests__/password.test.ts` — bcrypt hash/verify tests
-- [ ] `packages/backend/src/__tests__/register.test.ts` — registration + username uniqueness
-- [ ] `packages/backend/src/__tests__/session.test.ts` — session create/validate/destroy
-- [ ] `packages/backend/src/__tests__/auth-middleware.test.ts` — StudentAuth/AdminAuth/RootAuth
-- [ ] `packages/backend/src/__tests__/session-ttl.test.ts` — TTL differentiation
-- [ ] `packages/backend/src/__tests__/seed.test.ts` — admin seed
-- [ ] `packages/backend/src/__tests__/openapi.test.ts` — OpenAPI spec generation
-- [ ] `packages/backend/vitest.config.ts` — test framework config
+- [ ] `projects/gesp/packages/backend/src/__tests__/password.test.ts` — bcrypt hash/verify tests
+- [ ] `projects/gesp/packages/backend/src/__tests__/register.test.ts` — registration + username uniqueness
+- [ ] `projects/gesp/packages/backend/src/__tests__/session.test.ts` — session create/validate/destroy
+- [ ] `projects/gesp/packages/backend/src/__tests__/auth-middleware.test.ts` — StudentAuth/AdminAuth/RootAuth
+- [ ] `projects/gesp/packages/backend/src/__tests__/session-ttl.test.ts` — TTL differentiation
+- [ ] `projects/gesp/packages/backend/src/__tests__/seed.test.ts` — admin seed
+- [ ] `projects/gesp/packages/backend/src/__tests__/openapi.test.ts` — OpenAPI spec generation
+- [ ] `projects/gesp/packages/backend/vitest.config.ts` — test framework config
 - [ ] Vitest installed as devDependency
 
 ---

@@ -27,7 +27,7 @@ started: Backend was updated to restrict self-registration, frontend was not upd
 ## Evidence
 
 - timestamp: 2026-04-25T14:00:00Z
-  checked: packages/backend/src/routes/auth.ts lines 67-69
+  checked: projects/gesp/packages/backend/src/routes/auth.ts lines 67-69
   found: Backend explicitly rejects non-STUDENT roles: `if (role !== undefined && role !== ROLE.STUDENT) { return error(c, "自助注册仅支持学员角色"); }` and always calls `registerUser()` (which defaults to STUDENT) instead of `registerUserWithRole()`
   implication: Backend is correctly locked down to STUDENT-only self-registration
 

@@ -51,7 +51,7 @@
 Hono 没有内置 session middleware，需要自定义实现。方案：
 
 ```typescript
-// packages/backend/src/db/schema/sessions.ts
+// projects/gesp/packages/backend/src/db/schema/sessions.ts
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 export const sessions = sqliteTable("sessions", {
@@ -74,7 +74,7 @@ export const sessions = sqliteTable("sessions", {
 **httpOnly cookie with role-based TTL:**
 
 ```typescript
-// packages/backend/src/middleware/session.ts
+// projects/gesp/packages/backend/src/middleware/session.ts
 import { setCookie, getCookie } from "hono/cookie";
 
 const SESSION_TTL = {
@@ -180,7 +180,7 @@ export async function verifyPassword(
 **Route definition with Zod schemas:**
 
 ```typescript
-// packages/backend/src/routes/auth.ts
+// projects/gesp/packages/backend/src/routes/auth.ts
 import { createRoute } from "hono-openapi";
 import { z } from "zod";
 
@@ -235,7 +235,7 @@ const loginRoute = createRoute({
 **OpenAPI spec export:**
 
 ```typescript
-// packages/backend/src/index.ts
+// projects/gesp/packages/backend/src/index.ts
 import { OpenAPIHono } from "hono-openapi";
 
 const app = new OpenAPIHono();
@@ -259,7 +259,7 @@ app.doc("/api/doc", {
 ### Backend Package Structure
 
 ```
-packages/backend/
+projects/gesp/packages/backend/
 ├── src/
 │   ├── index.ts              # Hono app entry + OpenAPI export
 │   ├── routes/
@@ -316,7 +316,7 @@ packages/shared/
 ### Users Table (Aligned with new-api)
 
 ```typescript
-// packages/backend/src/db/schema/users.ts
+// projects/gesp/packages/backend/src/db/schema/users.ts
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
@@ -346,7 +346,7 @@ export const usersIndexes = {
 ### Sessions Table
 
 ```typescript
-// packages/backend/src/db/schema/sessions.ts
+// projects/gesp/packages/backend/src/db/schema/sessions.ts
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { users } from "./users";
 
@@ -373,7 +373,7 @@ export const sessionsIndexes = {
 **Three-tier auth: StudentAuth / AdminAuth / RootAuth:**
 
 ```typescript
-// packages/backend/src/middleware/auth.ts
+// projects/gesp/packages/backend/src/middleware/auth.ts
 import { Context, Next } from "hono";
 
 // Role constants
@@ -451,7 +451,7 @@ export function RootAuth() {
 ### Seed Data Implementation
 
 ```typescript
-// packages/backend/src/db/seed/admin.seed.ts
+// projects/gesp/packages/backend/src/db/seed/admin.seed.ts
 import { db } from "../index";
 import { users } from "../schema/users";
 import { hashPassword } from "../../utils/password";
@@ -484,7 +484,7 @@ export async function seedAdmin() {
 }
 
 // Run on startup
-// packages/backend/src/index.ts
+// projects/gesp/packages/backend/src/index.ts
 async function bootstrap() {
   await seedAdmin();
   // ... start server
@@ -503,7 +503,7 @@ async function bootstrap() {
 ### Unified Response Helper
 
 ```typescript
-// packages/backend/src/utils/response.ts
+// projects/gesp/packages/backend/src/utils/response.ts
 import { Context } from "hono";
 
 interface ApiResponse<T> {

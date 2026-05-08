@@ -10,8 +10,8 @@ files_reviewed_list:
   - apps/web/src/app/admin/knowledge/points/page.tsx
   - apps/web/src/app/student/layout.tsx
   - apps/web/src/app/student/dashboard/page.tsx
-  - packages/backend/src/seed/knowledge.seed.ts
-  - packages/backend/src/services/vector-store.ts
+  - projects/gesp/packages/backend/src/seed/knowledge.seed.ts
+  - projects/gesp/packages/backend/src/services/vector-store.ts
 findings:
   critical: 0
   warning: 0
@@ -34,7 +34,7 @@ Reviewed 8 source files from gap closure plans 02-06 (UI fixes) and 02-07 (backe
 **Plan 02-06 changes** are straightforward file copies from route groups to flat directories plus a single `@import "tailwindcss"` line addition. No logic changes, no security concerns.
 
 **Plan 02-07 changes** correctly fix two real bugs:
-1. Path resolution now correctly navigates 5 levels up from `packages/backend/src/seed/` to workspace root — verified the `join(__dirname, '..', '..', '..', '..', '..', relativePath)` math is correct.
+1. Path resolution now correctly navigates 5 levels up from `projects/gesp/packages/backend/src/seed/` to workspace root — verified the `join(__dirname, '..', '..', '..', '..', '..', relativePath)` math is correct.
 2. Seed existence check now targets `gesp.lance` (LanceDB-specific) instead of shared `data/` directory that always exists due to SQLite — eliminates false "already seeded" skips.
 3. Cache invalidation (`this.tableCache.delete(tableName)`) added to `insert`, `update`, and `delete` in VectorStore — consistent pattern, prevents stale reads after mutation.
 

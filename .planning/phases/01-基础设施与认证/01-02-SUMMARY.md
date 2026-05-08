@@ -24,14 +24,14 @@ tech-stack:
 
 key-files:
   created:
-    - packages/backend/drizzle.config.ts
-    - packages/backend/src/db/index.ts
-    - packages/backend/src/db/schema/index.ts
-    - packages/backend/src/db/schema/users.ts
-    - packages/backend/src/db/schema/sessions.ts
-    - packages/backend/.gitignore
+    - projects/gesp/packages/backend/drizzle.config.ts
+    - projects/gesp/packages/backend/src/db/index.ts
+    - projects/gesp/packages/backend/src/db/schema/index.ts
+    - projects/gesp/packages/backend/src/db/schema/users.ts
+    - projects/gesp/packages/backend/src/db/schema/sessions.ts
+    - projects/gesp/packages/backend/.gitignore
   modified:
-    - packages/backend/package.json
+    - projects/gesp/packages/backend/package.json
 
 key-decisions:
   - "SQLite dialect with bun-sqlite driver for drizzle-orm"
@@ -81,13 +81,13 @@ Each task was committed atomically:
 **Plan metadata:** pending (orchestrator owns STATE/ROADMAP updates)
 
 ## Files Created/Modified
-- `packages/backend/drizzle.config.ts` - Drizzle Kit configuration with SQLite dialect
-- `packages/backend/src/db/index.ts` - Database connection via drizzle-orm/bun-sqlite
-- `packages/backend/src/db/schema/index.ts` - Barrel export for all schema modules
-- `packages/backend/src/db/schema/users.ts` - Users table with 13 columns and 3 indexes
-- `packages/backend/src/db/schema/sessions.ts` - Sessions table with 5 columns and 2 indexes
-- `packages/backend/.gitignore` - Exclude node_modules, dist, data/ from git
-- `packages/backend/package.json` - Added better-sqlite3 dev dependency
+- `projects/gesp/packages/backend/drizzle.config.ts` - Drizzle Kit configuration with SQLite dialect
+- `projects/gesp/packages/backend/src/db/index.ts` - Database connection via drizzle-orm/bun-sqlite
+- `projects/gesp/packages/backend/src/db/schema/index.ts` - Barrel export for all schema modules
+- `projects/gesp/packages/backend/src/db/schema/users.ts` - Users table with 13 columns and 3 indexes
+- `projects/gesp/packages/backend/src/db/schema/sessions.ts` - Sessions table with 5 columns and 2 indexes
+- `projects/gesp/packages/backend/.gitignore` - Exclude node_modules, dist, data/ from git
+- `projects/gesp/packages/backend/package.json` - Added better-sqlite3 dev dependency
 
 ## Decisions Made
 - Used `drizzle-orm/bun-sqlite` for runtime DB connection (Bun-native driver)
@@ -103,22 +103,22 @@ Each task was committed atomically:
 - **Found during:** Task 02-04 (Push Database Schema)
 - **Issue:** `drizzle-kit push` failed with "Please install either 'better-sqlite3' or '@libsql/client'"
 - **Fix:** Installed `better-sqlite3` as dev dependency (`bun add -d better-sqlite3`)
-- **Files modified:** `packages/backend/package.json`
+- **Files modified:** `projects/gesp/packages/backend/package.json`
 - **Verification:** `drizzle-kit push` succeeds, database created
 - **Committed in:** `f4f49d1`
 
 **2. [Rule 3 - Blocking] Create data/ directory for SQLite file**
 - **Found during:** Task 02-04 (Push Database Schema)
 - **Issue:** `TypeError: Cannot open database because the directory does not exist`
-- **Fix:** Created `packages/backend/data/` directory
+- **Fix:** Created `projects/gesp/packages/backend/data/` directory
 - **Files modified:** None (directory only, excluded via .gitignore)
 - **Verification:** `drizzle-kit push` succeeds, `./data/gesp.db` file created
 
 **3. [Rule 2 - Missing Critical] Add .gitignore for backend package**
 - **Found during:** Task 02-04 (Push Database Schema)
 - **Issue:** No .gitignore — node_modules/, data/, .turbo/ would show as untracked
-- **Fix:** Created `packages/backend/.gitignore` excluding node_modules, dist, data, IDE, turbo cache
-- **Files modified:** `packages/backend/.gitignore` (new)
+- **Fix:** Created `projects/gesp/packages/backend/.gitignore` excluding node_modules, dist, data, IDE, turbo cache
+- **Files modified:** `projects/gesp/packages/backend/.gitignore` (new)
 - **Verification:** `git status` shows clean working tree
 - **Committed in:** `e6ecf04`
 
@@ -146,12 +146,12 @@ None - no external service configuration required.
 
 ## Self-Check: PASSED
 
-- ✅ `packages/backend/drizzle.config.ts` exists
-- ✅ `packages/backend/src/db/index.ts` exists
-- ✅ `packages/backend/src/db/schema/users.ts` exists
-- ✅ `packages/backend/src/db/schema/sessions.ts` exists
-- ✅ `packages/backend/src/db/schema/index.ts` exists
-- ✅ `packages/backend/.gitignore` exists
+- ✅ `projects/gesp/packages/backend/drizzle.config.ts` exists
+- ✅ `projects/gesp/packages/backend/src/db/index.ts` exists
+- ✅ `projects/gesp/packages/backend/src/db/schema/users.ts` exists
+- ✅ `projects/gesp/packages/backend/src/db/schema/sessions.ts` exists
+- ✅ `projects/gesp/packages/backend/src/db/schema/index.ts` exists
+- ✅ `projects/gesp/packages/backend/.gitignore` exists
 - ✅ Commit `1410d08` found: feat(01-02): create drizzle configuration
 - ✅ Commit `f614239` found: feat(01-02): create users table schema
 - ✅ Commit `11db604` found: feat(01-02): create sessions table schema

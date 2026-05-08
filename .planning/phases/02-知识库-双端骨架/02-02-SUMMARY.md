@@ -22,13 +22,13 @@ tech-stack:
 
 key-files:
   created:
-    - packages/backend/src/services/embedding.ts
-    - packages/backend/src/services/vector-store.ts
-    - packages/backend/src/seed/knowledge-points-gesp-cpp-1-8.json
-    - packages/backend/src/seed/knowledge.seed.ts
-    - packages/backend/.env.example
+    - projects/gesp/packages/backend/src/services/embedding.ts
+    - projects/gesp/packages/backend/src/services/vector-store.ts
+    - projects/gesp/packages/backend/src/seed/knowledge-points-gesp-cpp-1-8.json
+    - projects/gesp/packages/backend/src/seed/knowledge.seed.ts
+    - projects/gesp/packages/backend/.env.example
   modified:
-    - packages/backend/package.json
+    - projects/gesp/packages/backend/package.json
     - .gitignore
 
 key-decisions:
@@ -80,13 +80,13 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 
-- `packages/backend/src/services/embedding.ts` - EmbeddingProvider interface + OllamaEmbeddingProvider + OpenAIEmbeddingProvider + MockEmbeddingProvider + createEmbeddingProvider factory
-- `packages/backend/src/services/vector-store.ts` - VectorStore interface + LanceDBFileStore with 4 table constants (KNOWLEDGE_POINTS, LESSON_PLANS, PRACTICE_QUESTIONS, EXAM_QUESTIONS)
-- `packages/backend/src/seed/knowledge-points-gesp-cpp-1-8.json` - 60+ knowledge points covering GESP C++ levels 1-8 with id, language, level, block, point, mastery_verb, description, tags
-- `packages/backend/src/seed/knowledge.seed.ts` - Seed pipeline: seedAll(force), reads 4 JSON sources, embedBatch, insert into LanceDB via VectorStore
-- `packages/backend/.env.example` - Environment config with EMBEDDING_PROVIDER, EMBEDDING_BASE_URL, EMBEDDING_MODEL
-- `packages/backend/package.json` - Added seed:knowledge script
-- `.gitignore` - Added packages/backend/data/ (explicit LanceDB storage exclusion)
+- `projects/gesp/packages/backend/src/services/embedding.ts` - EmbeddingProvider interface + OllamaEmbeddingProvider + OpenAIEmbeddingProvider + MockEmbeddingProvider + createEmbeddingProvider factory
+- `projects/gesp/packages/backend/src/services/vector-store.ts` - VectorStore interface + LanceDBFileStore with 4 table constants (KNOWLEDGE_POINTS, LESSON_PLANS, PRACTICE_QUESTIONS, EXAM_QUESTIONS)
+- `projects/gesp/packages/backend/src/seed/knowledge-points-gesp-cpp-1-8.json` - 60+ knowledge points covering GESP C++ levels 1-8 with id, language, level, block, point, mastery_verb, description, tags
+- `projects/gesp/packages/backend/src/seed/knowledge.seed.ts` - Seed pipeline: seedAll(force), reads 4 JSON sources, embedBatch, insert into LanceDB via VectorStore
+- `projects/gesp/packages/backend/.env.example` - Environment config with EMBEDDING_PROVIDER, EMBEDDING_BASE_URL, EMBEDDING_MODEL
+- `projects/gesp/packages/backend/package.json` - Added seed:knowledge script
+- `.gitignore` - Added projects/gesp/packages/backend/data/ (explicit LanceDB storage exclusion)
 
 ## Decisions Made
 
@@ -103,14 +103,14 @@ Each task was committed atomically:
 - **Found during:** Task 2 (VectorStore implementation)
 - **Issue:** Plan specified LanceDB 0.10.x but latest compatible version for darwin-x64 is 0.22.3; version 0.27.x only supports darwin-arm64
 - **Fix:** Installed @lancedb/lancedb@0.22.3, adapted API usage to match (connect, createTable, table.search, table.add patterns)
-- **Files modified:** packages/backend/package.json
+- **Files modified:** projects/gesp/packages/backend/package.json
 - **Committed in:** 2b5d132 (Task 2 commit)
 
 **2. [Rule 2 - Missing Critical] LanceDB native binding graceful degradation**
 - **Found during:** Task 2 (VectorStore implementation)
 - **Issue:** LanceDB native binding fails on incompatible platforms, would crash the entire backend on import
 - **Fix:** Wrapped require('@lancedb/lancedb') in try/catch with descriptive error message suggesting `node --import tsx` fallback
-- **Files modified:** packages/backend/src/services/vector-store.ts
+- **Files modified:** projects/gesp/packages/backend/src/services/vector-store.ts
 - **Committed in:** 2b5d132 (Task 2 commit)
 
 ---

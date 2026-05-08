@@ -22,8 +22,8 @@ tech-stack:
 key-files:
   created: []
   modified:
-    - packages/backend/src/seed/knowledge.seed.ts
-    - packages/backend/src/services/vector-store.ts
+    - projects/gesp/packages/backend/src/seed/knowledge.seed.ts
+    - projects/gesp/packages/backend/src/services/vector-store.ts
 
 key-decisions:
   - "Use dbPath (gesp.lance) instead of dbDir (data/) for seed existence check to avoid false positive from SQLite"
@@ -64,8 +64,8 @@ Each task was committed atomically:
 2. **Task 2: Fix LanceDB PUT update cache invalidation** - `d9e110a` (fix)
 
 ## Files Created/Modified
-- `packages/backend/src/seed/knowledge.seed.ts` - Fixed workspace path (5 levels), switched existence check to dbPath, removed unused readdirSync/dbDir
-- `packages/backend/src/services/vector-store.ts` - Added tableCache.delete(tableName) to insert, update, and delete methods
+- `projects/gesp/packages/backend/src/seed/knowledge.seed.ts` - Fixed workspace path (5 levels), switched existence check to dbPath, removed unused readdirSync/dbDir
+- `projects/gesp/packages/backend/src/services/vector-store.ts` - Added tableCache.delete(tableName) to insert, update, and delete methods
 
 ## Decisions Made
 - Used `dbPath` (gesp.lance) instead of `dbDir` (data/) for seed existence check — the shared data/ directory always exists because SQLite stores gesp.db there, causing false "already seeded" skips

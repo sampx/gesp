@@ -4,15 +4,15 @@ reviewed: 2026-04-23T09:30:00Z
 depth: standard
 files_reviewed: 9
 files_reviewed_list:
-  - packages/backend/src/middleware/session.ts
-  - packages/backend/src/services/auth.service.ts
-  - packages/backend/src/db/seed/admin.seed.ts
-  - packages/backend/src/routes/debug.ts
-  - packages/backend/src/index.ts
-  - packages/backend/src/__tests__/session-id.test.ts
-  - packages/backend/src/__tests__/auth-register.test.ts
-  - packages/backend/src/__tests__/seed-password.test.ts
-  - packages/backend/src/__tests__/debug-route.test.ts
+  - projects/gesp/packages/backend/src/middleware/session.ts
+  - projects/gesp/packages/backend/src/services/auth.service.ts
+  - projects/gesp/packages/backend/src/db/seed/admin.seed.ts
+  - projects/gesp/packages/backend/src/routes/debug.ts
+  - projects/gesp/packages/backend/src/index.ts
+  - projects/gesp/packages/backend/src/__tests__/session-id.test.ts
+  - projects/gesp/packages/backend/src/__tests__/auth-register.test.ts
+  - projects/gesp/packages/backend/src/__tests__/seed-password.test.ts
+  - projects/gesp/packages/backend/src/__tests__/debug-route.test.ts
 findings:
   critical: 1
   warning: 1
@@ -43,7 +43,7 @@ Session ID implementation is solid. Production password enforcement is correctly
 
 ### CR-01: User Enumeration via Password Validation Error Ordering
 
-**File:** `packages/backend/src/services/auth.service.ts:22-24`
+**File:** `projects/gesp/packages/backend/src/services/auth.service.ts:22-24`
 **Issue:** Password length validation returns a specific error message ("Password must be at least 6 characters") AFTER the username uniqueness check. This allows attackers to enumerate existing usernames by observing different error messages.
 
 **Attack scenario:**
@@ -98,7 +98,7 @@ This fix:
 
 ### WR-01: Potential XSS via innerHTML in Debug Route
 
-**File:** `packages/backend/src/routes/debug.ts:93`
+**File:** `projects/gesp/packages/backend/src/routes/debug.ts:93`
 **Issue:** The `log()` function uses `innerHTML +=` to append messages from API responses. If backend error messages contain HTML/JS, they could be injected into the page.
 
 ```javascript
@@ -126,8 +126,8 @@ function log(msg, type = 'info') {
 
 ### IN-01: console.log Violates Project Logging Standards
 
-**File:** `packages/backend/src/db/seed/admin.seed.ts:14, 29-30, 46`
-**Issue:** Uses `console.log` and `console.warn` instead of pino logger as required by `packages/backend/AGENTS.md` section 6.
+**File:** `projects/gesp/packages/backend/src/db/seed/admin.seed.ts:14, 29-30, 46`
+**Issue:** Uses `console.log` and `console.warn` instead of pino logger as required by `projects/gesp/packages/backend/AGENTS.md` section 6.
 
 **Fix:**
 ```typescript
@@ -147,7 +147,7 @@ logger.warn({ default_password: true }, "Using default password. Set ADMIN_PASSW
 
 ### IN-02: console.log Violates Project Logging Standards
 
-**File:** `packages/backend/src/index.ts:24, 26, 28, 54`
+**File:** `projects/gesp/packages/backend/src/index.ts:24, 26, 28, 54`
 **Issue:** Uses `console.log` instead of pino logger as required by project standards.
 
 **Fix:**
@@ -164,7 +164,7 @@ logger.info({ port }, "GESP Backend running");
 
 ### IN-03: Test Comment Has Incorrect Security Reasoning
 
-**File:** `packages/backend/src/__tests__/auth-register.test.ts:57`
+**File:** `projects/gesp/packages/backend/src/__tests__/auth-register.test.ts:57`
 **Issue:** Test comment says "should preserve password validation error message (not security-sensitive)" but this IS security-sensitive - see CR-01 analysis. The comment misleads future developers.
 
 **Fix:** Update test comment to reflect actual behavior after fixing CR-01:

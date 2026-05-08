@@ -43,21 +43,21 @@ human_verification:
 
 | Artifact | Expected    | Status | Details |
 | -------- | ----------- | ------ | ------- |
-| packages/backend/src/index.ts | Hono app entry with routes mounted | ✓ VERIFIED | Hono app, auth routes mounted at /api/auth, OpenAPI spec at /api/doc, seed runner on bootstrap |
-| packages/backend/src/routes/auth.ts | Auth API routes (register/login/logout/me) | ✓ VERIFIED | 4 routes with Zod validation, OpenAPI docs, session creation/destruction |
-| packages/backend/src/middleware/session.ts | Session lifecycle (create/validate/destroy) | ✓ VERIFIED | createSession with httpOnly cookie, validateSession with expiry check, destroySession with db delete |
-| packages/backend/src/services/auth.service.ts | Auth service (register/login/getUserById) | ✓ VERIFIED | registerUser checks uniqueness + password length, loginUser verifies password, bcrypt hash/compare |
-| packages/backend/src/middleware/auth.ts | Role-based auth middleware | ✓ VERIFIED | StudentAuth/AdminAuth/RootAuth with role checks, requireSession base middleware |
-| packages/backend/src/utils/password.ts | bcrypt hash/verify functions | ✓ VERIFIED | hashPassword with SALT_ROUNDS=10, verifyPassword with bcrypt.compare |
-| packages/backend/src/utils/response.ts | API response helpers | ✓ VERIFIED | success/error/unauthorized/forbidden with proper types |
-| packages/backend/src/db/schema/users.ts | Users table schema | ✓ VERIFIED | 13 columns including id/username/password_hash/role/status/email/OAuth fields/timestamps, indexes on username/role/email |
-| packages/backend/src/db/schema/sessions.ts | Sessions table schema | ✓ VERIFIED | 5 columns: id/user_id/created_at/expires_at/role, FK to users with cascade delete, indexes on user_id/expires_at |
-| packages/backend/src/db/seed/admin.seed.ts | Admin seed script | ✓ VERIFIED | Checks existing root, hashes password, inserts admin with role=100, idempotent |
-| packages/backend/src/db/index.ts | Database connection | ✓ VERIFIED | drizzle-orm/bun-sqlite connection, schema export |
-| packages/backend/src/db/schema/relations.ts | Drizzle relations | ✓ VERIFIED | sessionsRelations for session->user query with: { user: true } |
+| projects/gesp/packages/backend/src/index.ts | Hono app entry with routes mounted | ✓ VERIFIED | Hono app, auth routes mounted at /api/auth, OpenAPI spec at /api/doc, seed runner on bootstrap |
+| projects/gesp/packages/backend/src/routes/auth.ts | Auth API routes (register/login/logout/me) | ✓ VERIFIED | 4 routes with Zod validation, OpenAPI docs, session creation/destruction |
+| projects/gesp/packages/backend/src/middleware/session.ts | Session lifecycle (create/validate/destroy) | ✓ VERIFIED | createSession with httpOnly cookie, validateSession with expiry check, destroySession with db delete |
+| projects/gesp/packages/backend/src/services/auth.service.ts | Auth service (register/login/getUserById) | ✓ VERIFIED | registerUser checks uniqueness + password length, loginUser verifies password, bcrypt hash/compare |
+| projects/gesp/packages/backend/src/middleware/auth.ts | Role-based auth middleware | ✓ VERIFIED | StudentAuth/AdminAuth/RootAuth with role checks, requireSession base middleware |
+| projects/gesp/packages/backend/src/utils/password.ts | bcrypt hash/verify functions | ✓ VERIFIED | hashPassword with SALT_ROUNDS=10, verifyPassword with bcrypt.compare |
+| projects/gesp/packages/backend/src/utils/response.ts | API response helpers | ✓ VERIFIED | success/error/unauthorized/forbidden with proper types |
+| projects/gesp/packages/backend/src/db/schema/users.ts | Users table schema | ✓ VERIFIED | 13 columns including id/username/password_hash/role/status/email/OAuth fields/timestamps, indexes on username/role/email |
+| projects/gesp/packages/backend/src/db/schema/sessions.ts | Sessions table schema | ✓ VERIFIED | 5 columns: id/user_id/created_at/expires_at/role, FK to users with cascade delete, indexes on user_id/expires_at |
+| projects/gesp/packages/backend/src/db/seed/admin.seed.ts | Admin seed script | ✓ VERIFIED | Checks existing root, hashes password, inserts admin with role=100, idempotent |
+| projects/gesp/packages/backend/src/db/index.ts | Database connection | ✓ VERIFIED | drizzle-orm/bun-sqlite connection, schema export |
+| projects/gesp/packages/backend/src/db/schema/relations.ts | Drizzle relations | ✓ VERIFIED | sessionsRelations for session->user query with: { user: true } |
 | packages/shared/src/types/user.ts | User interface | ✓ VERIFIED | 13 fields matching schema |
 | packages/shared/src/constants/role.ts | ROLE constants | ✓ VERIFIED | STUDENT=1, ADMIN=10, ROOT=100 |
-| packages/backend/package.json | Backend dependencies | ✓ VERIFIED | hono, hono-openapi, drizzle-orm, bcryptjs, zod, vitest |
+| projects/gesp/packages/backend/package.json | Backend dependencies | ✓ VERIFIED | hono, hono-openapi, drizzle-orm, bcryptjs, zod, vitest |
 | package.json | Root monorepo config | ✓ VERIFIED | workspaces: packages/*, bun@1.3.11, turbo scripts |
 | turbo.json | Turborepo pipeline | ✓ VERIFIED | build/dev/typecheck/test tasks with proper dependencies |
 | data/gesp.db | SQLite database file | ✓ VERIFIED | Tables: sessions, users (verified via sqlite3 .tables) |
@@ -119,10 +119,10 @@ human_verification:
 
 | File | Line | Pattern | Severity | Impact |
 | ---- | ---- | ------- | -------- | ------ |
-| packages/backend/src/index.ts | 19 | TODO comment for admin/student routes | ℹ️ Info | Acceptable — routes planned for Phase 6/7 |
-| packages/backend/src/__tests__/auth-middleware.test.ts | 31 | Placeholder test comment | ℹ️ Info | Acceptable — role hierarchy verified, full integration tests deferred |
-| packages/backend/src/__tests__/openapi.test.ts | 5, 17 | Placeholder test comments | ℹ️ Info | Acceptable — basic spec validation, full endpoint tests deferred |
-| packages/backend/src/__tests__/seed.test.ts | 11, 17 | Placeholder test comments | ℹ️ Info | Acceptable — function existence verified, db seed tests deferred |
+| projects/gesp/packages/backend/src/index.ts | 19 | TODO comment for admin/student routes | ℹ️ Info | Acceptable — routes planned for Phase 6/7 |
+| projects/gesp/packages/backend/src/__tests__/auth-middleware.test.ts | 31 | Placeholder test comment | ℹ️ Info | Acceptable — role hierarchy verified, full integration tests deferred |
+| projects/gesp/packages/backend/src/__tests__/openapi.test.ts | 5, 17 | Placeholder test comments | ℹ️ Info | Acceptable — basic spec validation, full endpoint tests deferred |
+| projects/gesp/packages/backend/src/__tests__/seed.test.ts | 11, 17 | Placeholder test comments | ℹ️ Info | Acceptable — function existence verified, db seed tests deferred |
 
 **Classification:** All anti-patterns are ℹ️ Info level — placeholder tests and TODO comments are acceptable for Phase 1 MVP scope. Full integration tests would require test database infrastructure, which is deferred to future phases.
 

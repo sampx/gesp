@@ -5,10 +5,10 @@ type: execute
 wave: 1
 depends_on: []
 files_modified:
-  - packages/backend/package.json
-  - packages/backend/src/utils/logger.ts
-  - packages/backend/src/middleware/request-logger.ts
-  - packages/backend/src/index.ts
+  - projects/gesp/packages/backend/package.json
+  - projects/gesp/packages/backend/src/utils/logger.ts
+  - projects/gesp/packages/backend/src/middleware/request-logger.ts
+  - projects/gesp/packages/backend/src/index.ts
 autonomous: true
 requirements: []
 must_haves:
@@ -17,13 +17,13 @@ must_haves:
     - "HTTP requests are logged via middleware"
     - "Logger respects environment (pretty dev, JSON prod)"
   artifacts:
-    - path: "packages/backend/src/utils/logger.ts"
+    - path: "projects/gesp/packages/backend/src/utils/logger.ts"
       provides: "Pino logger instance with env-based config"
       exports: ["logger"]
-    - path: "packages/backend/src/middleware/request-logger.ts"
+    - path: "projects/gesp/packages/backend/src/middleware/request-logger.ts"
       provides: "Request logging middleware"
       exports: ["requestLogger"]
-    - path: "packages/backend/src/index.ts"
+    - path: "projects/gesp/packages/backend/src/index.ts"
       provides: "App entry with logger + middleware"
       contains: "logger.info", "app.use(requestLogger)"
   key_links:
@@ -52,7 +52,7 @@ Output: Logger module, request middleware, integrated into Hono app.
 <context>
 @.planning/PROJECT.md
 @.planning/STATE.md
-@packages/backend/AGENTS.md
+@projects/gesp/packages/backend/AGENTS.md
 
 <interfaces>
 From AGENTS.md section 6 — Logging spec:
@@ -87,7 +87,7 @@ Log level semantic rules:
 
 <task type="auto">
   <name>Task 1: Install pino and create logger instance</name>
-  <files>packages/backend/package.json, packages/backend/src/utils/logger.ts</files>
+  <files>projects/gesp/packages/backend/package.json, projects/gesp/packages/backend/src/utils/logger.ts</files>
   <action>
 1. Add dependencies to package.json:
    - `pino` (latest)
@@ -113,7 +113,7 @@ Per AGENTS.md: level semantic rules, snake_case field naming, no console.log.
 
 <task type="auto">
   <name>Task 2: Create request logging middleware</name>
-  <files>packages/backend/src/middleware/request-logger.ts</files>
+  <files>projects/gesp/packages/backend/src/middleware/request-logger.ts</files>
   <action>
 Create request-logger middleware per AGENTS.md spec:
 
@@ -141,7 +141,7 @@ Message format: "Request failed" (500+), "Client error" (400+), "Request complet
 
 <task type="auto">
   <name>Task 3: Integrate logger into index.ts</name>
-  <files>packages/backend/src/index.ts</files>
+  <files>projects/gesp/packages/backend/src/index.ts</files>
   <action>
 Replace all console.log/console.error with logger:
 

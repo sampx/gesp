@@ -32,10 +32,10 @@ key-files:
     - packages/shared/src/types/response.ts
     - packages/shared/src/constants/role.ts
     - packages/shared/src/constants/status.ts
-    - packages/backend/package.json
-    - packages/backend/tsconfig.json
-    - packages/backend/bunfig.toml
-    - packages/backend/src/index.ts
+    - projects/gesp/packages/backend/package.json
+    - projects/gesp/packages/backend/tsconfig.json
+    - projects/gesp/packages/backend/bunfig.toml
+    - projects/gesp/packages/backend/src/index.ts
   modified: []
 
 key-decisions:
@@ -91,10 +91,10 @@ Each task was committed atomically:
 - `packages/shared/src/constants/role.ts` - ROLE enum (STUDENT=1, ADMIN=10, ROOT=100)
 - `packages/shared/src/constants/status.ts` - USER_STATUS enum (ENABLED=1, DISABLED=2)
 - `packages/shared/src/index.ts` - Barrel exports for all types and constants
-- `packages/backend/package.json` - @gesp/backend v0.0.1 with Hono, hono-openapi, Drizzle ORM, bcryptjs, Zod
-- `packages/backend/tsconfig.json` - ES2022, bun-types, @gesp/shared path alias
-- `packages/backend/bunfig.toml` - Test preload configuration
-- `packages/backend/src/index.ts` - Hono app with health endpoint and OpenAPI spec at /api/doc
+- `projects/gesp/packages/backend/package.json` - @gesp/backend v0.0.1 with Hono, hono-openapi, Drizzle ORM, bcryptjs, Zod
+- `projects/gesp/packages/backend/tsconfig.json` - ES2022, bun-types, @gesp/shared path alias
+- `projects/gesp/packages/backend/bunfig.toml` - Test preload configuration
+- `projects/gesp/packages/backend/src/index.ts` - Hono app with health endpoint and OpenAPI spec at /api/doc
 
 ## Decisions Made
 - **Turborepo v2 syntax**: Plan specified `"pipeline"` key but Turborepo v2 uses `"tasks"` — implemented with correct v2 syntax
@@ -109,7 +109,7 @@ Each task was committed atomically:
 - **Found during:** Task 3 (Create Backend Package)
 - **Issue:** Plan specified `import { OpenAPIHono } from "hono-openapi"` and `app.doc("/api/doc", ...)` but hono-openapi 0.4.x does not export `OpenAPIHono` class. The correct API is `import { openAPISpecs } from "hono-openapi"` used as middleware on a standard `Hono` instance.
 - **Fix:** Changed to `import { Hono } from "hono"` + `import { openAPISpecs } from "hono-openapi"`, using `app.use("/api/doc", openAPISpecs(app, { documentation: { ... } }))` middleware pattern.
-- **Files modified:** `packages/backend/src/index.ts`
+- **Files modified:** `projects/gesp/packages/backend/src/index.ts`
 - **Verification:** File structure matches hono-openapi 0.4.x API documentation
 - **Committed in:** `1971d2c` (fix commit)
 
