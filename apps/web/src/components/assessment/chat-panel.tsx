@@ -20,7 +20,6 @@ export function ChatPanel({ token }: ChatPanelProps) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [unread, setUnread] = useState(0);
-  const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,12 +41,6 @@ export function ChatPanel({ token }: ChatPanelProps) {
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
-
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages(prev => [...prev, { role: "student", text: input }]);
-    setInput("");
-  };
 
   return (
     <>
@@ -88,9 +81,13 @@ export function ChatPanel({ token }: ChatPanelProps) {
               ))}
             </div>
           </ScrollArea>
-          <div className="p-3 border-t flex gap-2 shrink-0">
-            <Input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSend()} placeholder="输入消息..." className="text-sm" />
-            <Button size="icon" variant="ghost" onClick={handleSend}><Send className="h-4 w-4" /></Button>
+          <div className="p-3 border-t shrink-0">
+            <Input 
+              disabled 
+              placeholder="AI 顾问暂时只能接收消息，不能回复..." 
+              className="text-sm" 
+            />
+            <Button size="icon" variant="ghost" disabled><Send className="h-4 w-4" /></Button>
           </div>
         </div>
       )}
