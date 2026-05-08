@@ -19,7 +19,11 @@ const ellamakaClient = createEllamakaClient();
 // Middleware helpers
 // ---------------------------------------------------------------------------
 
-const GESP_API_KEY = process.env.GESP_API_KEY || "dev-key";
+const GESP_API_KEY = process.env.GESP_API_KEY;
+
+if (!GESP_API_KEY) {
+  throw new Error("Missing required environment variable: GESP_API_KEY");
+}
 
 /**
  * Verify GESP_API_KEY for internal endpoints (called by gesp-plugin)

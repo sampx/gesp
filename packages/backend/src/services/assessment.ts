@@ -21,7 +21,11 @@ import { logger } from "../utils/logger";
 // Constants
 // ---------------------------------------------------------------------------
 
-const JWT_SECRET = process.env.JWT_SECRET || "gesp-assessment-secret-dev";
+const _JWT_SECRET = process.env.JWT_SECRET;
+if (!_JWT_SECRET) {
+  throw new Error("Missing required environment variable: JWT_SECRET");
+}
+const JWT_SECRET: string = _JWT_SECRET;
 const TOKEN_EXPIRY_SEC = 2 * 60 * 60; // 2 hours
 
 const DEFAULT_QUESTION_LIMIT = 5;
