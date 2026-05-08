@@ -14,7 +14,7 @@ import { ChatPanel } from "@/components/assessment/chat-panel";
 import { ProgressBar } from "@/components/assessment/progress-bar";
 import { getNextQuestion, submitAnswer } from "@/lib/server-api";
 
-type State = "LOADING_QUESTION" | "ANSWERING" | "JUDGING" | "FEEDBACK" | "DONE";
+type State = "LOADING_QUESTION" | "ANSWERING" | "JUDGING" | "SCORING" | "FEEDBACK" | "DONE";
 
 interface QuestionData {
   id: string;
@@ -71,6 +71,11 @@ export default function AssessmentAnswerPage() {
     try {
       const res = await submitAnswer({ token, question_id: question.id, answer, time_spent_sec: 0 });
       if (res.success) {
+        // Handle async scoring for coding questions
+        if (res.data.scoring) {
+          setState("SCORING");
+          return;
+        }
         setFeedback(res.data);
         setProgress(prev => ({
           ...prev,
@@ -129,8 +134,8 @@ export default function AssessmentAnswerPage() {
         </Card>
       )}
 
-      {/* ANSWERING / JUDGING / FEEDBACK states */}
-      {(state === "ANSWERING" || state === "JUDGING" || state === "FEEDBACK") && question && (
+      {/* ANSWERING / JUDGING / SCORING / FEEDBACK states */}
+      {(state === "ANSWERING" || state === "JUDGING" || state === "SCORING" || state === "FEEDBACK") && question && (
         <Card>
           <CardContent className="space-y-6 py-6">
             <div className="flex items-center gap-2">
@@ -162,6 +167,12 @@ export default function AssessmentAnswerPage() {
             {state === "JUDGING" && (
               <div className="flex items-center justify-center gap-2 py-4 text-muted-foreground">
                 <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> 正在判题...
+              </div>
+            )}
+
+            {state === "SCORING" && (
+              <div className="flex items-center justify-center gap-2 py-4 text-muted-foreground">
+                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> AI 正在评估中...
               </div>
             )}
 
