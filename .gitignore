@@ -7,3 +7,4 @@ packages/backend/data/
 .DS_Store
 
 .env
+logs/
