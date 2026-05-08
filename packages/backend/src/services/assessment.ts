@@ -308,6 +308,13 @@ export async function lockQuestion(
   logger.info({ session_id: sessionId, question_id: questionId }, "Question locked");
 }
 
+/**
+ * Get the currently locked question ID for a session.
+ */
+export function getLockedQuestionId(sessionId: string): string | undefined {
+  return currentQuestionLocks.get(sessionId);
+}
+
 // ---------------------------------------------------------------------------
 // Progress tracking
 // ---------------------------------------------------------------------------

@@ -90,7 +90,7 @@ async function getNextOrder(sessionId: string): Promise<number> {
 
 /**
  * Wait for first question to be locked (with timeout)
- * Polls questionLocks map every 500ms
+ * Polls shared question locks map every 500ms
  */
 async function waitForFirstQuestion(
   sessionId: string,
@@ -98,7 +98,7 @@ async function waitForFirstQuestion(
 ): Promise<typeof assessmentQuestions.$inferSelect | null> {
   const startTime = Date.now();
   while (Date.now() - startTime < timeoutMs) {
-    const lockedId = questionLocks.get(sessionId);
+    const lockedId = assessment.getLockedQuestionId(sessionId);
     if (lockedId) {
       const question = await db.query.assessmentQuestions.findFirst({
         where: eq(assessmentQuestions.id, lockedId),
@@ -148,10 +148,9 @@ async function getSessionHistory(sessionId: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// Question locks and auto-select timer (D-13)
+// Auto-select timer (D-13)
 // ---------------------------------------------------------------------------
 
-const questionLocks = new Map<string, string>(); // sessionId → questionId
 const autoSelectTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 /**
@@ -495,7 +494,7 @@ app.get(
     }
 
     // Check if question is locked
-    const lockedId = questionLocks.get(payload.assessment_session_id);
+    const lockedId = assessment.getLockedQuestionId(payload.assessment_session_id);
     if (!lockedId) return success(c, { waiting: true });
 
     // Fetch full question content (only after locked)
