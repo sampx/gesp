@@ -79,3 +79,50 @@ export async function changePassword(oldPassword: string, newPassword: string) {
   });
   return res.json();
 }
+
+export async function startAssessment(data: {
+  course_id: string;
+  start_level: number;
+  config_question_limit?: number;
+  config_time_limit_min?: number;
+}) {
+  const res = await serverFetch("/api/assessment/start", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function submitAnswer(data: {
+  token: string;
+  question_id: string;
+  answer: string;
+  time_spent_sec?: number;
+}) {
+  const res = await serverFetch("/api/assessment/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function getNextQuestion(token: string) {
+  const res = await serverFetch(`/api/assessment/next-question?token=${token}`);
+  return res.json();
+}
+
+export async function getAssessmentProgress(token: string) {
+  const res = await serverFetch(`/api/assessment/progress?token=${token}`);
+  return res.json();
+}
+
+export async function resumeAssessment(token: string) {
+  const res = await serverFetch("/api/assessment/resume", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  return res.json();
+}
