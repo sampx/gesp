@@ -480,7 +480,24 @@ app.post(
 );
 
 /**
- * GET /next-question — token-based auth
+ * Extract and verify assessment token from Authorization header.
+ * Returns payload or sends error response.
+ */
+async function verifyTokenFromHeader(c: Context): Promise<assessment.TokenPayload | Response> {
+  const authHeader = c.req.header("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return unauthorized(c, "Missing or invalid authorization token");
+  }
+  const token = authHeader.slice(7);
+  try {
+    return await assessment.verifyToken(token);
+  } catch {
+    return unauthorized(c, "Invalid or expired token");
+  }
+}
+
+/**
+ * GET /next-question — token via Authorization header
  * Return locked question or { waiting: true }
  */
 app.get(
@@ -505,15 +522,9 @@ app.get(
     },
   }),
   async (c) => {
-    const token = c.req.query("token");
-    if (!token) return error(c, "Token required", 400);
-
-    let payload: assessment.TokenPayload;
-    try {
-      payload = await assessment.verifyToken(token);
-    } catch {
-      return unauthorized(c, "Invalid or expired token");
-    }
+    const payloadOrErr = await verifyTokenFromHeader(c);
+    if (payloadOrErr instanceof Response) return payloadOrErr;
+    const payload = payloadOrErr;
 
     // Check if question is locked
     const lockedId = assessment.getLockedQuestionId(payload.assessment_session_id);
@@ -530,7 +541,7 @@ app.get(
 );
 
 /**
- * GET /progress — token-based auth
+ * GET /progress — token via Authorization header
  * Return current level, answered count, correct count, knowledge_stats, evaluation
  */
 app.get(
@@ -550,15 +561,9 @@ app.get(
     },
   }),
   async (c) => {
-    const token = c.req.query("token");
-    if (!token) return error(c, "Token required", 400);
-
-    let payload: assessment.TokenPayload;
-    try {
-      payload = await assessment.verifyToken(token);
-    } catch {
-      return unauthorized(c, "Invalid or expired token");
-    }
+    const payloadOrErr = await verifyTokenFromHeader(c);
+    if (payloadOrErr instanceof Response) return payloadOrErr;
+    const payload = payloadOrErr;
 
     const progress = await assessment.getProgress(payload.assessment_session_id);
     return success(c, progress);

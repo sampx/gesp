@@ -109,12 +109,16 @@ export async function submitAnswer(data: {
 }
 
 export async function getNextQuestion(token: string) {
-  const res = await serverFetch(`/api/assessment/next-question?token=${token}`);
+  const res = await serverFetch("/api/assessment/next-question", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return res.json();
 }
 
 export async function getAssessmentProgress(token: string) {
-  const res = await serverFetch(`/api/assessment/progress?token=${token}`);
+  const res = await serverFetch("/api/assessment/progress", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return res.json();
 }
 
