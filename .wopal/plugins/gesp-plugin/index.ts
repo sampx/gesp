@@ -1,5 +1,18 @@
+import type { ToolDefinition } from "@opencode-ai/plugin";
+import { createDebugLog } from "./debug";
 import { get_question_candidates, select_next_question, update_evaluation } from "./tools";
 
-export const tools = [get_question_candidates, select_next_question, update_evaluation];
+const debug = createDebugLog("[gesp-plugin]");
 
-export { get_question_candidates, select_next_question, update_evaluation };
+const tools: Record<string, ToolDefinition> = {
+  get_question_candidates,
+  select_next_question,
+  update_evaluation,
+};
+
+debug(`Plugin loaded — registering ${Object.keys(tools).length} tools: ${Object.keys(tools).join(", ")}`);
+
+export default {
+  id: "gesp-plugin",
+  server: () => ({ tool: tools }),
+};

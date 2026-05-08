@@ -5,3 +5,5 @@ data/
 dist/
 packages/backend/data/
 .DS_Store
+
+.env

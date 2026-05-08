@@ -14,3 +14,7 @@ data/
 
 # Turbo cache
 .turbo/
+*.log
+logs/
+
+.env

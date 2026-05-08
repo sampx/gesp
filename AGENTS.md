@@ -116,6 +116,16 @@ gesp/
 │       └── src/
 │           ├── types/        # ApiResponse, User
 │           └── constants/    # ROLE (1/10/100), USER_STATUS (1/2)
+├── apps/
+│   └── web/              # NextJS 15 学员前端（App Router）
+│       └── src/
+│           ├── app/              # App Router 路由（server/client 组件）
+│           │   ├── student/      # 学员端路由（assessment, dashboard 等）
+│           │   └── admin/        # 管理端路由
+│           ├── components/       # 可复用 UI 组件
+│           │   ├── assessment/   # 测评页面组件
+│           │   └── ui/           # shadcn/ui 基础组件
+│           └── lib/              # 工具函数（server-api.ts 等）
 ├── scripts/
 │   ├── seed-knowledge.ts # 知识库 seed 脚本（手动执行）
 │   └── verify-auth.ts    # 端到端验证脚本
@@ -159,17 +169,50 @@ gesp/
 - 密码必须 bcryptjs 哈希，Session cookie httpOnly + sameSite=Strict
 - 禁止提交 `data/`、`.env`、`node_modules/`、`dist/`
 - Shared 包禁止依赖 Backend；Backend 通过 `@gesp/shared` 引用共享类型
+- 前端组件：Next.js App Router 模式，优先 Server Component，交互部分用 `"use client"`
 
 <!-- WSF:conventions-start source:CONVENTIONS.md -->
 ## Conventions
 
-Conventions not yet established. Will populate as patterns emerge during development.
+### 命名规范
+- 文件名：组件用 PascalCase（`LevelSlider.tsx`），工具/服务用 camelCase（`server-api.ts`）
+- 路径：kebab-case（`assessment/[token]/`）
+- 变量/函数：camelCase
+- 类型/接口：PascalCase，接口以 `I` 前缀（`IAssessmentSession`）或直接名词（`AssessmentSession`）
+- 常量：UPPER_SNAKE_CASE
+
+### 组件模式
+- Next.js 15 App Router：优先 Server Component，交互部分用 `"use client"`
+- 页面入口在 `app/student/` 或 `app/admin/` 下
+- 组件放在 `components/` 目录，按功能子目录组织
+
+### 代码风格
+- 使用 ESLint + Prettier（项目配置）
+- 2 空格缩进
+- 单引号
+- 分号结尾
 <!-- WSF:conventions-end -->
 
 <!-- WSF:architecture-start source:ARCHITECTURE.md -->
 ## Architecture
 
-Architecture not yet mapped. Follow existing patterns found in the codebase.
+### Next.js 前端架构（apps/web）
+```
+Pages (app/) → Components (components/) → API 调用 → Backend
+```
+
+### 组件分层
+| 层 | 职责 | 示例 |
+|----|------|------|
+| Pages | 页面级组件，路由入口 | `assessment/page.tsx`, `assessment/[token]/page.tsx` |
+| Components | 可复用 UI 组件 | `LevelSlider.tsx`, `ChatPanel.tsx`, `ObjectiveQuestion.tsx` |
+| Actions | Server Actions（数据提交） | `assessment/actions.ts` |
+| Lib | 工具函数与 API 封装 | `server-api.ts` |
+
+### 数据流
+1. 用户操作 → 组件事件 → Server Action 或 API 调用
+2. Server Action / API 返回 → 组件响应式更新
+3. 跨组件通信：Props down / Events up / Server Actions
 <!-- WSF:architecture-end -->
 
 <!-- WSF:skills-start source:skills/ -->
