@@ -1,0 +1,244 @@
+{
+  "phase": "3",
+  "phase_name": "测评定级智能体 + 测评界面",
+  "timestamp": "2026-05-07T00:00:00.000Z",
+  "areas_completed": ["ellamaka Agent 集成", "测评策略", "题目来源", "测评界面", "数据模型与进度保存"],
+  "areas_remaining": [],
+  "architecture": {
+    "overview": "学员通过常规表单 UI 做题（非聊天），assessor agent 作为持续评估顾问 + 动态选题者，在后台通过 gesp-plugin tool 观察所有答题行为、动态出题、生成评价。聊天面板承载 agent 的鼓励/提示 + 学员自由文字互动。",
+    "roles": {
+      "gesp_backend": "出题存储、客观题判分、定级收敛决策（done 信号）、代理 ellamaka SDK 调用、格式化答题数据注入 agent 会话",
+      "assessor_agent": "持续评估学员表现、动态选题（从候选池中挑选最合适题目）、生成综合评价、通过聊天面板给学员鼓励和提示",
+      "gesp_plugin": "薄适配层 — 3 个 tool 全部 HTTP 代理到 gesp backend，GESP_API_KEY 环境变量认证",
+      "frontend": "表单 UI（选择题/代码编辑器）+ 聊天面板（只读 agent 输出 + 学员打字），不直接调 plugin"
+    },
+    "privacy_boundary": {
+      "agent_tool_calls": "tool 调用是 agent 内部行为，学员在聊天面板不可见，天然防漏题",
+      "backend_injections": "后端将答题数据注入 agent 会话时，标记为内部消息，不渲染到前端聊天面板",
+      "chat_visible": "仅 agent 的 text 输出 + 学员手动打字内容对双方可见",
+      "system_prompt_rule": "assessor agent 不得直接给出答案（作弊），只能鼓励、提示、引导思考"
+    },
+    "data_flow_lifecycle": [
+      {
+        "step": "创建测评会话",
+        "flow": "前端 POST /api/assessment/start { course_id, start_level } → backend 创建 assessment_sessions 记录 + 生成 8-12 位 token → 创建 ellamaka session（system prompt 注入 token + student_info + course_info）→ 返回 token + 第一道题到前端"
+      },
+      {
+        "step": "学员做题（客观题）",
+        "flow": "前端表单选答案 → POST /api/assessment/submit { token, question_id, answer } → backend 比对答案判对错 → 返回 { correct, explanation } 给前端即时展示 → 同时注入 agent 会话（内部消息） → agent 分析 → 可能调 get_question_candidates + select_next_question 影响下一题"
+      },
+      {
+        "step": "学员做题（编程题）",
+        "flow": "前端代码编辑器写代码 → POST /api/assessment/submit { token, question_id, answer: code } → backend 识别为编程题 → 调 ellamaka session.promptAsync 注入含学生代码的内部消息 → agent 评估代码 → 写入 evaluation → 前端轮询 /progress 刷新评分"
+      },
+      {
+        "step": "Agent 动态选题",
+        "flow": "agent 调用 get_question_candidates({ hint: '数组' }) → backend 用 LanceDB 向量搜索 + level + 去重 → 返回 3-5 道候选（含 summary，不含完整题目内容）→ agent 选择 → select_next_question({ question_id: 55 }) → backend 锁定该题 → 前端 GET /api/assessment/next-question 取到新题"
+      },
+      {
+        "step": "测评收敛收尾",
+        "flow": "backend 判定收敛 → submit 返回 { done: true, suggested_level } → 前端提示测评完成 → agent 调 get_progress 汇总统计 → 生成综合评价 → update_evaluation({ evaluation }) 写入 DB → 前端重定向报告页"
+      },
+      {
+        "step": "续评恢复",
+        "flow": "前端 POST /api/assessment/resume { token } → backend 查 assessment_sessions → 组织上下文（含上次 evaluation + 答题历史 + 级别）→ 创建新 ellamaka session → 注入 system prompt → 返回当前状态到前端，继续出题"
+      }
+    ]
+  },
+  "decisions": {
+    "ellamaka Agent 集成": [
+      {
+        "question": "Agent 调用模式",
+        "answer": "SSE 流式",
+        "notes": "gesp backend 代理转发 ellamaka SSE 事件到前端聊天面板"
+      },
+      {
+        "question": "Agent 定义与提示词位置",
+        "answer": "混合模式",
+        "notes": "assessor.md 定义基础角色+行为约束（不泄题），gesp backend 在创建 ellamaka session 时通过 system prompt 注入动态上下文（token + student_info + course_info + 续评历史数据）"
+      },
+      {
+        "question": "Agent 角色定位",
+        "answer": "持续评估顾问 + 动态选题者",
+        "notes": "不做答题主持人（学员通过表单 UI 做题），不直接聊天收答案。观察所有答题行为、动态选最适合的下一题、生成综合评价、通过聊天面板给鼓励和引导"
+      },
+      {
+        "question": "gesp-plugin API 面",
+        "answer": "3 个 tool",
+        "notes": "get_question_candidates / select_next_question / update_evaluation。薄代理—HTTP 调用 gesp backend"
+      },
+      {
+        "question": "客观题判分归属",
+        "answer": "backend 直接比对答案判分",
+        "notes": "前端即时展示对错，agent 仅在收到答题消息后做分析和反馈"
+      },
+      {
+        "question": "认证机制",
+        "answer": "评估令牌（token）",
+        "notes": "8-12 位字母数字 token，JWT 编码 { assessment_session_id, student_id, course_id, exp }。Backend 创建测评会话时生成，注入 agent system prompt。所有 tool 调用统一传 token。短有效期 2h，用完即废。跨 ellamaka 会话续评使用同一 token"
+      }
+    ],
+    "测评策略": [
+      {
+        "question": "自适应算法模型",
+        "answer": "启发式规则 + 置信度判断",
+        "notes": "IRT 对 1-8 级场景太重。启发式即可满足需求"
+      },
+      {
+        "question": "推进节奏",
+        "answer": "每级 5 题，≥3/5 正确→升级，≤1/5→降级，2/5 正确→同级继续",
+        "notes": "参数不硬编码，需支持后端配置（题量、阈值可通过 admin 面板调整）"
+      },
+      {
+        "question": "停止条件",
+        "answer": "级别波动收敛 + 安全上限",
+        "notes": "连续 2 轮同级别判定即停止。安全上限 30 题 / 30 分钟兜底。backend 通过 submit 响应中 { done: true } 通知 agent"
+      },
+      {
+        "question": "起始级别",
+        "answer": "首次自选，后续从上次未完成挑战的级别继续",
+        "notes": "按 course_id 维度独立追踪。若上次测评中断，新会话从打断处继续"
+      }
+    ],
+    "题目来源": [
+      {
+        "question": "题库独立性",
+        "answer": "独立 assessment_questions 表",
+        "notes": "不与 practice_questions/exam_questions 混用。AI agent 编制 + 教员审核上线。题目有独立生命周期：草稿→待审→上线"
+      },
+      {
+        "question": "assessment_questions 关键字段",
+        "answer": "course_id, level, knowledge_point, question_type (objective/coding), difficulty, content, answer, status (draft/pending/active), embedding",
+        "notes": "embedding 由题目文本 + 知识点描述拼接后经 Ollama nomic-embed-text-v2 生成，用于 LanceDB 向量搜索"
+      },
+      {
+        "question": "动态选题算法",
+        "answer": "Agent 驱动 — 从候选池中挑选",
+        "notes": "agent 调 get_question_candidates({ course_id, level, hint? }) → backend 硬过滤（course_id + level + 已答题去重）+ LanceDB 语义搜索（hint 不为空时）+ type 轮转 → 返回 3-5 道候选（含 summary，不含完整题目）→ agent 选 → select_next_question({ question_id }) → backend 锁定。Agent 未调 suggest 时 backend 按默认策略自动出题"
+      },
+      {
+        "question": "答案内容校验",
+        "answer": "客观题严格比对（trim + lowercase），编程题由 agent 评分（不跑沙盒代码执行）",
+        "notes": "客观题补充 check：单选题选项字母 A/B/C/D vs 数字答案 vs 文本答案，统一归一化后再比对"
+      },
+      {
+        "question": "去重策略",
+        "answer": "跨会话不重复，之前失败的题目允许重测",
+        "notes": "优先级：换题 > 重测失败题。同一知识点有不同题目时优先换题"
+      },
+      {
+        "question": "每级题型组合",
+        "answer": "3 客观 + 2 编程，可配置",
+        "notes": "编程题放在级末作为升级挑战。ratio 参数需支持 admin 面板调整"
+      }
+    ],
+    "测评界面": [
+      {
+        "question": "页面布局",
+        "answer": "左侧表单做题区 + 右上角 agent logo（🤖）悬浮按钮 → 点击展开右侧浮层聊天面板",
+        "notes": "默认聊天面板折叠，新消息时 logo 显示 badge 未读数。移动端聊天面板从底部抽屉弹出"
+      },
+      {
+        "question": "页面路由",
+        "answer": "/student/assessment（起测）→ /student/assessment/{token}（进行中）→ /student/assessment/{token}/report（报告）",
+        "notes": "报告页同时也是历史查看入口：/student/reports → 列表 → 点击进入具体报告。起测页支持自选课程、级别、题量、时限"
+      },
+      {
+        "question": "题目渲染",
+        "answer": "选择题 shadcn/ui RadioGroup/Button，编程题轻量 textarea + syntax highlight preview",
+        "notes": "先不用 Monaco/CodeMirror 等重编辑器，保持加载速度"
+      },
+      {
+        "question": "状态流转",
+        "answer": "启动→选题中(loading)→答题中→编程题评分中→展示反馈→下一题→测评完成→重定向报告页",
+        "notes": "编程题评分中状态显示 spinner + 轮询 /progress 获取评分结果"
+      },
+      {
+        "question": "起测页",
+        "answer": "课程选择下拉 + 级别滑块(1-8) + 级别能力描述 + 高级选项折叠(题量/时限) + 开始按钮",
+        "notes": "级别滑块联动能力描述文字，高级选项默认折叠"
+      },
+      {
+        "question": "报告页",
+        "answer": "定级结果 + 综合评价 + 知识点正确率条形图 + 建议学习路径 + 开始学习/再测一次按钮",
+        "notes": "评价文本含换行和 Markdown 格式化支持"
+      },
+      {
+        "question": "移动端适配",
+        "answer": "全屏答题 + 聊天面板底部抽屉弹出 + textarea 自适应宽度 + 语法高亮浮动菜单收起",
+        "notes": "选择题按钮纵向大尺寸排列，方便手指触控"
+      }
+    ],
+    "数据模型与进度保存": [
+      {
+        "question": "assessment_sessions 核心字段",
+        "answer": "id, token(UNIQUE), student_id, course_id, status, start_level, current_level, final_level, config_question_limit, config_time_limit_min, total_answered, total_correct, level_history(JSON), knowledge_stats(JSON), evaluation, started_at, completed_at",
+        "notes": "level_history 和 knowledge_stats 在 update_evaluation 时重新计算并写入 JSON 缓存，避免每次查 answer 表聚合"
+      },
+      {
+        "question": "assessment_answers 核心字段",
+        "answer": "id, session_id, question_id, question_order, student_answer, is_correct, score, feedback, time_spent_sec, course_id(冗余), level(冗余), knowledge_point(冗余), question_type(冗余)",
+        "notes": "冗余字段用于去重查询性能（按 knowledge_point 排除已答题），不从 question 表反查"
+      },
+      {
+        "question": "assessment_questions 核心字段",
+        "answer": "id, course_id, level, knowledge_point, question_type, difficulty, content, answer, explanation, status(draft/pending/active), created_by(agent/manual), embedding(LanceDB), created_at, updated_at",
+        "notes": "独立题库，不与 practice_questions/exam_questions 混用。embedding 由 题目文本 + 知识点描述 拼接后 embedding 生成"
+      },
+      {
+        "question": "会话状态",
+        "answer": "in_progress / completed / abandoned",
+        "notes": "超时未续评自动标记 abandoned，续评时改回 in_progress。completed 后不可再加答"
+      },
+      {
+        "question": "进度聚合策略",
+        "answer": "实时 SQL 聚合 + JSON 缓存双写",
+        "notes": "knowledge_stats 在 update_evaluation 时重新聚合写入。查询进度时优先读缓存，缓存为空时 SQL 实时聚合"
+      }
+    ]
+  },
+  "gesp_plugin_tools": [
+    {
+      "name": "get_question_candidates",
+      "params": "token (string, required), course_id (string, required), level (number, required), hint (string, optional), limit (number, optional, default 5, max 10)",
+      "returns": "[{ question_id, knowledge_point, difficulty, question_type, short_summary }, ...]",
+      "behavior": "Hard filter (course_id + level + dedup) → LanceDB vector search (if hint non-empty) → knowledge point diversity rotation → return top-K candidates with summary only (no full question content — 防漏题)",
+      "notes": "Agent 从候选中挑选最合适的一道，调用 select_next_question 锁定。若 agent 未在 10s 内调用 select，backend 自动选第一道作为兜底"
+    },
+    {
+      "name": "select_next_question",
+      "params": "token (string, required), question_id (string, required)",
+      "returns": "{ success: boolean }",
+      "behavior": "Lock the question as next assessment item. Backend sets session.current_question_id and marks question as 'in use' for this session",
+      "notes": "调用后前端 GET /api/assessment/next-question 获取完整题目内容渲染到表单 UI"
+    },
+    {
+      "name": "update_evaluation",
+      "params": "token (string, required), evaluation (string, required)",
+      "returns": "{ success: boolean }",
+      "behavior": "Write evaluation text to assessment_sessions.evaluation field. Also recomputes level_history and knowledge_stats from assessment_answers and caches as JSON",
+      "notes": "Agent 在测评收敛后或阶段性地更新综合评价。续评时 backend 将 evaluation 注入 system prompt"
+    }
+  ],
+  "frontend_rest_api": [
+    { "method": "POST", "path": "/api/assessment/start", "payload": "{ course_id, start_level, question_limit?, time_limit_min? }", "returns": "{ token, first_question }", "notes": "创建测评会话 + ellamaka agent session + 返回首题" },
+    { "method": "POST", "path": "/api/assessment/submit", "payload": "{ token, question_id, answer }", "returns": "{ correct, explanation, done?, suggested_level? }", "notes": "客观题即时判，编程题异步 agent 评分；done=true 时前端准备跳转报告" },
+    { "method": "GET", "path": "/api/assessment/next-question", "params": "token", "returns": "{ question (full content) } | null", "notes": "获取当前已锁定的题目；agent 尚未 select 时返回 { waiting: true }" },
+    { "method": "GET", "path": "/api/assessment/progress", "params": "token", "returns": "{ level, total_answered, correct, level_history[], knowledge_stats{}, evaluation?, done, suggested_level? }", "notes": "前端轮询编程题评分进度，报告页用" },
+    { "method": "POST", "path": "/api/assessment/resume", "payload": "{ token }", "returns": "{ question } | { result }", "notes": "续评：若 in_progress 返回当前题，若 completed 返回报告数据" },
+    { "method": "GET", "path": "/api/assessment/{token}/stream", "returns": "SSE event stream", "notes": "聊天面板 EventSource 连接，接收 agent text 输出流 + agent 消息" }
+  ],
+  "deferred_ideas": [],
+  "canonical_refs": [
+    ".planning/PROJECT.md — 项目架构、ellamaka SDK 代理模式、gesp-plugin 定位",
+    ".planning/ROADMAP.md § Phase 3 — 阶段目标、Success Criteria",
+    ".planning/REQUIREMENTS.md — ASSESS-01~05, UI-ASSESS-01",
+    ".planning/phases/02-知识库-双端骨架/02-CONTEXT.md — 知识库 schema、前端路由结构",
+    ".planning/phases/02.1-用户基础流程补齐/02.1-CONTEXT.md — 学员端 Navbar、权限体系",
+    "projects/wopal-cli/src/lib/fae/client.ts — FaeClient HTTP API 模式参考",
+    "projects/wopal-cli/src/commands/fae/stream.ts — SSE 流式参考实现",
+    ".wopal/wopal-plugin/src/tools/ — OpenCode 插件 tool 定义模式",
+    "docs/products/gesp/research/gesp-data-models.md — 数据模型 schema",
+    "projects/ellamaka/packages/sdk/openapi.json — ellamaka OpenAPI 规范"
+  ]
+}
