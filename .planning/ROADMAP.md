@@ -135,7 +135,7 @@ Plans:
 - [x] 03-07-PLAN.md — Gap: 智能体进度感知、评分回写、completed 收口与日志降噪
 - [x] 03-08-PLAN.md — Gap: 会话历史/删除 API + question_ready SSE 契约
 - [x] 03-09-PLAN.md — Gap: 起测页历次测评列表、继续测评与删除操作
-- [ ] 03-10-PLAN.md — Gap: 答题页进度修正、header agent logo 与 ready-aware 下一题体验
+- [x] 03-10-PLAN.md — Gap: 答题页进度修正、header agent logo 与 ready-aware 下一题体验
 
 ### Phase 4: 教学讲解智能体 + 教学界面
 **Goal:** 学员可观看 AI 生成的知识点讲解并获得互动答疑，可在学员端界面看到教学内容
