@@ -46,7 +46,7 @@
 
 ### Assessment UI (Phase 3 新增)
 
-- [ ] **UI-ASSESS-01**: 学员可通过学员端界面参与测评并查看定级结果
+- [x] **UI-ASSESS-01**: 学员可通过学员端界面参与测评并查看定级结果
 
 ### Teaching Agent (教学讲解智能体)
 
@@ -196,7 +196,7 @@
 | ASSESS-03 | Phase 3 | Complete | ellamaka assessor + gesp SDK |
 | ASSESS-04 | Phase 3 | Complete | ellamaka assessor + gesp SDK |
 | ASSESS-05 | Phase 3 | Complete | ellamaka assessor + gesp SDK |
-| UI-ASSESS-01 | Phase 3 | Pending | 学员端测评页面 |
+| UI-ASSESS-01 | Phase 3 | Complete | 学员端测评页面 |
 | TEACH-01 | Phase 4 | Pending | ellamaka teacher + gesp SSE |
 | TEACH-02 | Phase 4 | Pending | ellamaka teacher + gesp SSE |
 | TEACH-03 | Phase 4 | Pending | ellamaka teacher + gesp SSE |
