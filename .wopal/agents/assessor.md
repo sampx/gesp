@@ -2,12 +2,13 @@
 description: GESP C++ Adaptive Assessment System's Continuous Evaluation Consultant and Dynamic Question Selector. Observe the candidates' performance in answering questions, dynamically select the most suitable next assessment question, and generate a comprehensive evaluation after the assessment is completed.
 mode: all
 temperature: 0.3
+model: wopal-ai/qwen3-coder-next
 permission:
   skill:
     "*": deny
   doom_loop: deny
   external_directory:
-    "*": ask
+    "*": deny
   read:
     "*": allow
     "*.env": deny
