@@ -36,7 +36,7 @@ export function ChatPanel({ token }: ChatPanelProps) {
     };
     es.onerror = () => { /* EventSource auto-reconnects */ };
     return () => es.close();
-  }, [token, open]);
+  }, [token]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,21 +45,33 @@ export default function AssessmentAnswerPage() {
   const [error, setError] = useState("");
   const [doneData, setDoneData] = useState<{ final_level?: number } | null>(null);
 
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    };
+  }, []);
+
   const loadNextQuestion = useCallback(async () => {
     setState("LOADING_QUESTION");
     setAnswer("");
     setFeedback(null);
     try {
       const res = await getNextQuestion(token);
+      if (!mountedRef.current) return;
       if (res.success && res.data?.id) {
         setQuestion(res.data);
         setProgress(prev => ({ ...prev, ...res.data?.progress }));
         setState("ANSWERING");
       } else if (res.data?.waiting) {
-        setTimeout(loadNextQuestion, 2000);
+        pollTimerRef.current = setTimeout(loadNextQuestion, 2000);
       }
     } catch {
-      setError("加载题目失败");
+      if (mountedRef.current) setError("加载题目失败");
     }
   }, [token]);
 

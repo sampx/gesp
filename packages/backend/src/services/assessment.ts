@@ -1,11 +1,11 @@
 /**
  * Assessment Service — Core assessment logic for adaptive testing.
  *
- * Implements JWT token management, objective scoring, adaptive algorithm,
- * question selection, progress tracking, and session lifecycle.
+ * Uses random token + DB lookup for session identification.
+ * Implements objective scoring, adaptive algorithm, question selection,
+ * progress tracking, and session lifecycle.
  */
 
-import { sign, verify } from "hono/jwt";
 import { db } from "../db";
 import {
   assessmentSessions,
@@ -21,12 +21,7 @@ import { logger } from "../utils/logger";
 // Constants
 // ---------------------------------------------------------------------------
 
-const _JWT_SECRET = process.env.JWT_SECRET;
-if (!_JWT_SECRET) {
-  throw new Error("Missing required environment variable: JWT_SECRET");
-}
-const JWT_SECRET: string = _JWT_SECRET;
-const TOKEN_EXPIRY_SEC = 2 * 60 * 60; // 2 hours
+const SESSION_EXPIRY_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 const DEFAULT_QUESTION_LIMIT = 5;
 const DEFAULT_THRESHOLD_UP = 3;
@@ -43,7 +38,6 @@ export interface TokenPayload {
   assessment_session_id: string;
   student_id: string;
   course_id: string;
-  exp?: number;
 }
 
 export interface RoundResult {
@@ -93,35 +87,47 @@ export interface AssessmentSession {
 }
 
 // ---------------------------------------------------------------------------
-// JWT Token utilities
+// Token utilities
 // ---------------------------------------------------------------------------
 
 /**
- * Generate JWT token for assessment session.
- * Token encodes { assessment_session_id, student_id, course_id, exp } with 2h expiry.
+ * Generate a short random token for assessment session identification.
+ * Token is stored in DB and looked up on each request — no JWT overhead.
  */
-export async function generateToken(
-  payload: Omit<TokenPayload, "exp">,
-): Promise<string> {
-  const token = await sign(
-    { ...payload, exp: Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SEC },
-    JWT_SECRET,
-    "HS256",
-  );
-  logger.info(
-    { assessment_session_id: payload.assessment_session_id, student_id: payload.student_id },
-    "Assessment token generated",
-  );
+export function generateToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  const token = Buffer.from(bytes).toString("base64url");
+  logger.info({ token_prefix: token.slice(0, 4) }, "Assessment token generated");
   return token;
 }
 
 /**
- * Verify JWT token and return decoded payload.
+ * Look up assessment session by token and return session metadata.
+ * Verifies token exists in DB and session hasn't expired (2h from creation).
  * Throws on invalid/expired tokens.
  */
 export async function verifyToken(token: string): Promise<TokenPayload> {
-  const decoded = await verify(token, JWT_SECRET, "HS256");
-  return decoded as unknown as TokenPayload;
+  const [session] = await db
+    .select({
+      assessment_session_id: assessmentSessions.id,
+      student_id: assessmentSessions.student_id,
+      course_id: assessmentSessions.course_id,
+      started_at: assessmentSessions.started_at,
+    })
+    .from(assessmentSessions)
+    .where(eq(assessmentSessions.token, token))
+    .limit(1);
+
+  if (!session) throw new Error("Invalid assessment token");
+
+  const age = Date.now() - new Date(session.started_at).getTime();
+  if (age > SESSION_EXPIRY_MS) throw new Error("Assessment session expired");
+
+  return {
+    assessment_session_id: session.assessment_session_id,
+    student_id: session.student_id,
+    course_id: session.course_id,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -315,6 +321,13 @@ export function getLockedQuestionId(sessionId: string): string | undefined {
   return currentQuestionLocks.get(sessionId);
 }
 
+/**
+ * Clear the locked question for a session (e.g., after answer submission).
+ */
+export function unlockQuestion(sessionId: string): void {
+  currentQuestionLocks.delete(sessionId);
+}
+
 // ---------------------------------------------------------------------------
 // Progress tracking
 // ---------------------------------------------------------------------------
@@ -390,11 +403,7 @@ export async function createAssessmentSession(params: {
   config_time_limit_min?: number;
 }): Promise<AssessmentSession> {
   const id = crypto.randomUUID();
-  const token = await generateToken({
-    assessment_session_id: id,
-    student_id: params.student_id,
-    course_id: params.course_id,
-  });
+  const token = generateToken();
 
   const [session] = await db
     .insert(assessmentSessions)

@@ -45,19 +45,18 @@ async function verifyApiKey(c: Context, next: () => Promise<void>) {
 // ---------------------------------------------------------------------------
 
 /**
- * Build system prompt for assessor agent
+ * Build system prompt for assessor agent.
+ * Token is passed via first user message (not system prompt) for reliable delivery.
  */
 function buildSystemPrompt(
-  token: string,
   user: { display_name: string },
   body: { course_id: string; start_level: number },
 ): string {
-  return `当前评估令牌: ${token}
-学员: ${user.display_name}
+  return `学员: ${user.display_name}
 课程: ${body.course_id}
 起始级别: ${body.start_level}
 
-你是 GESP 测评顾问。请使用令牌调用工具。严禁透露题目答案。`;
+你是 GESP 测评顾问。严禁透露题目答案。`;
 }
 
 /**
@@ -334,12 +333,12 @@ app.post(
         .set({ ellamaka_session_id: ellamakaSessionId })
         .where(eq(assessmentSessions.id, session.id));
 
-      // 4. Send async prompt with system context
-      const systemPrompt = buildSystemPrompt(session.token, user, body);
+      // 4. Send async prompt — token in user message (not system prompt)
+      const systemPrompt = buildSystemPrompt(user, body);
       await ellamakaClient.promptAsync(ellamakaSessionId, [
         {
           type: "text",
-          text: `开始测评。学员 ${user.display_name},课程 ${body.course_id},起始级别 ${body.start_level}。请调用 get_question_candidates 获取候选题目并选择第一道题。`,
+          text: `当前评估令牌: ${session.token}\n你好！请开始测评。学员 ${user.display_name}，课程 ${body.course_id}，起始级别 ${body.start_level}。请获取候选题目并为学员选择第一道题。`,
         },
       ], systemPrompt);
     } catch (err) {
@@ -455,6 +454,9 @@ app.post(
       // Update session stats
       await assessment.updateSessionAfterAnswer(payload.assessment_session_id, correct);
 
+      // Unlock so frontend waits for agent to select next question
+      assessment.unlockQuestion(payload.assessment_session_id);
+
       // Notify ellamaka agent
       const session = await db.query.assessmentSessions.findFirst({
         where: eq(assessmentSessions.id, payload.assessment_session_id),
@@ -464,7 +466,7 @@ app.post(
           .promptAsync(session.ellamaka_session_id, [
             {
               type: "text",
-              text: `[内部消息] 学员回答了题目 ${question.knowledge_point}(${question.question_type}),答案: "${body.answer}",结果: ${correct ? "正确" : "错误"}。请给予反馈并选择下一道题。`,
+              text: `学员回答了题目 ${question.knowledge_point}(${question.question_type})，答案: "${body.answer}"，结果: ${correct ? "正确 ✓" : "错误 ✗"}。请在聊天中给学员简短反馈，然后获取候选并选择下一道题。`,
             },
           ])
           .catch((err) =>
@@ -503,6 +505,9 @@ app.post(
         knowledge_point: question.knowledge_point,
         question_type: question.question_type,
       });
+
+      // Unlock so frontend waits for agent to select next question
+      assessment.unlockQuestion(payload.assessment_session_id);
 
       // Send to agent for evaluation
       const session = await db.query.assessmentSessions.findFirst({
@@ -662,7 +667,6 @@ app.post(
     );
 
     const systemPrompt = buildSystemPrompt(
-      body.token,
       { display_name: "学员" },
       { course_id: session.course_id, start_level: session.current_level },
     );
@@ -670,7 +674,7 @@ app.post(
     await ellamakaClient.promptAsync(es.id, [
       {
         type: "text",
-        text: `续评恢复。历史记录:\n${history}\n当前级别: ${session.current_level}。请继续选题。`,
+        text: `当前评估令牌: ${body.token}\n续评恢复。历史记录:\n${history}\n当前级别: ${session.current_level}。请继续选题。`,
       },
     ], systemPrompt);
 
@@ -728,6 +732,11 @@ app.get(
           for await (const event of ellamakaClient.streamEvents(
             session.ellamaka_session_id!,
           )) {
+            // Debug: log all event types to diagnose empty chat panel
+            logger.debug(
+              { event_type: event.type, event_field: (event as any).field, has_text: !!(event.delta || event.text) },
+              "SSE event received",
+            );
             // Filter: only forward agent text output (not internal tool calls)
             if (
               (event.type === "message.part.delta" && event.field === "text") ||
