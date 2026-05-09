@@ -11,7 +11,7 @@ import { ChatProjectorStore } from "../services/chat-projector";
 import * as assessment from "../services/assessment";
 import { db } from "../db";
 import { assessmentSessions, assessmentAnswers, assessmentQuestions } from "../db/schema/assessment";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 const app = new Hono();
 const ellamakaClient = createEllamakaClient();
@@ -274,6 +274,82 @@ const evaluateSchema = z.object({
 // ---------------------------------------------------------------------------
 // Student-facing endpoints
 // ---------------------------------------------------------------------------
+
+/**
+ * GET /sessions — Task 1: session history endpoint
+ * Return list of student's assessment sessions sorted newest-first.
+ */
+app.get(
+  "/sessions",
+  StudentAuth(),
+  describeRoute({
+    summary: "Get student's assessment session history",
+    responses: {
+      200: {
+        description: "List of session summaries",
+        content: {
+          "application/json": {
+            schema: resolver(z.any()),
+          },
+        },
+      },
+      401: { description: "Unauthorized" },
+    },
+  }),
+  async (c) => {
+    const user = c.get("user");
+    const sessions = await assessment.listStudentSessions(user.id);
+    return success(c, { sessions });
+  },
+);
+
+/**
+ * DELETE /sessions/:sessionId — Task 1: session deletion endpoint
+ * Delete a session and its answers, enforcing ownership.
+ * Per Task 1: clean up projector and auto-select timer if active.
+ */
+app.delete(
+  "/sessions/:sessionId",
+  StudentAuth(),
+  describeRoute({
+    summary: "Delete an assessment session",
+    responses: {
+      200: {
+        description: "Session deleted",
+        content: {
+          "application/json": {
+            schema: resolver(z.object({ success: z.boolean() })),
+          },
+        },
+      },
+      401: { description: "Unauthorized" },
+      404: { description: "Session not found" },
+    },
+  }),
+  async (c) => {
+    const user = c.get("user");
+    const sessionId = c.req.param("sessionId");
+
+    try {
+      // Clean up projector if active
+      projectorStore.destroy(sessionId);
+
+      // Clean up auto-select timer if active
+      clearAutoSelectTimer(sessionId);
+
+      // Delete session and answers (ownership verified in service)
+      await assessment.deleteStudentSession({
+        studentId: user.id,
+        sessionId,
+      });
+
+      return success(c, { success: true });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to delete session";
+      return error(c, msg, 404);
+    }
+  },
+);
 
 /**
  * POST /start — D-10, data flow step 1

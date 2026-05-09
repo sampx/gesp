@@ -616,3 +616,87 @@ export async function updateEvaluation(
 
   logger.info({ session_id: sessionId }, "Evaluation updated");
 }
+
+// ---------------------------------------------------------------------------
+// Session history management (Task 1: list + delete)
+// ---------------------------------------------------------------------------
+
+export interface SessionSummary {
+  id: string;
+  token: string;
+  status: string;
+  start_level: number;
+  current_level: number;
+  final_level: number | null;
+  total_answered: number;
+  total_correct: number;
+  started_at: Date | string;
+  completed_at: Date | string | null;
+}
+
+/**
+ * List all sessions for a student, sorted newest-first.
+ * Per Task 1: return session summaries with token, status, levels, totals, timestamps.
+ */
+export async function listStudentSessions(studentId: string): Promise<SessionSummary[]> {
+  const sessions = await db
+    .select({
+      id: assessmentSessions.id,
+      token: assessmentSessions.token,
+      status: assessmentSessions.status,
+      start_level: assessmentSessions.start_level,
+      current_level: assessmentSessions.current_level,
+      final_level: assessmentSessions.final_level,
+      total_answered: assessmentSessions.total_answered,
+      total_correct: assessmentSessions.total_correct,
+      started_at: assessmentSessions.started_at,
+      completed_at: assessmentSessions.completed_at,
+    })
+    .from(assessmentSessions)
+    .where(eq(assessmentSessions.student_id, studentId))
+    .orderBy(sql`${assessmentSessions.started_at} DESC`);
+
+  logger.debug(
+    { student_id: studentId, session_count: sessions.length },
+    "Student session history fetched",
+  );
+
+  return sessions as SessionSummary[];
+}
+
+/**
+ * Delete a session owned by a specific student.
+ * Per Task 1: verify ownership, delete answer rows, delete session row.
+ * Per Task 1: return error if not owned by this student.
+ */
+export async function deleteStudentSession(params: {
+  studentId: string;
+  sessionId: string;
+}): Promise<void> {
+  // Verify session exists and is owned by this student
+  const session = await db.query.assessmentSessions.findFirst({
+    where: and(
+      eq(assessmentSessions.id, params.sessionId),
+      eq(assessmentSessions.student_id, params.studentId),
+    ),
+  });
+
+  if (!session) {
+    throw new Error("Session not found or not owned by this student");
+  }
+
+  // Delete all answer rows for this session
+  await db
+    .delete(assessmentAnswers)
+    .where(eq(assessmentAnswers.session_id, params.sessionId));
+
+  // Delete session row
+  await db
+    .delete(assessmentSessions)
+    .where(eq(assessmentSessions.id, params.sessionId));
+
+  logger.info(
+    { session_id: params.sessionId, student_id: params.studentId },
+    "Session and answers deleted",
+  );
+}
