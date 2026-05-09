@@ -7,6 +7,7 @@ import { StudentAuth } from "../middleware/auth";
 import { success, error, unauthorized } from "../utils/response";
 import { logger } from "../utils/logger";
 import { createEllamakaClient } from "../services/ellamaka-client";
+import { ChatProjectorStore } from "../services/chat-projector";
 import * as assessment from "../services/assessment";
 import { db } from "../db";
 import { assessmentSessions, assessmentAnswers, assessmentQuestions } from "../db/schema/assessment";
@@ -14,6 +15,7 @@ import { eq, and } from "drizzle-orm";
 
 const app = new Hono();
 const ellamakaClient = createEllamakaClient();
+const projectorStore = new ChatProjectorStore(ellamakaClient);
 
 // ---------------------------------------------------------------------------
 // Middleware helpers
@@ -75,9 +77,6 @@ function formatQuestion(q: typeof assessmentQuestions.$inferSelect) {
   };
 }
 
-/**
- * Get next question order for a session
- */
 async function getNextOrder(sessionId: string): Promise<number> {
   const answers = await db
     .select({ order: assessmentAnswers.question_order })
@@ -104,7 +103,7 @@ async function waitForFirstQuestion(
       });
       if (question) return question;
     }
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 1000));
   }
   return null;
 }
@@ -203,7 +202,7 @@ async function getSessionHistory(sessionId: string): Promise<string> {
 const autoSelectTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 /**
- * Start 10s auto-select timer — if agent doesn't call /select within 10s,
+ * Start 30s auto-select timer — if agent doesn't call /select within 30s,
  * backend auto-locks the first candidate as fallback (per D-13)
  */
 function startAutoSelectTimer(sessionId: string, fallbackQuestionId: string) {
@@ -211,11 +210,11 @@ function startAutoSelectTimer(sessionId: string, fallbackQuestionId: string) {
   const timer = setTimeout(async () => {
     logger.warn(
       { session_id: sessionId, question_id: fallbackQuestionId },
-      "Agent did not select within 10s, auto-selecting first candidate (D-13 fallback)",
+      "Agent did not select within 30s, auto-selecting first candidate (D-13 fallback)",
     );
     await assessment.lockQuestion(sessionId, fallbackQuestionId);
     autoSelectTimers.delete(sessionId);
-  }, 10_000); // D-13: 10s fallback
+  }, 30_000); // D-13: 30s fallback
   autoSelectTimers.set(sessionId, timer);
 }
 
@@ -341,6 +340,9 @@ app.post(
           text: `当前评估令牌: ${session.token}\n你好！请开始测评。学员 ${user.display_name}，课程 ${body.course_id}，起始级别 ${body.start_level}。请获取候选题目并为学员选择第一道题。`,
         },
       ], systemPrompt);
+
+      // Initialize chat projector for this session
+      projectorStore.getOrCreate(session.id, ellamakaSessionId);
     } catch (err) {
       logger.warn(
         { err, session_id: session.id },
@@ -349,8 +351,8 @@ app.post(
       // Assessment can still work in offline mode
     }
 
-    // 5. Wait for first question (15s timeout)
-    const firstQuestion = await waitForFirstQuestion(session.id, 15000);
+    // 5. Wait for first question (35s timeout to match auto-select)
+    const firstQuestion = await waitForFirstQuestion(session.id, 35000);
     if (firstQuestion) {
       return success(c, { token: session.token, first_question: formatQuestion(firstQuestion) });
     }
@@ -581,9 +583,12 @@ app.get(
     if (payloadOrErr instanceof Response) return payloadOrErr;
     const payload = payloadOrErr;
 
+    // Always include progress for state restoration on page refresh
+    const progress = await assessment.getProgress(payload.assessment_session_id);
+
     // Check if question is locked
     const lockedId = assessment.getLockedQuestionId(payload.assessment_session_id);
-    if (!lockedId) return success(c, { waiting: true });
+    if (!lockedId) return success(c, { waiting: true, progress });
 
     // Fetch full question content (only after locked)
     const question = await db.query.assessmentQuestions.findFirst({
@@ -591,7 +596,7 @@ app.get(
     });
     if (!question) return error(c, "Question not found", 404);
 
-    return success(c, formatQuestion(question));
+    return success(c, { ...formatQuestion(question), progress });
   },
 );
 
@@ -678,6 +683,9 @@ app.post(
       },
     ], systemPrompt);
 
+    // Initialize chat projector for resumed session
+    projectorStore.getOrCreate(session.id, es.id);
+
     await db
       .update(assessmentSessions)
       .set({ ellamaka_session_id: es.id })
@@ -688,24 +696,24 @@ app.post(
 );
 
 /**
- * GET /{token}/stream — SSE stream (D-01)
- * Forward agent text from ellamaka events filtered by sessionId
+ * GET /{token}/chat-state — snapshot endpoint
+ * Return current projected chat state (messages + status)
  */
 app.get(
-  "/:token/stream",
+  "/:token/chat-state",
   describeRoute({
-    summary: "SSE stream for agent messages",
+    summary: "Get current chat state snapshot",
     responses: {
       200: {
-        description: "SSE stream",
+        description: "Chat state snapshot",
         content: {
-          "text/event-stream": {
+          "application/json": {
             schema: resolver(z.any()),
           },
         },
       },
       401: { description: "Invalid token" },
-      404: { description: "No active agent session" },
+      404: { description: "No active projector" },
     },
   }),
   async (c) => {
@@ -718,45 +726,101 @@ app.get(
       return unauthorized(c, "Invalid or expired token");
     }
 
-    const session = await db.query.assessmentSessions.findFirst({
-      where: eq(assessmentSessions.id, payload.assessment_session_id),
-    });
-
-    if (!session?.ellamaka_session_id) {
-      return error(c, "No active agent session", 404);
+    const projector = projectorStore.get(payload.assessment_session_id);
+    if (!projector) {
+      return error(c, "No active projector for this session", 404);
     }
 
+    return success(c, projector.getSnapshot());
+  },
+);
+
+/**
+ * GET /{token}/stream — SSE stream (D-01)
+ * Emit normalized events from projector
+ */
+app.get(
+  "/:token/stream",
+  describeRoute({
+    summary: "SSE stream for normalized chat events",
+    responses: {
+      200: {
+        description: "SSE stream",
+        content: {
+          "text/event-stream": {
+            schema: resolver(z.any()),
+          },
+        },
+      },
+      401: { description: "Invalid token" },
+      404: { description: "No active projector" },
+    },
+  }),
+  async (c) => {
+    const token = c.req.param("token");
+
+    let payload: assessment.TokenPayload;
+    try {
+      payload = await assessment.verifyToken(token);
+    } catch {
+      return unauthorized(c, "Invalid or expired token");
+    }
+
+    const projector = projectorStore.get(payload.assessment_session_id);
+    if (!projector) {
+      return error(c, "No active projector for this session", 404);
+    }
+
+    const abortController = new AbortController();
+
     const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const event of ellamakaClient.streamEvents(
-            session.ellamaka_session_id!,
-          )) {
-            // Debug: log all event types to diagnose empty chat panel
-            logger.debug(
-              { event_type: event.type, event_field: (event as any).field, has_text: !!(event.delta || event.text) },
-              "SSE event received",
-            );
-            // Filter: only forward agent text output (not internal tool calls)
-            if (
-              (event.type === "message.part.delta" && event.field === "text") ||
-              (event.type === "message.part.updated" && event.field === "text")
-            ) {
-              const text = event.delta || event.text || "";
-              controller.enqueue(
-                new TextEncoder().encode(
-                  `data: ${JSON.stringify({ type: "agent_text", text })}\n\n`,
-                ),
-              );
-            }
-          }
-        } catch (err) {
-          logger.error(
-            { err, session_id: session.id },
-            "SSE stream error",
+      start(controller) {
+        // Send initial snapshot as the first event
+        const snapshot = projector.getSnapshot();
+        controller.enqueue(
+          new TextEncoder().encode(
+            `data: ${JSON.stringify({ type: "snapshot", messages: snapshot.messages, status: snapshot.status })}\n\n`,
+          ),
+        );
+
+        // Subscribe to normalized events
+        const unsubscribe = projector.addListener((event) => {
+          if (abortController.signal.aborted) return;
+          controller.enqueue(
+            new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`),
           );
-        }
-        controller.close();
+        });
+
+        // SSE heartbeat to prevent Bun.serve idle timeout (default 10s)
+        const heartbeat = setInterval(() => {
+          if (abortController.signal.aborted) return;
+          try {
+            controller.enqueue(new TextEncoder().encode(": heartbeat\n\n"));
+          } catch {
+            // Controller closed — heartbeat no longer needed
+            clearInterval(heartbeat);
+          }
+        }, 5000);
+
+        // Cleanup on abort.
+        // controller may already be closed if the stream ended naturally;
+        // close is idempotent in spirit but throws, so catch and move on.
+        abortController.signal.addEventListener("abort", () => {
+          clearInterval(heartbeat);
+          unsubscribe();
+          try {
+            controller.close();
+            logger.debug(
+              { assessment_session_id: payload.assessment_session_id },
+              "Normalized SSE stream closed",
+            );
+          } catch {
+            // Stream already ended — nothing to close
+          }
+        }, { once: true });
+      },
+      cancel() {
+        abortController.abort();
       },
     });
 
@@ -897,6 +961,67 @@ app.post(
     }
 
     await assessment.updateEvaluation(payload.assessment_session_id, body.evaluation);
+
+    return success(c, { success: true });
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Chat endpoint — student sends message to agent via chat panel
+// ---------------------------------------------------------------------------
+const chatSchema = z.object({
+  message: z.string().min(1),
+  message_id: z.string().optional(),
+});
+
+app.post(
+  "/:token/chat",
+  zValidator("json", chatSchema),
+  describeRoute({
+    summary: "Send chat message to agent",
+    responses: {
+      200: { description: "Message sent" },
+      401: { description: "Invalid token" },
+      404: { description: "No active projector" },
+    },
+  }),
+  async (c) => {
+    const body = c.req.valid("json");
+    const token = c.req.param("token");
+
+    let payload: assessment.TokenPayload;
+    try {
+      payload = await assessment.verifyToken(token);
+    } catch {
+      return unauthorized(c, "Invalid or expired token");
+    }
+
+    const projector = projectorStore.get(payload.assessment_session_id);
+    if (!projector) {
+      return error(c, "No active projector for this session", 404);
+    }
+
+    const session = await db.query.assessmentSessions.findFirst({
+      where: eq(assessmentSessions.id, payload.assessment_session_id),
+    });
+
+    if (!session?.ellamaka_session_id) {
+      return error(c, "No active agent session", 404);
+    }
+
+    // Add student message to projector for immediate UI display
+    projector.addStudentMessage(body.message, body.message_id);
+
+    // Send to ellamaka for agent processing
+    await ellamakaClient.promptAsync(
+      session.ellamaka_session_id,
+      [{ type: "text", text: body.message }],
+    );
+
+    logger.info(
+      { session_id: session.id, ellamaka_session_id: session.ellamaka_session_id },
+      "Student chat message sent to agent",
+    );
 
     return success(c, { success: true });
   },

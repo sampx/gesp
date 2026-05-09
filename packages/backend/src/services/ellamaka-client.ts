@@ -10,9 +10,16 @@ export interface StreamEvent {
   type?: string; // "message.part.delta", "message.part.updated", etc.
   messageID?: string;
   partID?: string;
+  partType?: string;
   field?: string; // "text", "tool_call", etc.
+  tool?: string;
+  toolStatus?: string;
+  toolTitle?: string;
   delta?: string;
   text?: string;
+  role?: string; // "user" | "assistant" — from message.updated events
+  synthetic?: boolean;
+  ignored?: boolean;
   [key: string]: unknown;
 }
 
@@ -63,23 +70,38 @@ export class EllamakaClient {
   }
 
   /**
-   * Stream SSE events filtered by sessionId
-   * GET /event?directory={dir}
+   * Stream SSE events from /global/event, filtered by directory + sessionId
+   *
+   * Uses /global/event (NOT /event?directory=) because the instance-level
+   * /event route uses Bus.subscribeAll via runSync which creates an isolated
+   * Bus runtime with its own PubSub — events published by session processing
+   * never reach this subscriber.
+   *
+   * /global/event returns events wrapped as:
+   *   { directory, project?, workspace?, payload: { type, properties: { sessionID, ... } } }
+   *
+   * @param sessionId - ellamaka session ID to filter events
+   * @param signal - optional AbortSignal to cancel the stream (e.g., client disconnect)
    */
-  async *streamEvents(sessionId: string): AsyncGenerator<StreamEvent> {
-    const url = `${this.baseUrl}/event?directory=${encodeURIComponent(this.directory)}`;
+  async *streamEvents(sessionId: string, signal?: AbortSignal): AsyncGenerator<StreamEvent> {
+    const url = `${this.baseUrl}/global/event`;
+    const partInfoById = new Map<string, Pick<StreamEvent, "partType" | "tool" | "toolStatus" | "toolTitle" | "synthetic" | "ignored">>();
+    logger.debug({ ellamaka_url: url, session_id: sessionId, directory: this.directory }, "Connecting to ellamaka global event stream");
     const res = await fetch(url, {
       headers: { Accept: "text/event-stream" },
-      signal: AbortSignal.timeout(120_000), // 2min timeout, per RESEARCH §1.2
+      signal,
     });
 
     if (!res.ok || !res.body) {
-      throw new Error(`Failed to connect to ellamaka event stream: ${res.status}`);
+      throw new Error(`Failed to connect to ellamaka global event stream: ${res.status}`);
     }
+
+    logger.debug({ status: res.status, content_type: res.headers.get("content-type") }, "SSE response received");
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let lineCount = 0;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -89,19 +111,90 @@ export class EllamakaClient {
       buffer = lines.pop() || "";
 
       for (const line of lines) {
+        lineCount++;
+        if (lineCount <= 5 && line.trim()) {
+          logger.debug({ line, count: lineCount }, "SSE raw line");
+        }
         if (line.startsWith("data: ")) {
           try {
-            const event = JSON.parse(line.slice(6));
-            // Filter: only forward events for this session
-            if (event.sessionID === sessionId) {
-              yield event;
+            const wrapper = JSON.parse(line.slice(6));
+            // Skip events from other directories
+            if (wrapper.directory !== this.directory) continue;
+            const event = wrapper.payload;
+            if (!event) continue;
+            // Skip sync and heartbeat events
+            if (event.type === "sync" || event.type === "server.heartbeat" || event.type === "server.connected") continue;
+            const props = event.properties;
+            if (!props) continue;
+            // Filter by session
+            if (props.sessionID !== sessionId) continue;
+            if (event.type === "message.part.removed" && props.partID) {
+              partInfoById.delete(props.partID);
+              continue;
             }
+            const part = props.part as
+              | {
+                  id?: string;
+                  messageID?: string;
+                  type?: string;
+                  text?: string;
+                  synthetic?: boolean;
+                  ignored?: boolean;
+                  tool?: string;
+                  state?: { status?: string; title?: string };
+                }
+              | undefined;
+            if (part?.id) {
+              partInfoById.set(part.id, {
+                partType: part.type,
+                synthetic: part.synthetic,
+                ignored: part.ignored,
+                tool: part.tool,
+                toolStatus: part.state?.status,
+                toolTitle: part.state?.title,
+              });
+            }
+            const cached = props.partID ? partInfoById.get(props.partID) : undefined;
+            const partType = part?.type ?? cached?.partType;
+            // Delta events are noisy (100s/sec for reasoning) — demote to trace.
+            // Structured events (part.updated, message.updated, session.status) stay at debug.
+            if (event.type === "message.part.delta") {
+              logger.trace(
+                { event_type: event.type, event_field: props.field, event_part_type: partType, filter_session: sessionId },
+                "SSE delta",
+              );
+            } else {
+              logger.debug(
+                { event_type: event.type, event_field: props.field, event_part_type: partType, filter_session: sessionId },
+                "SSE event matched",
+              );
+            }
+            // Flatten to StreamEvent shape
+            // OpenCode message.updated uses properties.info, not properties.message.
+            const info = props.info as { id?: string; role?: string } | undefined;
+            yield {
+              sessionID: props.sessionID,
+              type: event.type,
+              messageID: props.messageID ?? part?.messageID ?? info?.id,
+              partID: props.partID ?? part?.id,
+              partType: part?.type ?? cached?.partType,
+              field: props.field,
+              tool: part?.tool ?? cached?.tool,
+              toolStatus: part?.state?.status ?? cached?.toolStatus,
+              toolTitle: part?.state?.title ?? cached?.toolTitle,
+              delta: props.delta,
+              text: props.text ?? part?.text,
+              role: info?.role,
+              synthetic: part?.synthetic ?? cached?.synthetic,
+              ignored: part?.ignored ?? cached?.ignored,
+            };
           } catch {
-            /* skip malformed events */
+            /* skip malformed lines */
           }
         }
       }
     }
+    logger.debug({ total_lines: lineCount }, "SSE stream ended");
   }
 
   /**

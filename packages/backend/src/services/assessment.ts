@@ -58,6 +58,7 @@ export interface ProgressData {
   current_level: number;
   total_answered: number;
   total_correct: number;
+  config_question_limit: number;
   knowledge_stats: Record<string, KnowledgeStat>;
   evaluation: string | null;
   status: string;
@@ -381,6 +382,7 @@ export async function getProgress(sessionId: string): Promise<ProgressData> {
     current_level: session.current_level,
     total_answered: session.total_answered ?? 0,
     total_correct: session.total_correct ?? 0,
+    config_question_limit: session.config_question_limit ?? DEFAULT_QUESTION_LIMIT,
     knowledge_stats: stats,
     evaluation: session.evaluation,
     status: session.status,

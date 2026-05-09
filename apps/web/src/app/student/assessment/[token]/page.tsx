@@ -12,7 +12,7 @@ import { ObjectiveQuestion } from "@/components/assessment/objective-question";
 import { CodingQuestion } from "@/components/assessment/coding-question";
 import { ChatPanel } from "@/components/assessment/chat-panel";
 import { ProgressBar } from "@/components/assessment/progress-bar";
-import { getNextQuestion, submitAnswer } from "@/lib/server-api";
+import { getNextQuestion, submitAnswer, getAssessmentProgress } from "@/lib/server-api";
 
 type State = "LOADING_QUESTION" | "ANSWERING" | "JUDGING" | "SCORING" | "FEEDBACK" | "DONE";
 
@@ -57,9 +57,14 @@ export default function AssessmentAnswerPage() {
   }, []);
 
   const loadNextQuestion = useCallback(async () => {
+    if (pollTimerRef.current) {
+      clearTimeout(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
     setState("LOADING_QUESTION");
     setAnswer("");
     setFeedback(null);
+    setError("");
     try {
       const res = await getNextQuestion(token);
       if (!mountedRef.current) return;
@@ -68,7 +73,11 @@ export default function AssessmentAnswerPage() {
         setProgress(prev => ({ ...prev, ...res.data?.progress }));
         setState("ANSWERING");
       } else if (res.data?.waiting) {
+        if (res.data.progress) setProgress(prev => ({ ...prev, ...res.data.progress }));
         pollTimerRef.current = setTimeout(loadNextQuestion, 2000);
+      } else {
+        setError(res.message || "加载题目失败");
+        setState("ANSWERING");
       }
     } catch {
       if (mountedRef.current) setError("加载题目失败");
@@ -77,29 +86,49 @@ export default function AssessmentAnswerPage() {
 
   useEffect(() => { loadNextQuestion(); }, [loadNextQuestion]);
 
+  // Fetch progress on mount for fast progress bar restoration
+  useEffect(() => {
+    getAssessmentProgress(token).then(res => {
+      if (res.success && mountedRef.current) {
+        setProgress(prev => ({ ...prev, ...res.data }));
+      }
+    }).catch(() => {});
+  }, [token]);
+
   const handleSubmit = async () => {
     if (!question || !answer) return;
+    if (pollTimerRef.current) {
+      clearTimeout(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+    setError("");
     setState("JUDGING");
     try {
       const res = await submitAnswer({ token, question_id: question.id, answer, time_spent_sec: 0 });
-      if (res.success) {
-        // Handle async scoring for coding questions
-        if (res.data.scoring) {
-          setState("SCORING");
-          return;
-        }
-        setFeedback(res.data);
-        setProgress(prev => ({
-          ...prev,
-          total_answered: prev.total_answered + 1,
-          total_correct: res.data.is_correct ? prev.total_correct + 1 : prev.total_correct,
-        }));
-        if (res.data.done) {
-          setDoneData({ final_level: res.data.final_level });
-          setState("DONE");
-        } else {
-          setState("FEEDBACK");
-        }
+      if (!res.success) {
+        setError(res.message || "提交失败，请重试");
+        setState("ANSWERING");
+        return;
+      }
+
+      // Handle async scoring for coding questions
+      if (res.data.scoring) {
+        setState("SCORING");
+        // Poll for next question while agent evaluates
+        pollTimerRef.current = setTimeout(loadNextQuestion, 2000);
+        return;
+      }
+      setFeedback(res.data);
+      setProgress(prev => ({
+        ...prev,
+        total_answered: prev.total_answered + 1,
+        total_correct: res.data.is_correct ? prev.total_correct + 1 : prev.total_correct,
+      }));
+      if (res.data.done) {
+        setDoneData({ final_level: res.data.final_level });
+        setState("DONE");
+      } else {
+        setState("FEEDBACK");
       }
     } catch {
       setError("提交失败，请重试");
