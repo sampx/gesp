@@ -41,7 +41,18 @@ export default function AssessmentAnswerPage() {
   const [question, setQuestion] = useState<QuestionData | null>(null);
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState<FeedbackData | null>(null);
-  const [progress, setProgress] = useState({ current_level: 1, total_answered: 0, total_correct: 0, config_question_limit: 30 });
+  const [progress, setProgress] = useState({
+    current_level: 1,
+    current_question_number: 0,
+    total_answered: 0,
+    total_correct: 0,
+    config_question_limit: 5,
+    remaining_questions: 5,
+    config_time_limit_min: 0,
+    remaining_time_sec: 0,
+    started_at: "",
+    done: false,
+  });
   const [error, setError] = useState("");
   const [doneData, setDoneData] = useState<{ final_level?: number } | null>(null);
 
@@ -70,7 +81,15 @@ export default function AssessmentAnswerPage() {
       if (!mountedRef.current) return;
       if (res.success && res.data?.id) {
         setQuestion(res.data);
-        setProgress(prev => ({ ...prev, ...res.data?.progress }));
+        // Update progress from backend payload (source of truth)
+        if (res.data?.progress) {
+          setProgress(prev => ({
+            ...prev,
+            ...res.data.progress,
+            // current_question_number = total_answered + 1 during answering
+            current_question_number: (res.data.progress?.total_answered ?? prev.total_answered) + 1,
+          }));
+        }
         setState("ANSWERING");
       } else if (res.data?.waiting) {
         if (res.data.progress) setProgress(prev => ({ ...prev, ...res.data.progress }));
@@ -90,10 +109,18 @@ export default function AssessmentAnswerPage() {
   useEffect(() => {
     getAssessmentProgress(token).then(res => {
       if (res.success && mountedRef.current) {
-        setProgress(prev => ({ ...prev, ...res.data }));
+        const data = res.data;
+        setProgress(prev => ({
+          ...prev,
+          ...data,
+          // If assessment is already done, redirect to report
+        }));
+        if (data?.done) {
+          router.replace(`/student/assessment/${token}/report`);
+        }
       }
     }).catch(() => {});
-  }, [token]);
+  }, [token, router]);
 
   const handleSubmit = async () => {
     if (!question || !answer) return;
@@ -119,11 +146,15 @@ export default function AssessmentAnswerPage() {
         return;
       }
       setFeedback(res.data);
-      setProgress(prev => ({
-        ...prev,
-        total_answered: prev.total_answered + 1,
-        total_correct: res.data.is_correct ? prev.total_correct + 1 : prev.total_correct,
-      }));
+      // Refresh progress from backend payload (no optimistic increment)
+      if (res.data?.progress) {
+        setProgress(prev => ({
+          ...prev,
+          ...res.data.progress,
+          // During FEEDBACK, keep showing the just-answered question number
+          current_question_number: prev.current_question_number,
+        }));
+      }
       if (res.data.done) {
         setDoneData({ final_level: res.data.final_level });
         setState("DONE");
@@ -157,9 +188,15 @@ export default function AssessmentAnswerPage() {
     <div className="space-y-4 py-6">
       <ProgressBar
         currentLevel={progress.current_level}
+        currentQuestionNumber={progress.current_question_number}
         totalAnswered={progress.total_answered}
         totalCorrect={progress.total_correct}
         questionLimit={progress.config_question_limit}
+        remainingQuestions={progress.remaining_questions}
+        configTimeLimitMin={progress.config_time_limit_min}
+        remainingTimeSec={progress.remaining_time_sec}
+        startedAt={progress.started_at}
+        state={state}
       />
 
       {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}

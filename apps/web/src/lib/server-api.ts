@@ -130,3 +130,15 @@ export async function resumeAssessment(token: string) {
   });
   return res.json();
 }
+
+export async function getAssessmentHistory() {
+  const res = await serverFetch("/api/assessment/sessions");
+  return res.json();
+}
+
+export async function deleteAssessmentSession(sessionId: string) {
+  const res = await serverFetch(`/api/assessment/sessions/${sessionId}`, {
+    method: "DELETE",
+  });
+  return res.json();
+}
