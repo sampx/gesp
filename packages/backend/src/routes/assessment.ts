@@ -48,15 +48,21 @@ async function verifyApiKey(c: Context, next: () => Promise<void>) {
 
 /**
  * Build system prompt for assessor agent.
+ * Per Task 1: inject config (question_limit, time_limit) and progress context.
  * Token is passed via first user message (not system prompt) for reliable delivery.
  */
 function buildSystemPrompt(
   user: { display_name: string },
   body: { course_id: string; start_level: number },
+  config?: { question_limit?: number; time_limit_min?: number },
 ): string {
+  const questionLimit = config?.question_limit ?? 5;
+  const timeLimitMin = config?.time_limit_min ?? 30;
+  
   return `学员: ${user.display_name}
 课程: ${body.course_id}
 起始级别: ${body.start_level}
+配置: 总题数 ${questionLimit} 题，时限 ${timeLimitMin} 分钟
 
 你是 GESP 测评顾问。严禁透露题目答案。`;
 }
@@ -262,6 +268,7 @@ const selectSchema = z.object({
 const evaluateSchema = z.object({
   token: z.string(),
   evaluation: z.string(),
+  final_level: z.number().int().min(1).max(8).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -333,7 +340,10 @@ app.post(
         .where(eq(assessmentSessions.id, session.id));
 
       // 4. Send async prompt — token in user message (not system prompt)
-      const systemPrompt = buildSystemPrompt(user, body);
+      const systemPrompt = buildSystemPrompt(user, body, {
+        question_limit: session.config_question_limit,
+        time_limit_min: session.config_time_limit_min,
+      });
       await ellamakaClient.promptAsync(ellamakaSessionId, [
         {
           type: "text",
@@ -459,16 +469,22 @@ app.post(
       // Unlock so frontend waits for agent to select next question
       assessment.unlockQuestion(payload.assessment_session_id);
 
-      // Notify ellamaka agent
+      // Notify ellamaka agent with progress context
       const session = await db.query.assessmentSessions.findFirst({
         where: eq(assessmentSessions.id, payload.assessment_session_id),
       });
       if (session?.ellamaka_session_id) {
+        const progress = await assessment.getProgress(payload.assessment_session_id);
+        const progressPct = Math.round((progress.total_answered / progress.config_question_limit) * 100);
         await ellamakaClient
           .promptAsync(session.ellamaka_session_id, [
             {
               type: "text",
-              text: `学员回答了题目 ${question.knowledge_point}(${question.question_type})，答案: "${body.answer}"，结果: ${correct ? "正确 ✓" : "错误 ✗"}。请在聊天中给学员简短反馈，然后获取候选并选择下一道题。`,
+              text: `学员回答了题目 ${question.knowledge_point}(${question.question_type})，答案: "${body.answer}"，结果: ${correct ? "正确 ✓" : "错误 ✗"}。
+
+进度: 已答 ${progress.total_answered}/${progress.config_question_limit} 题 (${progressPct}%)，正确 ${progress.total_correct} 题，剩余 ${progress.remaining_questions} 题，剩余时间 ${Math.floor(progress.remaining_time_sec / 60)} 分钟。
+
+请在聊天中给学员简短反馈，然后获取候选并选择下一道题。`,
             },
           ])
           .catch((err) =>
@@ -511,16 +527,27 @@ app.post(
       // Unlock so frontend waits for agent to select next question
       assessment.unlockQuestion(payload.assessment_session_id);
 
-      // Send to agent for evaluation
+      // Send to agent for evaluation with progress context
       const session = await db.query.assessmentSessions.findFirst({
         where: eq(assessmentSessions.id, payload.assessment_session_id),
       });
       if (session?.ellamaka_session_id) {
+        const progress = await assessment.getProgress(payload.assessment_session_id);
+        const progressPct = Math.round((progress.total_answered / progress.config_question_limit) * 100);
         await ellamakaClient
           .promptAsync(session.ellamaka_session_id, [
             {
               type: "text",
-              text: `[内部消息] 学员提交了编程题代码:\n题目: ${question.content.slice(0, 200)}...\n学员代码:\n\`\`\`cpp\n${body.answer}\n\`\`\`\n\n请评估这段代码并给出 0-10 评分和反馈。然后调用 update_evaluation 或继续选题。`,
+              text: `[内部消息] 学员提交了编程题代码:
+题目: ${question.content.slice(0, 200)}...
+学员代码:
+\`\`\`cpp
+${body.answer}
+\`\`\`
+
+进度: 已答 ${progress.total_answered}/${progress.config_question_limit} 题 (${progressPct}%)，正确 ${progress.total_correct} 题，剩余 ${progress.remaining_questions} 题，剩余时间 ${Math.floor(progress.remaining_time_sec / 60)} 分钟。
+
+请先调用 update_answer_score 为这道编程题评分（0-10），然后在聊天中给学员简短反馈。之后获取候选并选择下一道题，或判断是否结束测评。`,
             },
           ])
           .catch((err) =>
@@ -585,6 +612,11 @@ app.get(
 
     // Always include progress for state restoration on page refresh
     const progress = await assessment.getProgress(payload.assessment_session_id);
+
+    // Per Task 1: completed session returns done=true instead of another question
+    if (progress.done) {
+      return success(c, { done: true, progress });
+    }
 
     // Check if question is locked
     const lockedId = assessment.getLockedQuestionId(payload.assessment_session_id);
@@ -674,6 +706,7 @@ app.post(
     const systemPrompt = buildSystemPrompt(
       { display_name: "学员" },
       { course_id: session.course_id, start_level: session.current_level },
+      { question_limit: session.config_question_limit, time_limit_min: session.config_time_limit_min },
     );
 
     await ellamakaClient.promptAsync(es.id, [
@@ -930,7 +963,8 @@ app.post(
 
 /**
  * POST /evaluate — called by gesp-plugin (D-04, D-27)
- * Save agent evaluation + recompute knowledge_stats
+ * Save agent evaluation + mark session completed.
+ * Per Task 1: persist status='completed', final_level, completed_at, clear timers, return done=true.
  */
 app.post(
   "/evaluate",
@@ -960,9 +994,88 @@ app.post(
       return unauthorized(c, "Invalid token");
     }
 
+    // Get session to determine final_level
+    const session = await db.query.assessmentSessions.findFirst({
+      where: eq(assessmentSessions.id, payload.assessment_session_id),
+    });
+
+    if (!session) {
+      return error(c, "Session not found", 404);
+    }
+
+    // Use provided final_level or current_level as fallback
+    const finalLevel = body.final_level ?? session.current_level;
+
+    // Save evaluation text
     await assessment.updateEvaluation(payload.assessment_session_id, body.evaluation);
 
-    return success(c, { success: true });
+    // Mark session completed
+    await assessment.completeSession(payload.assessment_session_id, finalLevel);
+
+    // Clear any pending auto-select timer
+    clearAutoSelectTimer(payload.assessment_session_id);
+
+    // Unlock question to prevent ghost questions
+    assessment.unlockQuestion(payload.assessment_session_id);
+
+    logger.info(
+      { session_id: payload.assessment_session_id, final_level: finalLevel },
+      "Assessment evaluation completed",
+    );
+
+    return success(c, { success: true, done: true, final_level: finalLevel });
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Internal answer scoring endpoint (API key auth)
+// ---------------------------------------------------------------------------
+
+const answerScoreSchema = z.object({
+  token: z.string(),
+  question_id: z.string(),
+  score: z.number().min(0).max(10),
+  feedback: z.string(),
+});
+
+/**
+ * POST /answer-score — called by gesp-plugin update_answer_score tool
+ * Persist coding answer score, feedback, and derived is_correct.
+ */
+app.post(
+  "/answer-score",
+  verifyApiKey,
+  zValidator("json", answerScoreSchema),
+  describeRoute({
+    summary: "Score a coding answer",
+    responses: {
+      200: { description: "Score saved" },
+      401: { description: "Invalid token or API key" },
+    },
+  }),
+  async (c) => {
+    const body = c.req.valid("json");
+
+    let payload: assessment.TokenPayload;
+    try {
+      payload = await assessment.verifyToken(body.token);
+    } catch {
+      return unauthorized(c, "Invalid token");
+    }
+
+    try {
+      await assessment.updateAnswerScore({
+        sessionId: payload.assessment_session_id,
+        questionId: body.question_id,
+        score: body.score,
+        feedback: body.feedback,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      return error(c, msg, 404);
+    }
+
+    return success(c, { success: true, is_correct: body.score >= 6 });
   },
 );
 

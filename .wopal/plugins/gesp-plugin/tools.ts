@@ -77,11 +77,53 @@ export const update_evaluation = tool({
   args: {
     token: tool.schema.string().describe("评估令牌"),
     evaluation: tool.schema.string().describe("Markdown 格式的综合评价文本"),
+    final_level: tool.schema.number().int().min(1).max(8).optional().describe("最终定级结果（可选，默认使用当前级别）"),
   },
   execute: async (args) => {
-    debug(`update_evaluation called: token=${args.token?.slice(0, 8)}... evaluation=${args.evaluation?.slice(0, 100)}...`);
+    debug(`update_evaluation called: token=${args.token?.slice(0, 8)}... evaluation=${args.evaluation?.slice(0, 100)}... final_level=${args.final_level ?? "(not set)"}`);
     const result = await gespFetch("/api/assessment/evaluate", args);
     debug(`update_evaluation done: ${JSON.stringify(result).slice(0, 300)}`);
+    return JSON.stringify(result);
+  },
+});
+
+/** Task 1: Tool 4 — Query assessment progress */
+export const query_progress = tool({
+  description: "查询当前测评进度。返回总题数、已答题数、正确数、剩余题数、剩余时长、是否已完成等信息。",
+  args: {
+    token: tool.schema.string().describe("评估令牌"),
+  },
+  execute: async (args) => {
+    debug(`query_progress called: token=${args.token?.slice(0, 8)}...`);
+    const url = `${GESP_API_URL}/api/assessment/progress`;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${args.token}`,
+      },
+    });
+    const text = await res.text();
+    debug(`query_progress ← status=${res.status} body=${text.slice(0, 500)}`);
+    if (!res.ok) {
+      warn(`query_progress error ${res.status}: ${text}`);
+      throw new Error(`GESP API error ${res.status}: ${text}`);
+    }
+    return text;
+  },
+});
+
+/** Task 2: Tool 5 — Update coding answer score */
+export const update_answer_score = tool({
+  description: "为编程题评分并写入反馈。提交 0-10 分数和反馈文本，系统自动判定是否正确（≥6分）。必须在给出最终评价前为每道编程题调用。",
+  args: {
+    token: tool.schema.string().describe("评估令牌"),
+    question_id: tool.schema.string().describe("编程题 ID"),
+    score: tool.schema.number().min(0).max(10).describe("评分（0-10，≥6 为正确）"),
+    feedback: tool.schema.string().describe("反馈文本，简短点评代码质量"),
+  },
+  execute: async (args) => {
+    debug(`update_answer_score called: token=${args.token?.slice(0, 8)}... question_id=${args.question_id} score=${args.score}`);
+    const result = await gespFetch("/api/assessment/answer-score", args);
+    debug(`update_answer_score done: ${JSON.stringify(result).slice(0, 300)}`);
     return JSON.stringify(result);
   },
 });
