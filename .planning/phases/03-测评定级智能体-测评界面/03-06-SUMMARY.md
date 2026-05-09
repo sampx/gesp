@@ -96,3 +96,14 @@ None - no external service configuration required.
 ---
 *Phase: 03-测评定级智能体-测评界面*
 *Completed: 2026-05-09*
+
+## Self-Check: PASSED
+
+| Check | Result |
+|-------|--------|
+| `packages/backend/src/__tests__/assessment-question-bank.test.ts` exists | ✅ FOUND |
+| `packages/backend/src/seed/assessment-questions.seed.ts` modified | ✅ FOUND |
+| `03-06-SUMMARY.md` created | ✅ FOUND |
+| Commit `21ba43a` (test) | ✅ FOUND |
+| Commit `f25e01f` (feat) | ✅ FOUND |
+| Commit `c4f23df` (docs) | ✅ FOUND |
