@@ -3,15 +3,15 @@ wsf_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-06-PLAN.md
-last_updated: "2026-05-09T10:40:24.645Z"
+stopped_at: Completed 03-07-PLAN.md
+last_updated: "2026-05-09T10:55:11.215Z"
 last_activity: 2026-05-09
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 32
-  completed_plans: 28
-  percent: 88
+  completed_plans: 29
+  percent: 91
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-22)
 
 Phase: 03 (测评定级智能体-测评界面) — EXECUTING
 Phase 2.1: COMPLETED (all 7 plans done)
-Plan: 2 of 10
+Plan: 3 of 10
 **Status:** Ready to execute
 **Last Activity:** 2026-05-09
 
@@ -36,7 +36,7 @@ Plan: 2 of 10
 - Smoke test reveals design flaws (JWT token length, agent prompt visibility) and frontend polling loop
 - 6 requirements covered: ASSESS-01~05 + UI-ASSESS-01
 
-**Progress:** [█████████░] 88%
+**Progress:** [█████████░] 91%
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Plan: 2 of 10
 | Phase 03 P03 | 7.7 | 2 tasks | 2 files |
 | Phase 03-测评定级智能体-测评界面 P04 | 3min | 2 tasks | 2 files |
 | Phase 03 P06 | 7 | 2 tasks | 2 files |
+| Phase 03 P07 | 586 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,8 @@ Recent decisions affecting current work:
 - [Phase 03]: TDD approach: write coverage test first (RED), then expand seed data (GREEN)
 - [Phase 03]: Export ASSESSMENT_QUESTIONS constant for deterministic test validation without DB
 - [Phase 03]: L5-L8 topic strategy: pointer/dynamic memory (L5), STL (L6), binary search/OOP (L7), tree/graph/DP (L8)
+- [Phase 03]: Score threshold 6 for coding answers (updateAnswerScore derives is_correct=1 when score >= 6)
+- [Phase 03]: SQLite SUM naturally ignores NULL values for knowledge-stats (false negatives eliminated without explicit filtering)
 
 ### Todos
 
@@ -136,7 +139,7 @@ None yet.
 
 ## Session Continuity
 
-**Last Session:** 2026-05-09T10:40:24.640Z
-**Stopped At:** Completed 03-06-PLAN.md
+**Last Session:** 2026-05-09T10:55:11.209Z
+**Stopped At:** Completed 03-07-PLAN.md
 **Resume File:** None
 **Next Action:** /wsf-verify-work 03 — run UAT verification, record gaps (JWT token redesign, agent prompt fix, polling loop fix)

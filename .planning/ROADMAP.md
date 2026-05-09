@@ -132,7 +132,7 @@ Plans:
 - [x] 03-04-PLAN.md — Assessment Questions Seed（16 道 C++ 1-4 级题目，SQLite + LanceDB）
 - [x] 03-05-PLAN.md — Frontend Assessment Pages（起测页 + 答题页 + 报告页 + 6 components）
 - [x] 03-06-PLAN.md — Gap: 扩展 1-8 级题库覆盖与 round-safe seed 验证
-- [ ] 03-07-PLAN.md — Gap: 智能体进度感知、评分回写、completed 收口与日志降噪
+- [x] 03-07-PLAN.md — Gap: 智能体进度感知、评分回写、completed 收口与日志降噪
 - [ ] 03-08-PLAN.md — Gap: 会话历史/删除 API + question_ready SSE 契约
 - [ ] 03-09-PLAN.md — Gap: 起测页历次测评列表、继续测评与删除操作
 - [ ] 03-10-PLAN.md — Gap: 答题页进度修正、header agent logo 与 ready-aware 下一题体验
