@@ -175,17 +175,19 @@ app.route("/api/xxx", xxxRoutes);
 
 ### 日志库
 
-使用 [pino](https://github.com/pinojs/pino) — Bun/Node.js 生态最快的结构化日志库。
+使用自定义纯文本 logger（`packages/backend/src/utils/logger.ts`），零依赖，无需 pino/pino-pretty。
+
+- **输出**：控制台 + 文件双写，格式一致
+- **时间**：北京时间（`Asia/Shanghai`），格式 `yyyy/MM/dd HH:mm:ss`
+- **文件路径**：`./logs/gesp.log`（可配 `LOG_DIR` / `LOG_FILE` 环境变量）
+- **级别控制**：`LOG_LEVEL` 环境变量（默认 `info`，调试用 `debug`）
 
 ```typescript
-import pino from "pino";
+import { logger } from "../utils/logger";
 
-const logger = pino({
-  level: process.env.LOG_LEVEL ?? "info",
-  transport: process.env.NODE_ENV !== "production"
-    ? { target: "pino-pretty", options: { colorize: true } }
-    : undefined,
-});
+// ✅ 正确
+logger.info("Schema push completed");
+logger.error({ user_id, err: error }, "Login failed");
 ```
 
 ### 日志级别（严格按语义使用）
@@ -193,7 +195,7 @@ const logger = pino({
 | 级别 | 用途 | 示例 |
 |------|------|------|
 | `trace` | 极细粒度跟踪，生产环境禁用 | 进入函数、循环迭代 |
-| `debug` | 调试信息，生产环境通常禁用 | 缓存命中、SQL 查询详情 |
+| `debug` | 调试信息，生产环境通常禁用 | SSE 事件类型、SQL 查询详情 |
 | `info` | **主要生产级别**，关键业务事件 | 用户注册、登录成功、订单创建 |
 | `warn` | 可恢复的异常，需关注但不中断 | 频率接近阈值、降级处理 |
 | `error` | 操作失败，需人工介入 | 登录失败、数据库写入失败 |
@@ -201,17 +203,13 @@ const logger = pino({
 
 ### 日志格式
 
-**结构化 JSON 输出到 stdout**（12-Factor App 原则）。每条日志包含标准字段：
+**纯文本输出**（非 JSON），格式：`时间 [级别] key=val ... 消息描述`
 
-```json
-{
-  "level": 30,
-  "time": 1745428800000,
-  "msg": "User registered",
-  "user_id": "abc123",
-  "username": "alice",
-  "role": 1
-}
+```
+2026/05/09 08:41:37 [INFO] token_prefix=7yoZ Assessment token generated
+2026/05/09 08:41:58 [WARN] session_id=e498 session timed out
+2026/05/09 08:42:01 [ERROR] err=Connection refused Login failed
+2026/05/09 08:42:05 [DEBUG] event_type=message.part.delta event_field=tool SSE event received
 ```
 
 **必须使用 `logger` 方法**，禁止 `console.log`：
@@ -223,7 +221,7 @@ console.error("Login failed", error);
 
 // ✅ 正确
 logger.info("Schema push completed");
-logger.error({ user_id, reason }, "Login failed");
+logger.error({ user_id, err: error }, "Login failed");
 ```
 
 ### 日志编写规则
@@ -248,7 +246,7 @@ logger.error({ user_id, reason }, "Login failed");
 
 4. **错误日志必须携带 Error 对象**
    ```typescript
-   // ✅ pino 自动序列化 stack
+   // ✅ Error 对象记录 message 和 stack
    logger.error({ err: error, user_id }, "Database query failed");
    ```
 
@@ -311,8 +309,10 @@ export const requestLogger: MiddlewareHandler = async (c, next) => {
 
 | 环境 | 最低级别 | 格式 | 额外行为 |
 |------|---------|------|---------|
-| development | `debug` | pretty-print（彩色） | 显示完整 stack trace |
-| production | `info` | JSON | 仅 error 级别输出 stack trace |
+| development | `debug` | 纯文本（北京时间） | 所有级别输出 |
+| production | `info` | 纯文本（北京时间） | 仅 info 及以上 |
+
+> 控制台和文件格式完全一致，无需不同环境切换输出格式。
 
 ---
 

@@ -6,8 +6,6 @@
 
 **架构特点：** Agent 引擎运行在 ellamaka 项目，gesp backend 作为业务层负责知识库查询、提示词组织、以及代理 ellamaka SDK 调用。
 
-**Phase 2 架构调整：** 学员端和管理端合并为统一前端（NextJS 15 + shadcn/ui），通过路由和风格区分角色。
-
 ## Core Value
 
 **AI 全流程自动化** — 测评定级、教学讲解、练习判题全部由 AI 智能体驱动，学员获得个性化学习路径，系统越用越智能。
@@ -89,7 +87,7 @@
 | 项目 | 参考内容 |
 |------|----------|
 | ellamaka | Agent 引擎、Plugin 系统、SDK 设计、会话管理 |
-| new-api | 管理端界面（React + Vite + Semi Design）、用户管理、数据仪表板 |
+| new-api | 用户管理、数据仪表板 |
 
 ### 知识资源
 
@@ -132,10 +130,10 @@ packages/
 ```
 
 **ellamaka 项目新增：**
-- `.opencode/agents/assessor.md` — 测评定级智能体
-- `.opencode/agents/teacher.md` — 教学讲解智能体
-- `.opencode/agents/grader.md` — 练习判题智能体
-- `gesp-plugin/` — 嵌入式 plugin（封装 gesp API）
+- `.wopal/agents/assessor.md` — 测评定级智能体
+- `.wopal/agents/teacher.md` — 教学讲解智能体
+- `.wopal/agents/grader.md` — 练习判题智能体
+- `.wopal/plugins/gesp-plugin/` — 嵌入式 plugin（封装 gesp API）
 
 ## Key Decisions
 
