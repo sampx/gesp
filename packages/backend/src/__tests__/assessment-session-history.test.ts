@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { db } from "../db";
 import { assessmentSessions, assessmentAnswers, assessmentQuestions } from "../db/schema/assessment";
 import { users } from "../db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, like } from "drizzle-orm";
 import * as assessment from "../services/assessment";
 
 describe("Session History Service", () => {
@@ -21,27 +21,43 @@ describe("Session History Service", () => {
   let sessionId2: string;
   let questionId: string;
 
-  beforeEach(async () => {
-    // Clean up tables
-    await db.delete(assessmentAnswers);
-    await db.delete(assessmentSessions);
-    await db.delete(assessmentQuestions);
-    await db.delete(users);
+  const TEST_USER_PREFIX = "test-session-history-";
 
-    // Create test students
+  beforeEach(async () => {
+    // Clean up only test data (not production data!)
+    const testUsers = await db.query.users.findMany({
+      where: like(users.username, `${TEST_USER_PREFIX}%`),
+    });
+
+    for (const user of testUsers) {
+      const testSessions = await db.query.assessmentSessions.findMany({
+        where: eq(assessmentSessions.student_id, user.id),
+      });
+
+      for (const session of testSessions) {
+        await db.delete(assessmentAnswers).where(eq(assessmentAnswers.session_id, session.id));
+        await db.delete(assessmentSessions).where(eq(assessmentSessions.id, session.id));
+      }
+    }
+
+    // Delete test users and test questions
+    await db.delete(users).where(like(users.username, `${TEST_USER_PREFIX}%`));
+    await db.delete(assessmentQuestions).where(like(assessmentQuestions.knowledge_point, "test-session-history%"));
+
+    // Create test students with unique prefix
     const [student1] = await db.insert(users).values({
-      username: "student-history-1",
+      username: TEST_USER_PREFIX + "1",
       password_hash: "test-hash",
-      display_name: "History Student 1",
+      display_name: "Test History Student 1",
       role: 1,
       status: 1,
     }).returning();
     studentId1 = student1.id;
 
     const [student2] = await db.insert(users).values({
-      username: "student-history-2",
+      username: TEST_USER_PREFIX + "2",
       password_hash: "test-hash",
-      display_name: "History Student 2",
+      display_name: "Test History Student 2",
       role: 1,
       status: 1,
     }).returning();
@@ -51,7 +67,7 @@ describe("Session History Service", () => {
     const [question] = await db.insert(assessmentQuestions).values({
       course_id: "cpp",
       level: 1,
-      knowledge_point: "input-output",
+      knowledge_point: "test-session-history",
       question_type: "objective",
       difficulty: 1,
       content: "Test question content",
@@ -66,7 +82,7 @@ describe("Session History Service", () => {
     const [session1] = await db.insert(assessmentSessions).values({
       student_id: studentId1,
       course_id: "cpp",
-      token: "token-history-1",
+      token: "test-session-history-1",
       status: "completed",
       start_level: 1,
       current_level: 2,
@@ -89,7 +105,7 @@ describe("Session History Service", () => {
       is_correct: 1,
       course_id: "cpp",
       level: 1,
-      knowledge_point: "input-output",
+      knowledge_point: "test-session-history",
       question_type: "objective",
     });
 
@@ -97,7 +113,7 @@ describe("Session History Service", () => {
     const [session2] = await db.insert(assessmentSessions).values({
       student_id: studentId1,
       course_id: "cpp",
-      token: "token-history-2",
+      token: "test-session-history-2",
       status: "in_progress",
       start_level: 1,
       current_level: 1,
@@ -122,7 +138,7 @@ describe("Session History Service", () => {
 
       // All required fields present
       const firstSession = sessions[0];
-      expect(firstSession.token).toBe("token-history-2");
+      expect(firstSession.token).toBe("test-session-history-2");
       expect(firstSession.status).toBe("in_progress");
       expect(firstSession.start_level).toBe(1);
       expect(firstSession.current_level).toBe(1);

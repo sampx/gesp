@@ -5,5 +5,10 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["src/**/*.test.ts"],
+    env: {
+      DATABASE_URL: "./data/test.db", // Use separate test database
+      NODE_ENV: "test",
+    },
+    setupFiles: ["./src/__tests__/setup.ts"],
   },
 });
