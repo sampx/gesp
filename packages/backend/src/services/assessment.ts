@@ -59,9 +59,15 @@ export interface ProgressData {
   total_answered: number;
   total_correct: number;
   config_question_limit: number;
+  config_time_limit_min: number;
+  started_at: string;
+  elapsed_sec: number;
+  remaining_questions: number;
+  remaining_time_sec: number;
   knowledge_stats: Record<string, KnowledgeStat>;
   evaluation: string | null;
   status: string;
+  done: boolean;
 }
 
 export interface AssessmentSession {
@@ -336,6 +342,8 @@ export function unlockQuestion(sessionId: string): void {
 /**
  * Compute knowledge stats from assessment_answers aggregation.
  * Per D-27: GROUP BY knowledge_point, COUNT total, SUM correct.
+ * Per Task 2: exclude is_correct=null rows from correctness aggregation.
+ * SQLite SUM ignores NULL values naturally, so correct count only reflects scored rows.
  */
 export async function computeKnowledgeStats(
   sessionId: string,
@@ -345,6 +353,8 @@ export async function computeKnowledgeStats(
     .select({
       knowledge_point: assessmentAnswers.knowledge_point,
       total: count(),
+      // SQLite SUM ignores NULL values — pending coding answers (is_correct=null)
+      // are excluded from the correct count, preventing false negatives
       correct: sum(assessmentAnswers.is_correct),
     })
     .from(assessmentAnswers)
@@ -366,6 +376,7 @@ export async function computeKnowledgeStats(
 
 /**
  * Get current progress data for a session.
+ * Returns time tracking, remaining counts, and completion status.
  */
 export async function getProgress(sessionId: string): Promise<ProgressData> {
   const session = await db.query.assessmentSessions.findFirst({
@@ -377,15 +388,31 @@ export async function getProgress(sessionId: string): Promise<ProgressData> {
   }
 
   const stats = session.knowledge_stats ?? await computeKnowledgeStats(sessionId);
+  const configQuestionLimit = session.config_question_limit ?? DEFAULT_QUESTION_LIMIT;
+  const configTimeLimitMin = session.config_time_limit_min ?? DEFAULT_TIME_LIMIT_MIN;
+  const startedAt = new Date(session.started_at);
+  const elapsedMs = Date.now() - startedAt.getTime();
+  const elapsedSec = Math.floor(elapsedMs / 1000);
+  const totalSeconds = configTimeLimitMin * 60;
+  const remainingTimeSec = Math.max(0, totalSeconds - elapsedSec);
+  const totalAnswered = session.total_answered ?? 0;
+  const remainingQuestions = Math.max(0, configQuestionLimit - totalAnswered);
+  const done = session.status === "completed";
 
   return {
     current_level: session.current_level,
-    total_answered: session.total_answered ?? 0,
+    total_answered: totalAnswered,
     total_correct: session.total_correct ?? 0,
-    config_question_limit: session.config_question_limit ?? DEFAULT_QUESTION_LIMIT,
+    config_question_limit: configQuestionLimit,
+    config_time_limit_min: configTimeLimitMin,
+    started_at: startedAt.toISOString(),
+    elapsed_sec: elapsedSec,
+    remaining_questions: remainingQuestions,
+    remaining_time_sec: remainingTimeSec,
     knowledge_stats: stats,
     evaluation: session.evaluation,
     status: session.status,
+    done,
   };
 }
 
@@ -490,6 +517,46 @@ export async function completeSession(
     .where(eq(assessmentSessions.id, sessionId));
 
   logger.info({ session_id: sessionId, final_level: finalLevel }, "Session completed");
+}
+
+/**
+ * Update score and feedback for a coding answer.
+ * Per Task 2: derive is_correct from score threshold (score >= 6 → correct).
+ */
+export async function updateAnswerScore(params: {
+  sessionId: string;
+  questionId: string;
+  score: number;
+  feedback: string;
+}): Promise<void> {
+  // Find the answer row
+  const answer = await db.query.assessmentAnswers.findFirst({
+    where: and(
+      eq(assessmentAnswers.session_id, params.sessionId),
+      eq(assessmentAnswers.question_id, params.questionId),
+    ),
+  });
+
+  if (!answer) {
+    throw new Error("Answer row not found for this session/question");
+  }
+
+  // Derive is_correct from score threshold (score >= 6 → correct)
+  const isCorrect = params.score >= 6 ? 1 : 0;
+
+  await db
+    .update(assessmentAnswers)
+    .set({
+      score: params.score,
+      feedback: params.feedback,
+      is_correct: isCorrect,
+    })
+    .where(eq(assessmentAnswers.id, answer.id));
+
+  logger.info(
+    { session_id: params.sessionId, question_id: params.questionId, score: params.score, is_correct: isCorrect },
+    "Coding answer scored",
+  );
 }
 
 /**
