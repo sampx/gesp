@@ -32,7 +32,9 @@ export interface ChatSnapshot {
 export type NormalizedEvent =
   | { type: "status"; status: string | null }
   | { type: "message_delta"; message_id: string; text: string }
-  | { type: "student_echo"; message_id: string; text: string };
+  | { type: "student_echo"; message_id: string; text: string }
+  | { type: "question_ready" }
+  | { type: "assessment_done"; final_level?: number };
 
 type EventListener = (event: NormalizedEvent) => void;
 
@@ -141,6 +143,24 @@ export class ChatProjector {
     const msgId = id ?? `student-${Date.now()}`;
     this.messages.push({ id: msgId, role: "student", text });
     this.emit({ type: "student_echo", message_id: msgId, text });
+  }
+
+  /** Emit question_ready system event (Task 2) */
+  emitQuestionReady(): void {
+    this.emit({ type: "question_ready" });
+    logger.debug(
+      { assessment_session_id: this.assessmentSessionId },
+      "question_ready event emitted",
+    );
+  }
+
+  /** Emit assessment_done system event (Task 2) */
+  emitAssessmentDone(finalLevel?: number): void {
+    this.emit({ type: "assessment_done", final_level: finalLevel });
+    logger.debug(
+      { assessment_session_id: this.assessmentSessionId, final_level: finalLevel },
+      "assessment_done event emitted",
+    );
   }
 
   // ----- Private: event consumption -----
@@ -314,6 +334,22 @@ export class ChatProjectorStore {
     if (projector) {
       projector.stop();
       this.projectors.delete(assessmentSessionId);
+    }
+  }
+
+  /** Emit question_ready for a session's projector (Task 2) */
+  emitQuestionReady(assessmentSessionId: string): void {
+    const projector = this.projectors.get(assessmentSessionId);
+    if (projector) {
+      projector.emitQuestionReady();
+    }
+  }
+
+  /** Emit assessment_done for a session's projector (Task 2) */
+  emitAssessmentDone(assessmentSessionId: string, finalLevel?: number): void {
+    const projector = this.projectors.get(assessmentSessionId);
+    if (projector) {
+      projector.emitAssessmentDone(finalLevel);
     }
   }
 }

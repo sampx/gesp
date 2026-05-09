@@ -208,19 +208,22 @@ async function getSessionHistory(sessionId: string): Promise<string> {
 const autoSelectTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 /**
- * Start 30s auto-select timer — if agent doesn't call /select within 30s,
- * backend auto-locks the first candidate as fallback (per D-13)
+ * Start 10s auto-select timer — if agent doesn't call /select within 10s,
+ * backend auto-locks the first candidate as fallback (per D-13).
+ * Per Task 2: restored from 30s to 10s.
  */
 function startAutoSelectTimer(sessionId: string, fallbackQuestionId: string) {
   clearAutoSelectTimer(sessionId);
   const timer = setTimeout(async () => {
     logger.warn(
       { session_id: sessionId, question_id: fallbackQuestionId },
-      "Agent did not select within 30s, auto-selecting first candidate (D-13 fallback)",
+      "Agent did not select within 10s, auto-selecting first candidate (D-13 fallback)",
     );
     await assessment.lockQuestion(sessionId, fallbackQuestionId);
+    // Per Task 2: auto-select emits question_ready same as manual selection
+    projectorStore.emitQuestionReady(sessionId);
     autoSelectTimers.delete(sessionId);
-  }, 30_000); // D-13: 30s fallback
+  }, 10_000); // D-13: 10s fallback (restored from 30s)
   autoSelectTimers.set(sessionId, timer);
 }
 
@@ -437,8 +440,8 @@ app.post(
       // Assessment can still work in offline mode
     }
 
-    // 5. Wait for first question (35s timeout to match auto-select)
-    const firstQuestion = await waitForFirstQuestion(session.id, 35000);
+    // 5. Wait for first question (15s = 10s fallback + 5s buffer, per Task 2)
+    const firstQuestion = await waitForFirstQuestion(session.id, 15000);
     if (firstQuestion) {
       return success(c, { token: session.token, first_question: formatQuestion(firstQuestion) });
     }
@@ -574,6 +577,8 @@ app.post(
       // Persist completion state if done
       if (roundResult.done && roundResult.final_level) {
         await assessment.completeSession(payload.assessment_session_id, roundResult.final_level);
+        // Per Task 2: emit assessment_done for round convergence path
+        projectorStore.emitAssessmentDone(payload.assessment_session_id, roundResult.final_level);
       }
 
       return success(c, {
@@ -998,7 +1003,8 @@ app.post(
 
 /**
  * POST /select — called by gesp-plugin (D-13)
- * Lock a question as next, clear auto-select timer
+ * Lock a question as next, clear auto-select timer.
+ * Per Task 2: emit question_ready event after locking.
  */
 app.post(
   "/select",
@@ -1033,6 +1039,9 @@ app.post(
     // D-13: Agent made selection — clear auto-select timer
     clearAutoSelectTimer(payload.assessment_session_id);
 
+    // Per Task 2: emit question_ready event (manual selection path)
+    projectorStore.emitQuestionReady(payload.assessment_session_id);
+
     return success(c, { success: true });
   },
 );
@@ -1041,6 +1050,7 @@ app.post(
  * POST /evaluate — called by gesp-plugin (D-04, D-27)
  * Save agent evaluation + mark session completed.
  * Per Task 1: persist status='completed', final_level, completed_at, clear timers, return done=true.
+ * Per Task 2: emit assessment_done event.
  */
 app.post(
   "/evaluate",
@@ -1093,6 +1103,9 @@ app.post(
 
     // Unlock question to prevent ghost questions
     assessment.unlockQuestion(payload.assessment_session_id);
+
+    // Per Task 2: emit assessment_done event
+    projectorStore.emitAssessmentDone(payload.assessment_session_id, finalLevel);
 
     logger.info(
       { session_id: payload.assessment_session_id, final_level: finalLevel },
