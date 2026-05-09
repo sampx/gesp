@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, X, Send, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Input } from "@/components/ui/input";
+import { useAssessmentChat } from "@/components/assessment/chat-panel-context";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -68,15 +68,17 @@ async function sendChatMessage(token: string, text: string, messageId: string): 
 // ---------------------------------------------------------------------------
 
 export function ChatPanel({ token }: ChatPanelProps) {
-  const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [statusText, setStatusText] = useState<string>("");
-  const [unread, setUnread] = useState(0);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const openRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Use shared context for open/unread state (controlled by navbar toggle)
+  const chat = useAssessmentChat();
+  const open = chat.open;
 
   useEffect(() => {
     openRef.current = open;
@@ -143,7 +145,7 @@ export function ChatPanel({ token }: ChatPanelProps) {
                 // New message
                 return [...prev, { id: message_id, role: "assistant", text }];
               });
-            if (!openRef.current) setUnread((u) => u + 1);
+            if (!openRef.current) chat.incrementUnread();
             return;
           }
 
@@ -195,29 +197,12 @@ export function ChatPanel({ token }: ChatPanelProps) {
 
   return (
     <>
-      {/* Floating toggle button — bottom-left */}
-      <Button
-        size="icon"
-        className="fixed bottom-6 left-6 z-50 h-12 w-12 rounded-full shadow-lg"
-        onClick={() => {
-          setOpen(!open);
-          setUnread(0);
-        }}
-      >
-        {open ? <X className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
-      </Button>
-      {unread > 0 && !open && (
-        <Badge className="fixed bottom-16 left-5 z-50 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-          {unread}
-        </Badge>
-      )}
-
       {/* Chat panel overlay — right side */}
       {open && (
         <div className="fixed right-0 top-0 bottom-0 w-full sm:w-[440px] bg-background border-l z-40 flex min-h-0 flex-col shadow-xl">
           <div className="h-14 flex items-center justify-between px-4 border-b shrink-0">
             <span className="font-semibold text-sm">AI 测评顾问</span>
-            <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
+            <Button variant="ghost" size="icon" onClick={() => chat.setOpen(false)}>
               <X className="h-4 w-4" />
             </Button>
           </div>

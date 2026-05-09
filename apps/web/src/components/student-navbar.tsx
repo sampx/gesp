@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ChevronDown, LogOut, Settings } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ChevronDown, LogOut, Settings, Bot } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getCurrentUser, logout as logoutAction } from "@/lib/server-api";
+import { useAssessmentChat } from "@/components/assessment/chat-panel-context";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +37,9 @@ interface UserInfo {
 export function StudentNavbar() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const pathname = usePathname();
+  const isAssessment = pathname.startsWith("/student/assessment");
+  const chat = useAssessmentChat();
 
   useEffect(() => {
     getCurrentUser()
@@ -52,6 +59,29 @@ export function StudentNavbar() {
   return (
     <header className="h-14 flex items-center justify-between px-4 border-b bg-card sticky top-0 z-50">
       <span className="font-semibold text-base">GESP 智能学习</span>
+
+      <div className="flex items-center gap-1">
+        {/* Assessment chat toggle — only on assessment routes */}
+        {isAssessment && (
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                chat.setOpen(!chat.open);
+                chat.clearUnread();
+              }}
+            >
+              <Bot className="h-4 w-4" />
+            </Button>
+            {chat.unread > 0 && !chat.open && (
+              <Badge className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px]">
+                {chat.unread}
+              </Badge>
+            )}
+          </div>
+        )}
 
       {user && (
         <DropdownMenu>
@@ -82,6 +112,7 @@ export function StudentNavbar() {
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+      </div>
 
       <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
         <AlertDialogContent>
