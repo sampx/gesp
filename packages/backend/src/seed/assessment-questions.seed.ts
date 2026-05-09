@@ -94,6 +94,21 @@ export const ASSESSMENT_QUESTIONS: SeedQuestion[] = [
     status: "active",
     created_by: "manual",
   },
+  {
+    course_id: "cpp",
+    level: 1,
+    knowledge_point: "运算符与表达式",
+    question_type: "coding",
+    difficulty: 2,
+    content:
+      "编写程序，输入一个整数n，输出n的绝对值（如果n为负数，输出-n；否则输出n）。不允许使用abs函数。\n\n示例：\n输入：-5\n输出：5",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint main() {\n  int n;\n  cin >> n;\n  if (n < 0) cout << -n;\n  else cout << n;\n  return 0;\n}",
+    explanation:
+      "使用条件判断处理负数情况：如果n<0，输出-n（负负得正）；否则直接输出n。",
+    status: "active",
+    created_by: "manual",
+  },
   // ===== LEVEL 2: 条件判断与循环 =====
   {
     course_id: "cpp",
@@ -148,6 +163,21 @@ export const ASSESSMENT_QUESTIONS: SeedQuestion[] = [
       "#include <iostream>\nusing namespace std;\nint main() {\n  int n;\n  cin >> n;\n  for (int i = 1; i <= n; i++) {\n    if (i % 3 == 0) cout << i << endl;\n  }\n  return 0;\n}",
     explanation:
       "使用for循环遍历1到n，if判断i%3==0（能被3整除），满足条件则输出。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 2,
+    knowledge_point: "while循环",
+    question_type: "coding",
+    difficulty: 3,
+    content:
+      "编写程序，输入一个正整数n，使用while循环计算1到n的和（即1+2+...+n），输出结果。\n\n示例：\n输入：5\n输出：15",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint main() {\n  int n, sum = 0;\n  cin >> n;\n  int i = 1;\n  while (i <= n) {\n    sum += i;\n    i++;\n  }\n  cout << sum;\n  return 0;\n}",
+    explanation:
+      "使用while循环累加1到n，初始化i=1和sum=0，每次循环加i到sum，i自增，直到i>n。",
     status: "active",
     created_by: "manual",
   },
@@ -209,6 +239,21 @@ export const ASSESSMENT_QUESTIONS: SeedQuestion[] = [
     status: "active",
     created_by: "manual",
   },
+  {
+    course_id: "cpp",
+    level: 3,
+    knowledge_point: "函数定义与调用",
+    question_type: "coding",
+    difficulty: 4,
+    content:
+      "编写一个函数int max(int a, int b)，返回两个整数中的较大值。然后在main中读取两个整数，调用该函数并输出结果。\n\n示例：\n输入：7 3\n输出：7",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint max(int a, int b) {\n  if (a > b) return a;\n  else return b;\n}\nint main() {\n  int a, b;\n  cin >> a >> b;\n  cout << max(a, b);\n  return 0;\n}",
+    explanation:
+      "函数max使用条件判断返回较大值。main函数读取输入并调用max函数。",
+    status: "active",
+    created_by: "manual",
+  },
   // ===== LEVEL 4: 递归、排序与结构体 =====
   {
     course_id: "cpp",
@@ -264,6 +309,313 @@ export const ASSESSMENT_QUESTIONS: SeedQuestion[] = [
       "#include <iostream>\nusing namespace std;\nint factorial(int n) {\n  if (n <= 1) return 1;\n  return n * factorial(n - 1);\n}\nint main() {\n  int n;\n  cin >> n;\n  cout << factorial(n);\n  return 0;\n}",
     explanation:
       "递归函数factorial：终止条件n<=1返回1；递归式n * factorial(n-1)。这种自顶向下的分解是递归的经典应用。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 4,
+    knowledge_point: "冒泡排序",
+    question_type: "coding",
+    difficulty: 5,
+    content:
+      "编写程序，输入n（n≤100）和n个整数，使用冒泡排序将数组从小到大排序，然后输出排序后的数组。\n\n示例：\n输入：5 3 1 4 5 2\n输出：1 2 3 4 5",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint main() {\n  int n, arr[100];\n  cin >> n;\n  for (int i = 0; i < n; i++) cin >> arr[i];\n  for (int i = 0; i < n-1; i++) {\n    for (int j = 0; j < n-i-1; j++) {\n      if (arr[j] > arr[j+1]) swap(arr[j], arr[j+1]);\n    }\n  }\n  for (int i = 0; i < n; i++) cout << arr[i] << \" \";\n  return 0;\n}",
+    explanation:
+      "冒泡排序双重循环：外层控制轮数，内层控制每轮比较次数。相邻元素比较交换，每轮将最大值移到末尾。",
+    status: "active",
+    created_by: "manual",
+  },
+  // ===== LEVEL 5: 指针、动态内存与文件I/O =====
+  {
+    course_id: "cpp",
+    level: 5,
+    knowledge_point: "指针基础",
+    question_type: "objective",
+    difficulty: 5,
+    content:
+      "以下关于指针的说法正确的是？\nA. 指针存储变量的值\nB. 指针存储变量的地址\nC. 指针只能指向整数\nD. 指针不能指向数组",
+    answer: "B",
+    explanation:
+      "指针是一种特殊的变量，存储的是另一个变量的内存地址，而不是值本身。通过指针可以间接访问指向的变量。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 5,
+    knowledge_point: "动态内存分配",
+    question_type: "objective",
+    difficulty: 5,
+    content:
+      "C++中用于动态分配内存的关键字是？\nA. malloc\nB. new\nC. alloc\nD. create",
+    answer: "B",
+    explanation:
+      "C++使用new关键字进行动态内存分配，malloc是C语言的方式。new返回指向分配内存的指针，需要用delete释放。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 5,
+    knowledge_point: "文件输入输出",
+    question_type: "objective",
+    difficulty: 5,
+    content:
+      "要读取文件内容，应该使用哪个类？\nA. ofstream\nB. ifstream\nC. fstream\nD. filestream",
+    answer: "B",
+    explanation:
+      "ifstream（input file stream）用于从文件读取数据。ofstream用于写入文件，fstream可同时读写。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 5,
+    knowledge_point: "指针与数组",
+    question_type: "coding",
+    difficulty: 6,
+    content:
+      "编写程序，输入n（n≤100），使用动态内存分配创建一个大小为n的整数数组，读取n个整数，计算并输出它们的平均值（保留小数）。\n\n示例：\n输入：3 1 2 3\n输出：2",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint main() {\n  int n;\n  cin >> n;\n  int* arr = new int[n];\n  for (int i = 0; i < n; i++) cin >> arr[i];\n  int sum = 0;\n  for (int i = 0; i < n; i++) sum += arr[i];\n  cout << sum / n;\n  delete[] arr;\n  return 0;\n}",
+    explanation:
+      "使用new动态分配数组，计算平均值后必须用delete[]释放动态数组内存，避免内存泄漏。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 5,
+    knowledge_point: "文件输入输出",
+    question_type: "coding",
+    difficulty: 6,
+    content:
+      "编写程序，从input.txt读取一个整数n，然后写入n的平方到output.txt。假设input.txt已存在且包含一个整数。\n\n示例：\ninput.txt内容：5\noutput.txt内容：25",
+    answer:
+      "#include <iostream>\n#include <fstream>\nusing namespace std;\nint main() {\n  ifstream fin(\"input.txt\");\n  ofstream fout(\"output.txt\");\n  int n;\n  fin >> n;\n  fout << n * n;\n  fin.close();\n  fout.close();\n  return 0;\n}",
+    explanation:
+      "使用ifstream读取文件，ofstream写入文件。操作完成后关闭文件流确保数据写入磁盘。",
+    status: "active",
+    created_by: "manual",
+  },
+  // ===== LEVEL 6: STL容器与迭代器 =====
+  {
+    course_id: "cpp",
+    level: 6,
+    knowledge_point: "vector容器",
+    question_type: "objective",
+    difficulty: 6,
+    content:
+      "vector相比数组的主要优势是？\nA. 运行速度更快\nB. 内存占用更小\nC. 大小可以动态改变\nD. 只能存储整数",
+    answer: "C",
+    explanation:
+      "vector是动态数组，大小可以在运行时改变（push_back、resize等），而普通数组大小固定。vector提供灵活的容器操作。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 6,
+    knowledge_point: "map容器",
+    question_type: "objective",
+    difficulty: 6,
+    content:
+      "map容器的主要特点是？\nA. 存储单一类型元素\nB. 键值对存储，自动按键排序\nC. 只能用整数作为键\nD. 元素顺序固定不变",
+    answer: "B",
+    explanation:
+      "map是关联容器，存储键值对（key-value），内部自动按键排序，支持快速查找。键可以是多种类型，如int、string等。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 6,
+    knowledge_point: "迭代器",
+    question_type: "objective",
+    difficulty: 6,
+    content:
+      "迭代器的作用是？\nA. 替代循环语句\nB. 提供统一的容器元素访问方式\nC. 只能用于vector\nD. 必须从0开始遍历",
+    answer: "B",
+    explanation:
+      "迭代器提供统一的访问容器元素的方式，可用于vector、list、map等多种容器，是STL算法与容器之间的桥梁。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 6,
+    knowledge_point: "vector容器",
+    question_type: "coding",
+    difficulty: 7,
+    content:
+      "编写程序，输入n和n个整数，使用vector存储，然后使用迭代器遍历vector，输出所有元素的平方。\n\n示例：\n输入：3 1 2 3\n输出：1 4 9",
+    answer:
+      "#include <iostream>\n#include <vector>\nusing namespace std;\nint main() {\n  int n;\n  cin >> n;\n  vector<int> v;\n  for (int i = 0; i < n; i++) {\n    int x;\n    cin >> x;\n    v.push_back(x);\n  }\n  for (auto it = v.begin(); it != v.end(); it++) {\n    cout << (*it) * (*it) << \" \";\n  }\n  return 0;\n}",
+    explanation:
+      "使用vector的push_back动态添加元素，用迭代器begin/end遍历，*it获取当前元素值。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 6,
+    knowledge_point: "map容器",
+    question_type: "coding",
+    difficulty: 7,
+    content:
+      "编写程序，输入若干单词（以\"end\"结束），使用map统计每个单词出现的次数，然后输出每个单词及其出现次数。\n\n示例：\n输入：apple banana apple end\n输出：apple: 2 banana: 1",
+    answer:
+      "#include <iostream>\n#include <map>\n#include <string>\nusing namespace std;\nint main() {\n  map<string, int> cnt;\n  string word;\n  while (cin >> word && word != \"end\") {\n    cnt[word]++;\n  }\n  for (auto& p : cnt) {\n    cout << p.first << \": \" << p.second << endl;\n  }\n  return 0;\n}",
+    explanation:
+      "map自动统计键出现次数，cnt[word]++递增计数。使用范围for遍历map，p.first是键，p.second是值。",
+    status: "active",
+    created_by: "manual",
+  },
+  // ===== LEVEL 7: 高级算法与面向对象基础 =====
+  {
+    course_id: "cpp",
+    level: 7,
+    knowledge_point: "二分查找",
+    question_type: "objective",
+    difficulty: 7,
+    content:
+      "二分查找的前提条件是？\nA. 数组元素必须是整数\nB. 数组必须已排序\nC. 数组大小必须为偶数\nD. 数组不能有重复元素",
+    answer: "B",
+    explanation:
+      "二分查找通过不断缩小搜索范围快速定位目标，前提是数组必须有序。每次比较中间元素，根据结果缩小到左半或右半。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 7,
+    knowledge_point: "类的定义",
+    question_type: "objective",
+    difficulty: 7,
+    content:
+      "C++类的成员默认访问权限是？\nA. public\nB. private\nC. protected\nD. static",
+    answer: "B",
+    explanation:
+      "C++类（class）的成员默认为private（私有），只能在类内部访问。struct默认为public（公开）。这是封装原则的基础。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 7,
+    knowledge_point: "构造函数",
+    question_type: "objective",
+    difficulty: 7,
+    content:
+      "构造函数的作用是？\nA. 销毁对象\nB. 初始化对象成员变量\nC. 复制对象\nD. 静态方法调用",
+    answer: "B",
+    explanation:
+      "构造函数在创建对象时自动调用，用于初始化对象的成员变量。析构函数用于销毁对象时清理资源。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 7,
+    knowledge_point: "二分查找",
+    question_type: "coding",
+    difficulty: 8,
+    content:
+      "编写程序，输入n和n个已排序的整数，再输入目标值x，使用二分查找判断x是否在数组中，输出\"found\"或\"not found\"。\n\n示例：\n输入：5 1 3 5 7 9 5\n输出：found",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint main() {\n  int n, arr[100], x;\n  cin >> n;\n  for (int i = 0; i < n; i++) cin >> arr[i];\n  cin >> x;\n  int left = 0, right = n - 1;\n  while (left <= right) {\n    int mid = (left + right) / 2;\n    if (arr[mid] == x) { cout << \"found\"; return 0; }\n    else if (arr[mid] < x) left = mid + 1;\n    else right = mid - 1;\n  }\n  cout << \"not found\";\n  return 0;\n}",
+    explanation:
+      "二分查找维护左右边界，每次比较mid位置。等于目标返回，小于目标左边界右移，大于目标右边界左移。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 7,
+    knowledge_point: "类的定义",
+    question_type: "coding",
+    difficulty: 8,
+    content:
+      "定义一个Student类，包含name（string）和score（int）两个私有成员，提供公有方法setName、setScore和display。在main中创建对象并测试。\n\n示例：\n输出：Name: Tom, Score: 95",
+    answer:
+      "#include <iostream>\n#include <string>\nusing namespace std;\nclass Student {\nprivate:\n  string name;\n  int score;\npublic:\n  void setName(string n) { name = n; }\n  void setScore(int s) { score = s; }\n  void display() {\n    cout << \"Name: \" << name << \", Score: \" << score;\n  }\n};\nint main() {\n  Student s;\n  s.setName(\"Tom\");\n  s.setScore(95);\n  s.display();\n  return 0;\n}",
+    explanation:
+      "类封装私有成员，通过公有方法访问。setName/setScore修改成员，display输出信息。体现封装原则。",
+    status: "active",
+    created_by: "manual",
+  },
+  // ===== LEVEL 8: 复杂数据结构与算法 =====
+  {
+    course_id: "cpp",
+    level: 8,
+    knowledge_point: "树的遍历",
+    question_type: "objective",
+    difficulty: 8,
+    content:
+      "二叉树的前序遍历顺序是？\nA. 左子树 → 根 → 右子树\nB. 根 → 左子树 → 右子树\nC. 左子树 → 右子树 → 根\nD. 右子树 → 根 → 左子树",
+    answer: "B",
+    explanation:
+      "前序遍历先访问根节点，再递归遍历左子树，最后遍历右子树。中序是左-根-右，后序是左-右-根。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 8,
+    knowledge_point: "图的表示",
+    question_type: "objective",
+    difficulty: 8,
+    content:
+      "图的邻接表相比邻接矩阵的优势是？\nA. 查找任意两点关系更快\nB. 存储稀疏图更节省空间\nC. 实现更简单\nD. 只能用于无向图",
+    answer: "B",
+    explanation:
+      "邻接表只存储存在的边，对于稀疏图（边很少）比邻接矩阵节省大量空间。邻接矩阵需要O(V²)空间。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 8,
+    knowledge_point: "动态规划",
+    question_type: "objective",
+    difficulty: 8,
+    content:
+      "动态规划的核心思想是？\nA. 贪心选择\nB. 分治递归\nC. 记忆化避免重复计算\nD. 随机尝试",
+    answer: "C",
+    explanation:
+      "动态规划通过保存子问题的解（记忆化）避免重复计算，将复杂问题分解为重叠子问题，显著提升效率。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 8,
+    knowledge_point: "树的遍历",
+    question_type: "coding",
+    difficulty: 9,
+    content:
+      "给定二叉树的前序和中序遍历序列，编写程序输出后序遍历序列。前序第一个元素为根，在中序中找到根可分割左右子树。\n\n示例：\n前序：1 2 4 5 3\n中序：4 2 5 1 3\n输出：4 5 2 3 1",
+    answer:
+      "#include <iostream>\nusing namespace std;\nstring preorder, inorder;\nvoid postorder(int pleft, int pright, int ileft, int iright) {\n  if (pleft > pright) return;\n  char root = preorder[pleft];\n  int pos = inorder.find(root);\n  int leftsize = pos - ileft;\n  postorder(pleft+1, pleft+leftsize, ileft, pos-1);\n  postorder(pleft+leftsize+1, pright, pos+1, iright);\n  cout << root << \" \";\n}\nint main() {\n  cin >> preorder >> inorder;\n  postorder(0, preorder.size()-1, 0, inorder.size()-1);\n  return 0;\n}",
+    explanation:
+      "递归重建树：前序首元素是根，在中序找到根位置，分割左右子树范围，递归处理左右子树，最后输出根（后序）。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 8,
+    knowledge_point: "动态规划",
+    question_type: "coding",
+    difficulty: 9,
+    content:
+      "使用动态规划解决0-1背包问题。输入物品数量n、背包容量W、每个物品的重量和价值，输出背包能装的最大总价值。\n\n示例：\n输入：3 5\n重量：2 3 4\n价值：3 4 5\n输出：7",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint n, W, w[100], v[100], dp[100][100];\nint main() {\n  cin >> n >> W;\n  for (int i = 1; i <= n; i++) cin >> w[i];\n  for (int i = 1; i <= n; i++) cin >> v[i];\n  for (int i = 1; i <= n; i++) {\n    for (int j = 0; j <= W; j++) {\n      dp[i][j] = dp[i-1][j];\n      if (j >= w[i]) dp[i][j] = max(dp[i][j], dp[i-1][j-w[i]] + v[i]);\n    }\n  }\n  cout << dp[n][W];\n  return 0;\n}",
+    explanation:
+      "dp[i][j]表示前i个物品、容量j的最大价值。每个物品决策：不选（dp[i-1][j]）或选（dp[i-1][j-w[i]]+v[i]）。取最大值。",
     status: "active",
     created_by: "manual",
   },
@@ -357,7 +709,7 @@ export async function seedAssessmentQuestions(
     .returning();
 
   logger.info(
-    { count: inserted.length, levels: [1, 2, 3, 4] },
+    { count: inserted.length, levels: [1, 2, 3, 4, 5, 6, 7, 8] },
     "Assessment questions inserted into SQLite"
   );
 
