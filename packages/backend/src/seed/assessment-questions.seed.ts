@@ -1,11 +1,11 @@
 /**
  * Assessment questions seed for GESP C++ adaptive testing.
  *
- * Seeds 16 assessment questions (4 per level, L1-L4) into SQLite and LanceDB.
- *   - L1: basic I/O, variables
- *   - L2: conditionals, loops
- *   - L3: arrays, strings, functions
- *   - L4: recursion, sorting, structs
+ * Seeds assessment questions into SQLite and LanceDB.
+ * Question bank requirements (per D-16):
+ *   - 1-8 levels, no gaps
+ *   - 5 questions per level (3 objective + 2 coding)
+ *   - All questions production-ready (no placeholders)
  *
  * Usage:
  *   - Called automatically during backend bootstrap (index.ts)
@@ -21,10 +21,10 @@ import type { EmbeddingProvider } from "../services/embedding";
 import { logger } from "../utils/logger";
 
 // ---------------------------------------------------------------------------
-// Question data (16 questions, 4 per level)
+// Question types and data (exported for test validation)
 // ---------------------------------------------------------------------------
 
-interface SeedQuestion {
+export interface SeedQuestion {
   course_id: string;
   level: number;
   knowledge_point: string;
@@ -37,7 +37,7 @@ interface SeedQuestion {
   created_by: string;
 }
 
-const QUESTIONS: SeedQuestion[] = [
+export const ASSESSMENT_QUESTIONS: SeedQuestion[] = [
   // ===== LEVEL 1: 基础输入输出与变量 =====
   {
     course_id: "cpp",
@@ -312,9 +312,9 @@ export async function seedAssessmentQuestions(
   const existingRecords = await db.query.assessmentQuestions.findMany();
   const existingCount = existingRecords.length;
 
-  if (existingCount >= QUESTIONS.length) {
+  if (existingCount >= ASSESSMENT_QUESTIONS.length) {
     logger.info(
-      { existing_count: existingCount, expected_count: QUESTIONS.length },
+      { existing_count: existingCount, expected_count: ASSESSMENT_QUESTIONS.length },
       "Assessment questions already seeded, skipping"
     );
     return { sqliteCount: 0, lanceCount: 0 };
@@ -326,7 +326,7 @@ export async function seedAssessmentQuestions(
   );
 
   // Filter out questions that already exist
-  const newQuestions = QUESTIONS.filter(
+  const newQuestions = ASSESSMENT_QUESTIONS.filter(
     (q) => !existingFingerprints.has(`${q.course_id}|${q.level}|${q.knowledge_point}|${q.question_type}|${q.content}`)
   );
 
