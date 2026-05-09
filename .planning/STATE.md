@@ -3,15 +3,15 @@ wsf_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-08-PLAN.md
-last_updated: "2026-05-09T11:05:42.219Z"
+stopped_at: Completed 03-09-PLAN.md
+last_updated: "2026-05-09T11:15:02.620Z"
 last_activity: 2026-05-09
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 32
-  completed_plans: 30
-  percent: 94
+  completed_plans: 31
+  percent: 97
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-22)
 
 Phase: 03 (测评定级智能体-测评界面) — EXECUTING
 Phase 2.1: COMPLETED (all 7 plans done)
-Plan: 4 of 10
+Plan: 5 of 10
 **Status:** Ready to execute
 **Last Activity:** 2026-05-09
 
@@ -36,7 +36,7 @@ Plan: 4 of 10
 - Smoke test reveals design flaws (JWT token length, agent prompt visibility) and frontend polling loop
 - 6 requirements covered: ASSESS-01~05 + UI-ASSESS-01
 
-**Progress:** [█████████░] 94%
+**Progress:** [██████████] 97%
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Plan: 4 of 10
 | Phase 03 P06 | 7 | 2 tasks | 2 files |
 | Phase 03 P07 | 586 | 3 tasks | 6 files |
 | Phase 03 P08 | 312 | 2 tasks | 4 files |
+| Phase 03 P09 | 343 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,9 @@ Recent decisions affecting current work:
 - [Phase 03]: Delete cleanup in route: projector.destroy() + clearAutoSelectTimer() in route handler (separation of concerns)
 - [Phase 03]: Dual question_ready paths: manual /select and auto-select fallback both emit same event
 - [Phase 03]: Dual assessment_done paths: /evaluate (agent termination) and /submit round-convergence both emit
+- [Phase 03]: SessionHistoryList is presentation-only: callbacks from parent, not hard-coded routes
+- [Phase 03]: Delete uses optimistic removal + restore on failure for better UX
+- [Phase 03]: Resume before navigate: call resumeAssessment API then router.push for backend logging
 
 ### Todos
 
@@ -143,7 +147,7 @@ None yet.
 
 ## Session Continuity
 
-**Last Session:** 2026-05-09T11:05:42.213Z
-**Stopped At:** Completed 03-08-PLAN.md
+**Last Session:** 2026-05-09T11:15:02.370Z
+**Stopped At:** Completed 03-09-PLAN.md
 **Resume File:** None
 **Next Action:** /wsf-verify-work 03 — run UAT verification, record gaps (JWT token redesign, agent prompt fix, polling loop fix)

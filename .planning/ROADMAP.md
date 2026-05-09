@@ -134,7 +134,7 @@ Plans:
 - [x] 03-06-PLAN.md — Gap: 扩展 1-8 级题库覆盖与 round-safe seed 验证
 - [x] 03-07-PLAN.md — Gap: 智能体进度感知、评分回写、completed 收口与日志降噪
 - [x] 03-08-PLAN.md — Gap: 会话历史/删除 API + question_ready SSE 契约
-- [ ] 03-09-PLAN.md — Gap: 起测页历次测评列表、继续测评与删除操作
+- [x] 03-09-PLAN.md — Gap: 起测页历次测评列表、继续测评与删除操作
 - [ ] 03-10-PLAN.md — Gap: 答题页进度修正、header agent logo 与 ready-aware 下一题体验
 
 ### Phase 4: 教学讲解智能体 + 教学界面
