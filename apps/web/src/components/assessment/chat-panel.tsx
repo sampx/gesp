@@ -27,7 +27,9 @@ type NormalizedEvent =
   | { type: "snapshot"; messages: ProjectedMessage[]; status: string }
   | { type: "status"; status: string | null }
   | { type: "message_delta"; message_id: string; text: string }
-  | { type: "student_echo"; message_id: string; text: string };
+  | { type: "student_echo"; message_id: string; text: string }
+  | { type: "question_ready" }
+  | { type: "assessment_done"; final_level?: number };
 
 interface ChatMessage {
   id: string;
@@ -37,6 +39,8 @@ interface ChatMessage {
 
 interface ChatPanelProps {
   token: string;
+  onQuestionReady?: () => void;
+  onAssessmentDone?: (finalLevel?: number) => void;
 }
 
 async function fetchChatState(token: string): Promise<ChatSnapshot | null> {
@@ -67,7 +71,7 @@ async function sendChatMessage(token: string, text: string, messageId: string): 
 // Component
 // ---------------------------------------------------------------------------
 
-export function ChatPanel({ token }: ChatPanelProps) {
+export function ChatPanel({ token, onQuestionReady, onAssessmentDone }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [statusText, setStatusText] = useState<string>("");
   const [input, setInput] = useState("");
@@ -75,6 +79,12 @@ export function ChatPanel({ token }: ChatPanelProps) {
   const [loading, setLoading] = useState(true);
   const openRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const onQuestionReadyRef = useRef(onQuestionReady);
+  const onAssessmentDoneRef = useRef(onAssessmentDone);
+
+  // Keep refs up to date without triggering SSE resubscription
+  useEffect(() => { onQuestionReadyRef.current = onQuestionReady; }, [onQuestionReady]);
+  useEffect(() => { onAssessmentDoneRef.current = onAssessmentDone; }, [onAssessmentDone]);
 
   // Use shared context for open/unread state (controlled by navbar toggle)
   const chat = useAssessmentChat();
@@ -152,6 +162,18 @@ export function ChatPanel({ token }: ChatPanelProps) {
           if (data.type === "student_echo") {
             // Echo of student message (already added locally)
             // Ignore — we add student messages immediately on send
+            return;
+          }
+
+          if (data.type === "question_ready") {
+            // System event: next question is ready for prefetch
+            onQuestionReadyRef.current?.();
+            return;
+          }
+
+          if (data.type === "assessment_done") {
+            // System event: agent terminated assessment
+            onAssessmentDoneRef.current?.(data.final_level);
             return;
           }
         } catch {

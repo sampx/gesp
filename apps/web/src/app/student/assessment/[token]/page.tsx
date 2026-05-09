@@ -56,6 +56,10 @@ export default function AssessmentAnswerPage() {
   const [error, setError] = useState("");
   const [doneData, setDoneData] = useState<{ final_level?: number } | null>(null);
 
+  // Prefetched next question + readiness flag
+  const [prefetchedQuestion, setPrefetchedQuestion] = useState<QuestionData | null>(null);
+  const [questionReady, setQuestionReady] = useState(false);
+
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
 
@@ -76,6 +80,8 @@ export default function AssessmentAnswerPage() {
     setAnswer("");
     setFeedback(null);
     setError("");
+    setPrefetchedQuestion(null);
+    setQuestionReady(false);
     try {
       const res = await getNextQuestion(token);
       if (!mountedRef.current) return;
@@ -94,6 +100,10 @@ export default function AssessmentAnswerPage() {
       } else if (res.data?.waiting) {
         if (res.data.progress) setProgress(prev => ({ ...prev, ...res.data.progress }));
         pollTimerRef.current = setTimeout(loadNextQuestion, 2000);
+      } else if (res.data?.done) {
+        // Backend says assessment is done
+        setDoneData({ final_level: res.data.final_level });
+        setState("DONE");
       } else {
         setError(res.message || "加载题目失败");
         setState("ANSWERING");
@@ -169,6 +179,57 @@ export default function AssessmentAnswerPage() {
 
   const handleNext = () => loadNextQuestion();
   const handleViewReport = () => router.push(`/student/assessment/${token}/report`);
+
+  // Callback: question_ready SSE event → prefetch next question
+  const handleQuestionReady = useCallback(async () => {
+    if (state !== "FEEDBACK" && state !== "SCORING") return;
+    setQuestionReady(true);
+    try {
+      const res = await getNextQuestion(token);
+      if (res.success && res.data?.id) {
+        setPrefetchedQuestion(res.data);
+        if (res.data?.progress) {
+          setProgress(prev => ({
+            ...prev,
+            ...res.data.progress,
+            current_question_number: (res.data.progress?.total_answered ?? prev.total_answered) + 1,
+          }));
+        }
+      } else if (res.data?.done) {
+        // Backend says assessment is done
+        setDoneData({ final_level: res.data.final_level });
+        setState("DONE");
+      }
+    } catch {
+      // Prefetch failed — user will click and enter normal load flow
+    }
+  }, [token, state]);
+
+  // Callback: assessment_done SSE event → redirect to report
+  const handleAssessmentDone = useCallback((finalLevel?: number) => {
+    setDoneData({ final_level: finalLevel });
+    setState("DONE");
+    // Brief delay for user to see completion state before redirect
+    setTimeout(() => {
+      router.replace(`/student/assessment/${token}/report`);
+    }, 1500);
+  }, [token, router]);
+
+  // Handle Next button click during FEEDBACK
+  const handleNextFromFeedback = useCallback(() => {
+    if (prefetchedQuestion) {
+      // Swap to prefetched question immediately
+      setQuestion(prefetchedQuestion);
+      setPrefetchedQuestion(null);
+      setQuestionReady(false);
+      setAnswer("");
+      setFeedback(null);
+      setState("ANSWERING");
+    } else {
+      // No prefetched question — fallback to normal load
+      loadNextQuestion();
+    }
+  }, [prefetchedQuestion, loadNextQuestion]);
 
   if (state === "DONE") {
     return (
@@ -270,8 +331,22 @@ export default function AssessmentAnswerPage() {
                     <p className="text-sm text-muted-foreground">{feedback.explanation}</p>
                   </div>
                 )}
-                <Button className="w-full gap-2" size="lg" onClick={handleNext}>
-                  下一题 <ArrowRight className="h-4 w-4" />
+                <Button 
+                  className="w-full gap-2" 
+                  size="lg" 
+                  onClick={handleNextFromFeedback}
+                  disabled={!questionReady && !prefetchedQuestion}
+                >
+                  {!questionReady && !prefetchedQuestion ? (
+                    <>
+                      <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      正在准备下一题...
+                    </>
+                  ) : (
+                    <>
+                      下一题 <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               </div>
             )}
@@ -279,7 +354,11 @@ export default function AssessmentAnswerPage() {
         </Card>
       )}
 
-      <ChatPanel token={token} />
+      <ChatPanel 
+        token={token} 
+        onQuestionReady={handleQuestionReady}
+        onAssessmentDone={handleAssessmentDone}
+      />
     </div>
   );
 }
