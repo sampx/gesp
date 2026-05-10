@@ -21,8 +21,6 @@ import { logger } from "../utils/logger";
 // Constants
 // ---------------------------------------------------------------------------
 
-const SESSION_EXPIRY_MS = 2 * 60 * 60 * 1000; // 2 hours
-
 const DEFAULT_QUESTION_LIMIT = 5;
 const DEFAULT_THRESHOLD_UP = 3;
 const DEFAULT_THRESHOLD_DOWN = 1;
@@ -80,6 +78,7 @@ export interface AssessmentSession {
   current_level: number;
   final_level: number | null;
   ellamaka_session_id: string | null;
+  current_question_id: string | null; // persisted active question — survives restart
   config_question_limit: number;
   config_time_limit_min: number;
   config_threshold_up: number;
@@ -110,8 +109,9 @@ export function generateToken(): string {
 
 /**
  * Look up assessment session by token and return session metadata.
- * Verifies token exists in DB and session hasn't expired (2h from creation).
- * Throws on invalid/expired tokens.
+ * Verifies token exists in DB.
+ * Per T-03-11-03: removed hard age-based expiry for resume paths.
+ * Completed sessions still cannot accept new answers, but resume/progress works.
  */
 export async function verifyToken(token: string): Promise<TokenPayload> {
   const [session] = await db
@@ -127,8 +127,8 @@ export async function verifyToken(token: string): Promise<TokenPayload> {
 
   if (!session) throw new Error("Invalid assessment token");
 
-  const age = Date.now() - new Date(session.started_at).getTime();
-  if (age > SESSION_EXPIRY_MS) throw new Error("Assessment session expired");
+  // Per T-03-11-03: removed 2h age expiry check — legitimate incomplete sessions
+  // can resume regardless of age. Completed sessions are protected by status checks.
 
   return {
     assessment_session_id: session.assessment_session_id,
@@ -296,7 +296,8 @@ export function rotateType(
 
 /**
  * Lock a question for a session.
- * Uses in-memory Map for lock tracking (locks only last one round).
+ * Uses in-memory Map for fast lookup + persists to current_question_id in DB.
+ * Per T-03-11-02: persist active question to survive server restart.
  */
 const currentQuestionLocks = new Map<string, string>();
 
@@ -317,21 +318,70 @@ export async function lockQuestion(
     throw new Error("Question not found or inactive");
   }
 
+  // Persist to both in-memory map and DB
   currentQuestionLocks.set(sessionId, questionId);
+  await db
+    .update(assessmentSessions)
+    .set({ current_question_id: questionId })
+    .where(eq(assessmentSessions.id, sessionId));
+
   logger.info({ session_id: sessionId, question_id: questionId }, "Question locked");
 }
 
 /**
- * Get the currently locked question ID for a session.
+ * Get the currently locked question ID for a session (in-memory only).
+ * Use getActiveQuestionId() for persisted fallback.
  */
 export function getLockedQuestionId(sessionId: string): string | undefined {
   return currentQuestionLocks.get(sessionId);
 }
 
 /**
+ * Get the active question ID for a session with DB fallback.
+ * Checks in-memory map first, then falls back to current_question_id in DB.
+ * Per T-03-11-02: ensures active question survives server restart.
+ */
+export async function getActiveQuestionId(sessionId: string): Promise<string | undefined> {
+  // Fast path: check in-memory map first
+  const locked = currentQuestionLocks.get(sessionId);
+  if (locked) return locked;
+
+  // Fallback: check persisted current_question_id in DB
+  const session = await db.query.assessmentSessions.findFirst({
+    where: eq(assessmentSessions.id, sessionId),
+    columns: { current_question_id: true },
+  });
+
+  const persistedId = session?.current_question_id;
+  if (persistedId) {
+    // Rehydrate in-memory lock from persisted state
+    currentQuestionLocks.set(sessionId, persistedId);
+    logger.debug({ session_id: sessionId, question_id: persistedId }, "Rehydrated lock from DB");
+  }
+
+  return persistedId ?? undefined;
+}
+
+/**
  * Clear the locked question for a session (e.g., after answer submission).
+ * Clears both in-memory map and DB field.
  */
 export function unlockQuestion(sessionId: string): void {
+  currentQuestionLocks.delete(sessionId);
+  // Clear persisted field asynchronously (fire-and-forget)
+  db.update(assessmentSessions)
+    .set({ current_question_id: null })
+    .where(eq(assessmentSessions.id, sessionId))
+    .catch((err) =>
+      logger.warn({ err, session_id: sessionId }, "Failed to clear current_question_id"),
+    );
+}
+
+/**
+ * Clear in-memory lock only (for testing process restart simulation).
+ * NOT for production use — only clears memory, leaves DB persisted.
+ */
+export function clearMemoryLock(sessionId: string): void {
   currentQuestionLocks.delete(sessionId);
 }
 
@@ -387,7 +437,10 @@ export async function getProgress(sessionId: string): Promise<ProgressData> {
     throw new Error("Session not found");
   }
 
-  const stats = session.knowledge_stats ?? await computeKnowledgeStats(sessionId);
+  // Per T-03-11-04: treat empty {} as cache miss, recompute from answers
+  const stats = (session.knowledge_stats && Object.keys(session.knowledge_stats).length > 0)
+    ? session.knowledge_stats
+    : await computeKnowledgeStats(sessionId);
   const configQuestionLimit = session.config_question_limit ?? DEFAULT_QUESTION_LIMIT;
   const configTimeLimitMin = session.config_time_limit_min ?? DEFAULT_TIME_LIMIT_MIN;
   const startedAt = new Date(session.started_at);
@@ -502,16 +555,23 @@ export async function updateSessionAfterAnswer(
 
 /**
  * Mark session as completed with final level.
+ * Per T-03-11-04: persist knowledge_stats before marking completed.
+ * Per T-03-11-02: clear current_question_id on completion.
  */
 export async function completeSession(
   sessionId: string,
   finalLevel: number,
 ): Promise<void> {
+  // Compute and persist knowledge_stats before completion
+  const stats = await computeKnowledgeStats(sessionId);
+
   await db
     .update(assessmentSessions)
     .set({
       status: "completed",
       final_level: finalLevel,
+      knowledge_stats: stats,
+      current_question_id: null,
       completed_at: new Date(),
     })
     .where(eq(assessmentSessions.id, sessionId));

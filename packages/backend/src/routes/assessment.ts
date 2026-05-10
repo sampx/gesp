@@ -94,7 +94,7 @@ async function getNextOrder(sessionId: string): Promise<number> {
 
 /**
  * Wait for first question to be locked (with timeout)
- * Polls shared question locks map every 500ms
+ * Polls shared question locks map + DB fallback for persisted state
  */
 async function waitForFirstQuestion(
   sessionId: string,
@@ -102,7 +102,7 @@ async function waitForFirstQuestion(
 ): Promise<typeof assessmentQuestions.$inferSelect | null> {
   const startTime = Date.now();
   while (Date.now() - startTime < timeoutMs) {
-    const lockedId = assessment.getLockedQuestionId(sessionId);
+    const lockedId = await assessment.getActiveQuestionId(sessionId);
     if (lockedId) {
       const question = await db.query.assessmentQuestions.findFirst({
         where: eq(assessmentQuestions.id, lockedId),
@@ -514,7 +514,8 @@ app.post(
     }
 
     // 2. Verify question is currently locked for this session
-    const lockedQuestionId = assessment.getLockedQuestionId(payload.assessment_session_id);
+    // Per T-03-11-02: use persisted lookup with memory fallback
+    const lockedQuestionId = await assessment.getActiveQuestionId(payload.assessment_session_id);
     if (!lockedQuestionId || body.question_id !== lockedQuestionId) {
       return error(c, "Question is not active for this session", 400);
     }
@@ -714,7 +715,7 @@ app.get(
     }
 
     // Check if question is locked
-    const lockedId = assessment.getLockedQuestionId(payload.assessment_session_id);
+    const lockedId = await assessment.getActiveQuestionId(payload.assessment_session_id);
     if (!lockedId) return success(c, { waiting: true, progress });
 
     // Fetch full question content (only after locked)
@@ -793,6 +794,9 @@ app.post(
 
     const history = await getSessionHistory(payload.assessment_session_id);
 
+    // Per T-03-11-02: rehydrate lock from persisted current_question_id if exists
+    const activeQuestionId = await assessment.getActiveQuestionId(payload.assessment_session_id);
+
     // Reuse existing ellamaka session if available, create new one otherwise
     let esId = session.ellamaka_session_id;
     if (!esId) {
@@ -813,10 +817,15 @@ app.post(
       { question_limit: session.config_question_limit, time_limit_min: session.config_time_limit_min },
     );
 
+    // Adjust prompt based on whether we have an active question
+    const resumePrompt = activeQuestionId
+      ? `当前评估令牌: ${body.token}\n续评恢复。历史记录:\n${history}\n当前级别: ${session.current_level}。学员当前有激活题目 (${activeQuestionId.slice(0, 8)})，请继续处理该题目。`
+      : `当前评估令牌: ${body.token}\n续评恢复。历史记录:\n${history}\n当前级别: ${session.current_level}。请获取候选并选择下一道题。`;
+
     await ellamakaClient.promptAsync(esId, [
       {
         type: "text",
-        text: `当前评估令牌: ${body.token}\n续评恢复。历史记录:\n${history}\n当前级别: ${session.current_level}。请继续选题。`,
+        text: resumePrompt,
       },
     ], systemPrompt);
 

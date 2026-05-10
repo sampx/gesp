@@ -32,6 +32,7 @@ export const assessmentSessions = sqliteTable("assessment_sessions", {
   current_level: integer().notNull(),
   final_level: integer(),
   ellamaka_session_id: text(),
+  current_question_id: text(), // persisted active question — survives restart
   config_question_limit: integer().default(5),
   config_time_limit_min: integer().default(30),
   config_threshold_up: integer().default(3),

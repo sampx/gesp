@@ -89,8 +89,15 @@ describe("Task 1: active question persistence", () => {
     // Setup: lock question via service (writes to both memory + DB)
     await assessment.lockQuestion(testSessionId, testQuestionId);
 
-    // Simulate process restart: clear in-memory lock
-    assessment.unlockQuestion(testSessionId);
+    // Verify DB has current_question_id persisted
+    const sessionBefore = await db.query.assessmentSessions.findFirst({
+      where: eq(assessmentSessions.id, testSessionId),
+      columns: { current_question_id: true },
+    });
+    expect(sessionBefore?.current_question_id).toBe(testQuestionId);
+
+    // Simulate process restart: clear in-memory lock ONLY (not DB)
+    assessment.clearMemoryLock(testSessionId);
 
     // Verify: should fallback to DB-persisted current_question_id
     const activeId = await assessment.getActiveQuestionId(testSessionId);
