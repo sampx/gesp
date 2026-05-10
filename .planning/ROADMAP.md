@@ -140,7 +140,7 @@ Plans:
 - [x] 03-10-PLAN.md — Gap: 答题页进度修正、header agent logo 与 ready-aware 下一题体验
 - [x] 03-11-PLAN.md — Gap: 持久化激活题目、resume token、report knowledge_stats (Test 8/9)
 - [x] 03-12-PLAN.md — Gap: 课程显示/客观题残留状态/返回按钮 UI 修复 (Test 2/4/10)
-- [ ] 03-13-PLAN.md — Gap: 编程题计数与 FEEDBACK 状态机修复 (Test 3/6)
+- [x] 03-13-PLAN.md — Gap: 编程题计数与 FEEDBACK 状态机修复 (Test 3/6)
 - [x] 03-14-PLAN.md — Gap: Test 1 StrictMode 预期行为文档化（no code change）
 
 ### Phase 4: 教学讲解智能体 + 教学界面

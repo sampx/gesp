@@ -3,15 +3,15 @@ wsf_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-11-PLAN.md
-last_updated: "2026-05-10T07:41:57.692Z"
+stopped_at: Completed 03-13-PLAN.md
+last_updated: "2026-05-10T07:56:27.992Z"
 last_activity: 2026-05-10
 progress:
   total_phases: 9
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 36
-  completed_plans: 35
-  percent: 97
+  completed_plans: 36
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-22)
 
 Phase: 03 (测评定级智能体-测评界面) — EXECUTING
 Phase 2.1: COMPLETED (all 7 plans done)
-Plan: 3 of 14
+Plan: 4 of 14
 **Status:** Ready to execute
 **Last Activity:** 2026-05-10
 
@@ -36,7 +36,7 @@ Plan: 3 of 14
 - Smoke test reveals design flaws (JWT token length, agent prompt visibility) and frontend polling loop
 - 6 requirements covered: ASSESS-01~05 + UI-ASSESS-01
 
-**Progress:** [██████████] 97%
+**Progress:** [██████████] 100%
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Plan: 3 of 14
 | Phase 03-测评定级智能体-测评界面 P10 | 550 | 3 tasks | 6 files |
 | Phase 03 P12 | 322 | 2 tasks | 3 files |
 | Phase 03 P11 | 10 | 2 tasks | 4 files |
+| Phase 03 P13 | 656 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,10 @@ Recent decisions affecting current work:
 - [Phase 03]: Persisted current_question_id survives server restart
 - [Phase 03]: Removed 2h age expiry — incomplete sessions can resume indefinitely
 - [Phase 03]: Empty {} knowledge_stats triggers recomputation
+- [Phase 03]: submit route increments total_answered immediately (submit → +1 answered)
+- [Phase 03]: updateAnswerScore increments total_correct only on first score (idempotent, score >= 6)
+- [Phase 03]: SCORING polls progress for latest_feedback, not next question directly
+- [Phase 03]: pendingDone gates DONE navigation — user must click from FEEDBACK state
 
 ### Todos
 
@@ -159,7 +164,7 @@ None yet.
 
 ## Session Continuity
 
-**Last Session:** 2026-05-10T07:41:57.681Z
-**Stopped At:** Completed 03-11-PLAN.md
+**Last Session:** 2026-05-10T07:56:27.986Z
+**Stopped At:** Completed 03-13-PLAN.md
 **Resume File:** None
 **Next Action:** /wsf-verify-work 03 — run UAT verification, record gaps (JWT token redesign, agent prompt fix, polling loop fix)
