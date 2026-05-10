@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, LogOut, Settings, Bot } from "lucide-react";
+import { ChevronDown, LogOut, Settings, Bot, ArrowLeft } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,8 @@ export function StudentNavbar() {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const pathname = usePathname();
   const isAssessment = pathname.startsWith("/student/assessment");
+  // Show back button on assessment subroutes (detail/report), not on start page
+  const isAssessmentSubroute = /^\/student\/assessment\/[^/]+/.test(pathname);
   const chat = useAssessmentChat();
 
   useEffect(() => {
@@ -58,7 +60,19 @@ export function StudentNavbar() {
 
   return (
     <header className="h-14 flex items-center justify-between px-4 border-b bg-card sticky top-0 z-50">
-      <span className="font-semibold text-base">GESP 智能学习</span>
+      <div className="flex items-center gap-2">
+        {/* Back button for assessment subroutes */}
+        {isAssessmentSubroute && (
+          <Link
+            href="/student/assessment"
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>返回</span>
+          </Link>
+        )}
+        <span className="font-semibold text-base">GESP 智能学习</span>
+      </div>
 
       <div className="flex items-center gap-1">
         {/* Assessment chat toggle — only on assessment routes */}
