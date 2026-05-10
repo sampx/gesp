@@ -18,7 +18,7 @@ Decimal phases appear between integer phases in numerical order.
 - [x] **Phase 01.1: 安全修复 + Debug 界面** — 修复 Phase 1 评审高优先级问题 + 验证界面 (INSERTED) ✓ 2026-04-23
 - [x] **Phase 2: 知识库 + 统一前端骨架** — LanceDB 知识库、向量检索、统一前端骨架（NextJS + shadcn）、登录界面 ✓ 2026-04-25
 - [x] **Phase 2.1: 用户基础流程补齐** — 注册界面、登出功能、密码修改、管理员添加教员/学员、学员账号管理 ✓ 2026-04-25
- - [x] **Phase 3: 测评定级智能体 + 测评界面** — ellamaka assessor agent + gesp SDK 代理 + 学员端测评页面
+ - [x] **Phase 3: 测评定级智能体 + 测评界面** — ellamaka assessor agent + gesp SDK 代理 + 学员端测评页面 ✓ 2026-05-10
  - [ ] **Phase 4: 教学讲解智能体 + 教学界面** — ellamaka teacher agent + SSE 流式 + 学员端教学页面
  - [ ] **Phase 5: 练习判题智能体 + 练习界面** — ellamaka grader agent + 判题反馈 + 学员端练习页面
  - [ ] **Phase 6: 学员仪表板 + 进度整合** — 学员端仪表板、进度追踪、首页整合三个智能体入口
@@ -122,8 +122,8 @@ Plans:
   5. 学员完成 5-10 道题后获得级别定级结果
   6. 测评进度增量保存，可中断后恢复继续
   7. 学员可通过学员端界面参与测评并查看定级结果
-**Plans:** 14 plans (10 executed + 4 gap-closure planned)
-**Status:** Gap closure planned after diagnosed UAT (2026-05-10)
+**Plans:** 14 plans (10 initial + 4 gap-closure)
+**Status:** Complete ✓ (UAT Round 3 verified 2026-05-10)
 
 **UAT note:** Test 1 duplicate requests diagnosed as React StrictMode development-only behavior → 03-14 documents accepted resolution.
 
