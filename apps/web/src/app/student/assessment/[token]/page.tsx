@@ -56,11 +56,16 @@ export default function AssessmentAnswerPage() {
   const [error, setError] = useState("");
   const [doneData, setDoneData] = useState<{ final_level?: number } | null>(null);
 
+  // Pending done state — wait for feedback display before navigating to report
+  const [pendingDone, setPendingDone] = useState(false);
+  const [pendingFinalLevel, setPendingFinalLevel] = useState<number | null>(null);
+
   // Prefetched next question + readiness flag
   const [prefetchedQuestion, setPrefetchedQuestion] = useState<QuestionData | null>(null);
   const [questionReady, setQuestionReady] = useState(false);
 
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scoringPollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -68,6 +73,7 @@ export default function AssessmentAnswerPage() {
     return () => {
       mountedRef.current = false;
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+      if (scoringPollTimerRef.current) clearTimeout(scoringPollTimerRef.current);
     };
   }, []);
 
@@ -138,6 +144,10 @@ export default function AssessmentAnswerPage() {
       clearTimeout(pollTimerRef.current);
       pollTimerRef.current = null;
     }
+    if (scoringPollTimerRef.current) {
+      clearTimeout(scoringPollTimerRef.current);
+      scoringPollTimerRef.current = null;
+    }
     setError("");
     setState("JUDGING");
     try {
@@ -151,8 +161,8 @@ export default function AssessmentAnswerPage() {
       // Handle async scoring for coding questions
       if (res.data.scoring) {
         setState("SCORING");
-        // Poll for next question while agent evaluates
-        pollTimerRef.current = setTimeout(loadNextQuestion, 2000);
+        // Poll progress until latest_feedback becomes available
+        pollForScoringFeedback();
         return;
       }
       setFeedback(res.data);
@@ -166,8 +176,10 @@ export default function AssessmentAnswerPage() {
         }));
       }
       if (res.data.done) {
-        setDoneData({ final_level: res.data.final_level });
-        setState("DONE");
+        // Per T-03-13: don't jump to DONE — show feedback first
+        setPendingDone(true);
+        setPendingFinalLevel(res.data.final_level ?? null);
+        setState("FEEDBACK");
       } else {
         setState("FEEDBACK");
       }
@@ -176,6 +188,56 @@ export default function AssessmentAnswerPage() {
       setState("ANSWERING");
     }
   };
+
+  /**
+   * Poll progress endpoint until latest_feedback becomes available for coding questions.
+   * Once feedback is found, enter FEEDBACK state. If assessment is done, set pendingDone.
+   */
+  const pollForScoringFeedback = useCallback(async () => {
+    const poll = async () => {
+      if (!mountedRef.current) return;
+      try {
+        const res = await getAssessmentProgress(token);
+        if (!mountedRef.current) return;
+        if (res.success && res.data?.latest_feedback) {
+          // Found scored feedback — enter FEEDBACK state
+          const lf = res.data.latest_feedback;
+          setFeedback({
+            is_correct: lf.is_correct,
+            score: lf.score,
+            feedback: lf.feedback,
+          });
+          setProgress(prev => ({
+            ...prev,
+            ...res.data,
+            current_question_number: prev.current_question_number,
+          }));
+          if (res.data.done) {
+            setPendingDone(true);
+            setPendingFinalLevel(res.data.final_level ?? null);
+          }
+          setState("FEEDBACK");
+          return;
+        }
+        // Update progress even if no feedback yet
+        if (res.success && res.data) {
+          setProgress(prev => ({
+            ...prev,
+            ...res.data,
+            current_question_number: prev.current_question_number,
+          }));
+        }
+      } catch {
+        // Continue polling on error
+      }
+      // Poll again in 2 seconds
+      if (mountedRef.current) {
+        scoringPollTimerRef.current = setTimeout(poll, 2000);
+      }
+    };
+    // Start polling after 2s delay (give agent time to score)
+    scoringPollTimerRef.current = setTimeout(poll, 2000);
+  }, [token]);
 
   const handleNext = () => loadNextQuestion();
   const handleViewReport = () => router.push(`/student/assessment/${token}/report`);
@@ -196,27 +258,35 @@ export default function AssessmentAnswerPage() {
           }));
         }
       } else if (res.data?.done) {
-        // Backend says assessment is done
-        setDoneData({ final_level: res.data.final_level });
-        setState("DONE");
+        // Backend says assessment is done — set pendingDone instead of jumping to DONE
+        setPendingDone(true);
+        setPendingFinalLevel(res.data.final_level ?? null);
       }
     } catch {
       // Prefetch failed — user will click and enter normal load flow
     }
   }, [token, state]);
 
-  // Callback: assessment_done SSE event → redirect to report
+  // Callback: assessment_done SSE event → set pendingDone (don't skip feedback)
   const handleAssessmentDone = useCallback((finalLevel?: number) => {
-    setDoneData({ final_level: finalLevel });
-    setState("DONE");
-    // Brief delay for user to see completion state before redirect
-    setTimeout(() => {
-      router.replace(`/student/assessment/${token}/report`);
-    }, 1500);
-  }, [token, router]);
+    setPendingDone(true);
+    setPendingFinalLevel(finalLevel ?? null);
+    // If already in FEEDBACK, update the button to show "查看测评报告"
+    // If in SCORING, the polling will eventually pick up latest_feedback and transition to FEEDBACK
+  }, []);
 
   // Handle Next button click during FEEDBACK
   const handleNextFromFeedback = useCallback(() => {
+    // If assessment is done, navigate to report instead of next question
+    if (pendingDone) {
+      setDoneData({ final_level: pendingFinalLevel ?? undefined });
+      setState("DONE");
+      setTimeout(() => {
+        router.replace(`/student/assessment/${token}/report`);
+      }, 500);
+      return;
+    }
+
     if (prefetchedQuestion) {
       // Swap to prefetched question immediately
       setQuestion(prefetchedQuestion);
@@ -229,7 +299,7 @@ export default function AssessmentAnswerPage() {
       // No prefetched question — fallback to normal load
       loadNextQuestion();
     }
-  }, [prefetchedQuestion, loadNextQuestion]);
+  }, [pendingDone, pendingFinalLevel, prefetchedQuestion, loadNextQuestion, token, router]);
 
   if (state === "DONE") {
     return (
@@ -331,23 +401,34 @@ export default function AssessmentAnswerPage() {
                     <p className="text-sm text-muted-foreground">{feedback.explanation}</p>
                   </div>
                 )}
-                <Button 
-                  className="w-full gap-2" 
-                  size="lg" 
-                  onClick={handleNextFromFeedback}
-                  disabled={!questionReady && !prefetchedQuestion}
-                >
-                  {!questionReady && !prefetchedQuestion ? (
-                    <>
-                      <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      正在准备下一题...
-                    </>
-                  ) : (
-                    <>
-                      下一题 <ArrowRight className="h-4 w-4" />
-                    </>
-                  )}
-                </Button>
+                {/* Per T-03-13: button label changes based on pendingDone */}
+                {!pendingDone ? (
+                  <Button
+                    className="w-full gap-2"
+                    size="lg"
+                    onClick={handleNextFromFeedback}
+                    disabled={!questionReady && !prefetchedQuestion}
+                  >
+                    {!questionReady && !prefetchedQuestion ? (
+                      <>
+                        <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        正在准备下一题...
+                      </>
+                    ) : (
+                      <>
+                        下一题 <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    className="w-full gap-2"
+                    size="lg"
+                    onClick={handleNextFromFeedback}
+                  >
+                    查看测评报告 <ArrowRight className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             )}
           </CardContent>
