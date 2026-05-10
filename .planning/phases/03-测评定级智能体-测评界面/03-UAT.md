@@ -80,9 +80,8 @@ skipped: 0
 ## Gaps
 
 - truth: "开发模式下 API 请求无重复调用"
-  status: failed
-  reason: "User reported: /api/auth/me 调用 4 次、/api/assessment/sessions 调用 2 次、POST /student/dashboard 和 POST /student/assessment 各调用 2 次"
-  root_cause: "React StrictMode 开发模式预期行为，非 bug。StrictMode double-invoke useEffect 帮助发现副作用问题，生产环境自动禁用不受影响"
+  status: accepted
+  resolution: "React StrictMode 开发模式预期行为，非 bug。StrictMode double-invoke useEffect 帮助发现副作用问题，生产环境自动禁用不受影响"
   severity: minor
   test: 1
 
