@@ -8,7 +8,7 @@
     "db:push": "drizzle-kit push --force",
     "build": "bun build ./src/index.ts --outdir ./dist",
     "typecheck": "tsc --noEmit",
-    "test": "bun test",
+    "test": "DATABASE_URL=./data/test.db bun test --preload ./src/__tests__/setup.ts --isolate",
     "seed:knowledge": "EMBEDDING_PROVIDER=mock bun run src/seed/knowledge.seed.ts"
   },
   "dependencies": {

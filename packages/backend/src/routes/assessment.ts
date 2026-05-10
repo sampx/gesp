@@ -334,6 +334,20 @@ app.delete(
     const sessionId = c.req.param("sessionId");
 
     try {
+      // Look up ellamaka session before deleting DB record
+      const session = await db.query.assessmentSessions.findFirst({
+        where: and(
+          eq(assessmentSessions.id, sessionId),
+          eq(assessmentSessions.student_id, user.id),
+        ),
+        columns: { ellamaka_session_id: true },
+      });
+
+      // Clean up ellamaka session
+      if (session?.ellamaka_session_id) {
+        ellamakaClient.deleteSession(session.ellamaka_session_id);
+      }
+
       // Clean up projector if active
       projectorStore.destroy(sessionId);
 
@@ -777,12 +791,21 @@ app.post(
 
     const session = await assessment.resumeSession(body.token);
 
-    // Create new ellamaka session and inject history
     const history = await getSessionHistory(payload.assessment_session_id);
-    const es = await ellamakaClient.createSession(
-      `Resume-${session.id.slice(0, 8)}`,
-      "assessor",
-    );
+
+    // Reuse existing ellamaka session if available, create new one otherwise
+    let esId = session.ellamaka_session_id;
+    if (!esId) {
+      const es = await ellamakaClient.createSession(
+        `Assessment-${session.id.slice(0, 8)}`,
+        "assessor",
+      );
+      esId = es.id;
+      await db
+        .update(assessmentSessions)
+        .set({ ellamaka_session_id: esId })
+        .where(eq(assessmentSessions.id, session.id));
+    }
 
     const systemPrompt = buildSystemPrompt(
       { display_name: "学员" },
@@ -790,7 +813,7 @@ app.post(
       { question_limit: session.config_question_limit, time_limit_min: session.config_time_limit_min },
     );
 
-    await ellamakaClient.promptAsync(es.id, [
+    await ellamakaClient.promptAsync(esId, [
       {
         type: "text",
         text: `当前评估令牌: ${body.token}\n续评恢复。历史记录:\n${history}\n当前级别: ${session.current_level}。请继续选题。`,
@@ -798,12 +821,7 @@ app.post(
     ], systemPrompt);
 
     // Initialize chat projector for resumed session
-    projectorStore.getOrCreate(session.id, es.id);
-
-    await db
-      .update(assessmentSessions)
-      .set({ ellamaka_session_id: es.id })
-      .where(eq(assessmentSessions.id, session.id));
+    projectorStore.getOrCreate(session.id, esId);
 
     return success(c, { session, message: "测评已恢复" });
   },
@@ -1106,6 +1124,12 @@ app.post(
 
     // Per Task 2: emit assessment_done event
     projectorStore.emitAssessmentDone(payload.assessment_session_id, finalLevel);
+
+    // Clean up ellamaka session and projector
+    if (session.ellamaka_session_id) {
+      projectorStore.destroy(payload.assessment_session_id);
+      ellamakaClient.deleteSession(session.ellamaka_session_id);
+    }
 
     logger.info(
       { session_id: payload.assessment_session_id, final_level: finalLevel },

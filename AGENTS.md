@@ -150,6 +150,29 @@ gesp/
 
 ---
 
+## 关键路径速查
+
+| 资源 | 路径 |
+|------|------|
+| Agent 引擎插件（gesp-plugin） | `projects/gesp/.wopal/plugins/gesp-plugin/` |
+| 插件入口（工具注册） | `projects/gesp/.wopal/plugins/gesp-plugin/index.ts` |
+| 插件工具定义 | `projects/gesp/.wopal/plugins/gesp-plugin/tools.ts` |
+| 插件日志 | `projects/gesp/logs/gesp-plugin.log` |
+| Agent 系统提示词（assessor） | `.wopal/agents/assessor.md` |
+| 后端日志 | `projects/gesp/logs/gesp.log` 和 `projects/gesp/packages/backend/logs/gesp.log` |
+
+### 插件工具列表（5 个）
+
+| 工具名 | 用途 |
+|--------|------|
+| `get_question_candidates` | 获取候选题目列表 |
+| `select_next_question` | 锁定下一道题目 |
+| `update_evaluation` | 写入测评综合评价 |
+| `query_progress` | 查询当前测评进度 |
+| `update_answer_score` | 为编程题评分并写入反馈 |
+
+> **注意**：新增工具后必须同时在 `index.ts` 中 import 并加入 `tools` 记录，否则工具不生效。这是曾经的生产 Bug —— `query_progress` 和 `update_answer_score` 在 `tools.ts` 中已定义但 `index.ts` 遗漏注册，导致 agent 调用失败。
+
 ## 2. 命令速查
 
 | 命令 | 说明 |
@@ -157,7 +180,7 @@ gesp/
 | `bun run dev` | 启动开发服务器（自动建表 + seed root admin） |
 | `bun run db:push` | 同步表结构 |
 | `bun run typecheck` | 类型检查 |
-| `bun run test` | 单元测试 |
+| `bun run test` | 单元测试（自动使用 `data/test.db`，隔离于生产库） |
 | `bun run seed:knowledge` | 知识库 seed（补 seed 缺失表） |
 | `bun run seed:knowledge -- --force` | 知识库 seed（强制重建全部表） |
 | `EMBEDDING_PROVIDER=mock bun run seed:knowledge` | 知识库 seed（mock embedding，无需 Ollama） |

@@ -198,6 +198,20 @@ export class EllamakaClient {
   }
 
   /**
+   * Delete an ellamaka session and all its data
+   * DELETE /session/{sessionID}?directory={dir}
+   */
+  async deleteSession(sessionId: string): Promise<void> {
+    const url = `${this.baseUrl}/session/${sessionId}?directory=${encodeURIComponent(this.directory)}`;
+    const res = await this.fetchWithRetry(url, { method: "DELETE" });
+    if (!res.ok) {
+      logger.warn({ ellamaka_session_id: sessionId, status: res.status }, "Failed to delete ellamaka session");
+    } else {
+      logger.info({ ellamaka_session_id: sessionId }, "Ellamaka session deleted");
+    }
+  }
+
+  /**
    * Fetch with exponential backoff retry
    * 3 retries with delays: 1000ms, 2000ms, 4000ms
    */

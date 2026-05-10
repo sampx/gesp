@@ -316,7 +316,93 @@ export const requestLogger: MiddlewareHandler = async (c, next) => {
 
 ---
 
-## 5. 代码约束
+## 5. 测试铁律
+
+> 测试污染生产数据是不可接受的生产事故。本规范是最高优先级的强制约束。
+
+### 数据库隔离（绝对强制）
+
+| 规则 | 违规后果 |
+|------|---------|
+| 测试必须使用独立数据库（`test.db`） | 直接操作生产数据库 = 用户数据全部丢失 |
+| 禁止 `db.delete(table)` 不带 WHERE 条件 | 全表删除不可逆 |
+| 测试数据必须以 `test-` 为前缀 | 无法区分测试数据与真实数据 |
+| 清理时只删测试前缀数据，使用 `like(name, 'test-%')` | 误删真实用户 |
+
+### vitest.config.ts 标准配置
+
+```typescript
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: "node",
+    include: ["src/**/*.test.ts"],
+    env: {
+      DATABASE_URL: "./data/test.db", // 独立测试数据库 — 强制
+      NODE_ENV: "test",
+    },
+    setupFiles: ["./src/__tests__/setup.ts"],
+  },
+});
+```
+
+### 测试数据生命周期
+
+```typescript
+const TEST = "test-";
+
+beforeEach(async () => {
+  // ✅ 正确：仅删除测试前缀数据
+  await db.delete(users).where(like(users.username, `${TEST}%`));
+  await db.insert(users).values({ username: `${TEST}user-1`, ... });
+
+  // ❌ 绝对禁止
+  // await db.delete(users);  // 全表删除 = 生产事故
+});
+
+afterAll(async () => {
+  // 按测试前缀完整清理
+  await db.delete(assessmentAnswers).where(
+    inArray(assessmentAnswers.session_id, testSessionIds)
+  );
+  await db.delete(assessmentSessions).where(
+    like(assessmentSessions.token, `${TEST}%`)
+  );
+  await db.delete(users).where(like(users.username, `${TEST}%`));
+});
+```
+
+**模式**：创建时打前缀 → 清理时按前缀 → 不留残留，不碰生产。
+
+### Agent/审查者职责
+
+委派包含测试的 plan 前，必须确认以下三项，缺一不可：
+
+1. `vitest.config.ts` 已配置 `DATABASE_URL=./data/test.db`
+2. 测试代码中无 `db.delete(table)` 不带 WHERE 子句
+3. 所有测试数据使用 `test-` 前缀
+
+**此项检查不通过 → 不得委派执行。**
+
+### 测试进程隔离（`--isolate`）
+
+Bun test 默认共享模块缓存，`vi.mock()` 会污染全局。使用 `--isolate` 让每个测试文件拥有独立的全局作用域，mock 不跨文件泄漏。
+
+```json
+// packages/backend/package.json
+"test": "DATABASE_URL=./data/test.db bun test --preload ./src/__tests__/setup.ts --isolate"
+```
+
+| 规则 | 说明 |
+|------|------|
+| `bun test` 必须带 `--isolate` | 防止 `vi.mock` 跨文件泄漏 |
+| 无需拆分 `test:db` / `test:unit` | `--isolate` 后 mock 文件和 DB 文件可在同一进程中正确运行 |
+
+---
+
+## 6. 代码约束
 
 - **禁止** `export default app` — Bun 自动调用 `Bun.serve()` 导致端口冲突
 - **禁止** `console.log` / `console.error` — 统一使用 `logger`

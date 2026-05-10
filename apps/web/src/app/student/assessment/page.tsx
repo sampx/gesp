@@ -32,8 +32,8 @@ export default function AssessmentStartPage() {
     setHistoryLoading(true);
     getAssessmentHistory()
       .then((res) => {
-        if (res.success && res.data) {
-          setSessions(res.data as SessionSummary[]);
+        if (res.success && res.data?.sessions) {
+          setSessions(res.data.sessions as SessionSummary[]);
         }
       })
       .catch(() => {
