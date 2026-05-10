@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 
 interface ObjectiveQuestionProps {
@@ -31,6 +31,12 @@ function parseObjective(content: string): { stem: string; options: Array<{ key: 
 export function ObjectiveQuestion({ content, disabled, onAnswer }: ObjectiveQuestionProps) {
   const [selected, setSelected] = useState("");
   const { stem, options } = parseObjective(content);
+
+  // Reset selected state when question content changes
+  useEffect(() => {
+    setSelected("");
+    onAnswer("");
+  }, [content, onAnswer]);
 
   return (
     <div className="space-y-6">

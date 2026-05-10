@@ -145,7 +145,11 @@ export default function AssessmentStartPage() {
           <div className="space-y-2">
             <Label>课程</Label>
             <Select value={courseId} onValueChange={(v) => v && setCourseId(v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue>
+                  {courseId === "cpp" ? "C++ 编程" : courseId}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="cpp">C++ 编程</SelectItem>
               </SelectContent>
