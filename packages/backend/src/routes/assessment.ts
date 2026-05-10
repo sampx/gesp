@@ -620,13 +620,25 @@ app.post(
         question_type: question.question_type,
       });
 
+      // Per T-03-13-01: increment total_answered immediately so agent sees correct count
+      // is_correct=false initially — will be updated when answer-score arrives
+      // Note: answer-score will also increment total_answered on first score,
+      // so we must NOT double-count. We use a dedicated counter update that
+      // only increments total_answered without touching total_correct.
+      const session = await db.query.assessmentSessions.findFirst({
+        where: eq(assessmentSessions.id, payload.assessment_session_id),
+      });
+      if (session) {
+        await db
+          .update(assessmentSessions)
+          .set({ total_answered: (session.total_answered ?? 0) + 1 })
+          .where(eq(assessmentSessions.id, payload.assessment_session_id));
+      }
+
       // Unlock so frontend waits for agent to select next question
       assessment.unlockQuestion(payload.assessment_session_id);
 
       // Send to agent for evaluation with progress context
-      const session = await db.query.assessmentSessions.findFirst({
-        where: eq(assessmentSessions.id, payload.assessment_session_id),
-      });
       if (session?.ellamaka_session_id) {
         const progress = await assessment.getProgress(payload.assessment_session_id);
         const progressPct = Math.round((progress.total_answered / progress.config_question_limit) * 100);

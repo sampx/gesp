@@ -14,7 +14,7 @@ import {
   type LevelHistoryEntry,
   type KnowledgeStat,
 } from "../db/schema/assessment";
-import { eq, and, ne, inArray, notInArray, sql, count, sum } from "drizzle-orm";
+import { eq, and, ne, inArray, notInArray, sql, count, sum, desc } from "drizzle-orm";
 import { logger } from "../utils/logger";
 
 // ---------------------------------------------------------------------------
@@ -52,6 +52,15 @@ export interface CandidateSummary {
   short_summary: string; // first 100 chars of content
 }
 
+export interface LatestFeedback {
+  question_id: string;
+  score: number;
+  feedback: string;
+  is_correct: boolean;
+  knowledge_point: string;
+  question_type: string;
+}
+
 export interface ProgressData {
   current_level: number;
   total_answered: number;
@@ -66,6 +75,7 @@ export interface ProgressData {
   evaluation: string | null;
   status: string;
   done: boolean;
+  latest_feedback: LatestFeedback | null;
 }
 
 export interface AssessmentSession {
@@ -425,8 +435,49 @@ export async function computeKnowledgeStats(
 }
 
 /**
+ * Get the latest scored coding answer feedback for a session.
+ * Per T-03-13-02: binds to most recent answer row with non-null score.
+ * Returns null if no scored coding answers exist.
+ */
+export async function getLatestCodingFeedback(sessionId: string): Promise<LatestFeedback | null> {
+  const answer = await db
+    .select({
+      question_id: assessmentAnswers.question_id,
+      score: assessmentAnswers.score,
+      feedback: assessmentAnswers.feedback,
+      is_correct: assessmentAnswers.is_correct,
+      knowledge_point: assessmentAnswers.knowledge_point,
+      question_type: assessmentAnswers.question_type,
+    })
+    .from(assessmentAnswers)
+    .where(
+      and(
+        eq(assessmentAnswers.session_id, sessionId),
+        eq(assessmentAnswers.question_type, "coding"),
+      ),
+    )
+    .orderBy(desc(assessmentAnswers.question_order))
+    .limit(1);
+
+  const row = answer[0];
+  if (!row || row.score === null || row.feedback === null) {
+    return null;
+  }
+
+  return {
+    question_id: row.question_id,
+    score: row.score,
+    feedback: row.feedback,
+    is_correct: row.is_correct === 1,
+    knowledge_point: row.knowledge_point,
+    question_type: row.question_type,
+  };
+}
+
+/**
  * Get current progress data for a session.
  * Returns time tracking, remaining counts, and completion status.
+ * Per T-03-13-02: includes latest_feedback for frontend polling.
  */
 export async function getProgress(sessionId: string): Promise<ProgressData> {
   const session = await db.query.assessmentSessions.findFirst({
@@ -452,6 +503,9 @@ export async function getProgress(sessionId: string): Promise<ProgressData> {
   const remainingQuestions = Math.max(0, configQuestionLimit - totalAnswered);
   const done = session.status === "completed";
 
+  // Per T-03-13-02: include latest scored coding feedback for frontend polling
+  const latestFeedback = await getLatestCodingFeedback(sessionId);
+
   return {
     current_level: session.current_level,
     total_answered: totalAnswered,
@@ -466,6 +520,7 @@ export async function getProgress(sessionId: string): Promise<ProgressData> {
     evaluation: session.evaluation,
     status: session.status,
     done,
+    latest_feedback: latestFeedback,
   };
 }
 
@@ -582,13 +637,15 @@ export async function completeSession(
 /**
  * Update score and feedback for a coding answer.
  * Per Task 2: derive is_correct from score threshold (score >= 6 → correct).
+ * Per T-03-13-01: idempotent — only increments session counters on first score.
+ * Returns { newly_scored, is_correct } for caller to know if counters changed.
  */
 export async function updateAnswerScore(params: {
   sessionId: string;
   questionId: string;
   score: number;
   feedback: string;
-}): Promise<void> {
+}): Promise<{ newly_scored: boolean; is_correct: boolean }> {
   // Find the answer row
   const answer = await db.query.assessmentAnswers.findFirst({
     where: and(
@@ -604,6 +661,9 @@ export async function updateAnswerScore(params: {
   // Derive is_correct from score threshold (score >= 6 → correct)
   const isCorrect = params.score >= 6 ? 1 : 0;
 
+  // Per T-03-13-01: idempotency — check if already scored
+  const newlyScored = answer.score === null;
+
   await db
     .update(assessmentAnswers)
     .set({
@@ -613,10 +673,29 @@ export async function updateAnswerScore(params: {
     })
     .where(eq(assessmentAnswers.id, answer.id));
 
+  // Per T-03-13-01: only increment total_correct on first score (not total_answered)
+  // total_answered is already incremented by the submit route when the answer is submitted
+  if (newlyScored && isCorrect) {
+    const session = await db.query.assessmentSessions.findFirst({
+      where: eq(assessmentSessions.id, params.sessionId),
+    });
+
+    if (session) {
+      await db
+        .update(assessmentSessions)
+        .set({
+          total_correct: (session.total_correct ?? 0) + 1,
+        })
+        .where(eq(assessmentSessions.id, params.sessionId));
+    }
+  }
+
   logger.info(
-    { session_id: params.sessionId, question_id: params.questionId, score: params.score, is_correct: isCorrect },
+    { session_id: params.sessionId, question_id: params.questionId, score: params.score, is_correct: isCorrect, newly_scored: newlyScored },
     "Coding answer scored",
   );
+
+  return { newly_scored: newlyScored, is_correct: isCorrect === 1 };
 }
 
 /**
