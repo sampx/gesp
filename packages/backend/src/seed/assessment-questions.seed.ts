@@ -4,7 +4,7 @@
  * Seeds assessment questions into SQLite and LanceDB.
  * Question bank requirements (per D-16):
  *   - 1-8 levels, no gaps
- *   - 5 questions per level (3 objective + 2 coding)
+ *   - 5 questions per level (3 objective + 2 coding), Levels 1-4 expanded to 10
  *   - All questions production-ready (no placeholders)
  *
  * Usage:
@@ -109,6 +109,79 @@ export const ASSESSMENT_QUESTIONS: SeedQuestion[] = [
     status: "active",
     created_by: "manual",
   },
+  // --- Level 1 扩充 (difficulty 1-3) ---
+  {
+    course_id: "cpp",
+    level: 1,
+    knowledge_point: "常量定义",
+    question_type: "objective",
+    difficulty: 1,
+    content:
+      "在C++中，定义一个不可修改的常量应该使用哪个关键字？\nA. let\nB. const\nC. final\nD. static",
+    answer: "B",
+    explanation:
+      "const关键字定义常量，常量在程序运行期间不能被修改。例如 const int PI = 3.14; 定义后PI的值不能再改变。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 1,
+    knowledge_point: "类型转换",
+    question_type: "objective",
+    difficulty: 2,
+    content:
+      "以下代码输出什么？\n```cpp\nint a = 7, b = 2;\ncout << a / b;\n```\nA. 3.5\nB. 3\nC. 4\nD. 3.0",
+    answer: "B",
+    explanation:
+      "两个整数相除，结果仍为整数，小数部分直接丢弃（截断）。7/2=3，不是3.5。要得到3.5需要至少一个操作数是浮点数。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 1,
+    knowledge_point: "运算符优先级",
+    question_type: "objective",
+    difficulty: 3,
+    content:
+      "表达式 `2 + 3 * 4` 的结果是多少？\nA. 20\nB. 14\nC. 24\nD. 9",
+    answer: "B",
+    explanation:
+      "乘法优先级高于加法，先算3*4=12，再加2得到14。要改变顺序需用括号：(2+3)*4=20。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 1,
+    knowledge_point: "变量赋值",
+    question_type: "coding",
+    difficulty: 2,
+    content:
+      "编写程序，输入两个整数a和b，交换它们的值后输出。要求交换后先输出a再输出b，用空格分隔。\n\n示例：\n输入：3 5\n输出：5 3",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint main() {\n  int a, b;\n  cin >> a >> b;\n  int temp = a;\n  a = b;\n  b = temp;\n  cout << a << \" \" << b;\n  return 0;\n}",
+    explanation:
+      "使用临时变量temp保存a的值，然后将b赋给a，再将temp赋给b，完成两个变量的值交换。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 1,
+    knowledge_point: "输入输出",
+    question_type: "coding",
+    difficulty: 3,
+    content:
+      "编写程序，输入一个三位数的整数，分别输出它的百位、十位和个位数字，每个数字占一行。\n\n示例：\n输入：365\n输出：\n3\n6\n5",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint main() {\n  int n;\n  cin >> n;\n  cout << n / 100 << endl;\n  cout << n / 10 % 10 << endl;\n  cout << n % 10 << endl;\n  return 0;\n}",
+    explanation:
+      "百位：n/100（整除得到百位数字）；十位：n/10%10（先去掉个位再取余）；个位：n%10（直接取余）。",
+    status: "active",
+    created_by: "manual",
+  },
   // ===== LEVEL 2: 条件判断与循环 =====
   {
     course_id: "cpp",
@@ -178,6 +251,79 @@ export const ASSESSMENT_QUESTIONS: SeedQuestion[] = [
       "#include <iostream>\nusing namespace std;\nint main() {\n  int n, sum = 0;\n  cin >> n;\n  int i = 1;\n  while (i <= n) {\n    sum += i;\n    i++;\n  }\n  cout << sum;\n  return 0;\n}",
     explanation:
       "使用while循环累加1到n，初始化i=1和sum=0，每次循环加i到sum，i自增，直到i>n。",
+    status: "active",
+    created_by: "manual",
+  },
+  // --- Level 2 扩充 (difficulty 4-5) ---
+  {
+    course_id: "cpp",
+    level: 2,
+    knowledge_point: "嵌套if",
+    question_type: "objective",
+    difficulty: 4,
+    content:
+      "以下代码输出什么？\n```cpp\nint x = 5, y = 10;\nif (x > 3) {\n  if (y > 8) {\n    cout << \"A\";\n  } else {\n    cout << \"B\";\n  }\n} else {\n  cout << \"C\";\n}\n```\nA. A\nB. B\nC. C\nD. AB",
+    answer: "A",
+    explanation:
+      "x=5>3成立进入外层if，y=10>8成立进入内层if，输出A。嵌套if需要逐层判断条件。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 2,
+    knowledge_point: "逻辑运算符",
+    question_type: "objective",
+    difficulty: 4,
+    content:
+      "以下代码输出什么？\n```cpp\nint a = 3, b = 5;\nif (a > 0 && b > 0) {\n  cout << \"正\";\n} else {\n  cout << \"非\";\n}\n```\nA. 正\nB. 非\nC. 无输出\nD. 正非",
+    answer: "A",
+    explanation:
+      "&&是逻辑与运算符，两个条件都为真时结果为真。a=3>0且b=5>0，两个都成立，输出\"正\"。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 2,
+    knowledge_point: "嵌套循环",
+    question_type: "objective",
+    difficulty: 5,
+    content:
+      "以下代码输出多少个\"*\"？\n```cpp\nfor (int i = 1; i <= 3; i++) {\n  for (int j = 1; j <= 2; j++) {\n    cout << \"*\";\n  }\n}\n```\nA. 5\nB. 6\nC. 8\nD. 9",
+    answer: "B",
+    explanation:
+      "外层循环3次（i=1,2,3），每次内层循环2次（j=1,2），总共3*2=6次，输出6个\"*\"。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 2,
+    knowledge_point: "条件分支",
+    question_type: "coding",
+    difficulty: 4,
+    content:
+      "编写程序，输入一个整数成绩（0-100），输出对应等级：90及以上输出\"A\"，80-89输出\"B\"，70-79输出\"C\"，60-69输出\"D\"，低于60输出\"E\"。\n\n示例：\n输入：85\n输出：B",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint main() {\n  int score;\n  cin >> score;\n  if (score >= 90) cout << \"A\";\n  else if (score >= 80) cout << \"B\";\n  else if (score >= 70) cout << \"C\";\n  else if (score >= 60) cout << \"D\";\n  else cout << \"E\";\n  return 0;\n}",
+    explanation:
+      "使用多分支if-else判断成绩范围，注意判断顺序从高分到低分，避免条件重叠。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 2,
+    knowledge_point: "循环累加",
+    question_type: "coding",
+    difficulty: 5,
+    content:
+      "编写程序，输入一个正整数n，计算并输出n以内（包括n）所有偶数的和。\n\n示例：\n输入：10\n输出：30（即2+4+6+8+10）",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint main() {\n  int n;\n  cin >> n;\n  int sum = 0;\n  for (int i = 2; i <= n; i += 2) {\n    sum += i;\n  }\n  cout << sum;\n  return 0;\n}",
+    explanation:
+      "从2开始每次加2遍历所有偶数，累加求和。也可以用i%2==0判断偶数。",
     status: "active",
     created_by: "manual",
   },
@@ -254,6 +400,79 @@ export const ASSESSMENT_QUESTIONS: SeedQuestion[] = [
     status: "active",
     created_by: "manual",
   },
+  // --- Level 3 扩充 (difficulty 5-6) ---
+  {
+    course_id: "cpp",
+    level: 3,
+    knowledge_point: "数组查找",
+    question_type: "objective",
+    difficulty: 5,
+    content:
+      "以下代码输出什么？\n```cpp\nint arr[5] = {10, 20, 30, 40, 50};\nint target = 30;\nfor (int i = 0; i < 5; i++) {\n  if (arr[i] == target) {\n    cout << i;\n    break;\n  }\n}\n```\nA. 2\nB. 3\nC. 30\nD. 10",
+    answer: "A",
+    explanation:
+      "线性查找：从下标0开始遍历数组，找到第一个等于目标值30的元素时输出其下标2并跳出循环。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 3,
+    knowledge_point: "字符串处理",
+    question_type: "objective",
+    difficulty: 5,
+    content:
+      "string变量s的值为\"abcde\"，s.substr(1, 3)的结果是？\nA. \"abc\"\nB. \"bcd\"\nC. \"cde\"\nD. \"abcd\"",
+    answer: "B",
+    explanation:
+      "substr(pos, len)从位置pos开始取len个字符。s.substr(1,3)从下标1（字符'b'）开始取3个字符，得到\"bcd\"。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 3,
+    knowledge_point: "函数参数传递",
+    question_type: "objective",
+    difficulty: 6,
+    content:
+      "以下哪个函数定义可以修改传入变量的值？\nA. void add(int a) { a = a + 1; }\nB. void add(int& a) { a = a + 1; }\nC. void add(const int a) { a = a + 1; }\nD. void add(int* a) { a = a + 1; }",
+    answer: "B",
+    explanation:
+      "引用参数（int&）可以直接修改传入变量的值。普通参数只是复制值，修改不影响原变量。const参数不能修改。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 3,
+    knowledge_point: "数组统计",
+    question_type: "coding",
+    difficulty: 5,
+    content:
+      "编写程序，输入n（n≤100）和n个整数，找出数组中最大值和最小值，先输出最大值再输出最小值，用空格分隔。\n\n示例：\n输入：5 3 7 1 9 4\n输出：9 1",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint main() {\n  int n;\n  cin >> n;\n  int arr[100];\n  for (int i = 0; i < n; i++) cin >> arr[i];\n  int maxVal = arr[0], minVal = arr[0];\n  for (int i = 1; i < n; i++) {\n    if (arr[i] > maxVal) maxVal = arr[i];\n    if (arr[i] < minVal) minVal = arr[i];\n  }\n  cout << maxVal << \" \" << minVal;\n  return 0;\n}",
+    explanation:
+      "初始化maxVal和minVal为第一个元素，遍历数组更新最大值和最小值。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 3,
+    knowledge_point: "字符串计数",
+    question_type: "coding",
+    difficulty: 6,
+    content:
+      "编写程序，输入一个字符串（不含空格），统计其中大写字母、小写字母和数字字符的个数，分别输出，用空格分隔。\n\n示例：\n输入：Abc123Xyz\n输出：2 5 3",
+    answer:
+      "#include <iostream>\n#include <string>\nusing namespace std;\nint main() {\n  string s;\n  cin >> s;\n  int upper = 0, lower = 0, digit = 0;\n  for (int i = 0; i < s.length(); i++) {\n    if (s[i] >= 'A' && s[i] <= 'Z') upper++;\n    else if (s[i] >= 'a' && s[i] <= 'z') lower++;\n    else if (s[i] >= '0' && s[i] <= '9') digit++;\n  }\n  cout << upper << \" \" << lower << \" \" << digit;\n  return 0;\n}",
+    explanation:
+      "遍历字符串每个字符，使用ASCII范围判断：A-Z是大写字母，a-z是小写字母，0-9是数字。",
+    status: "active",
+    created_by: "manual",
+  },
   // ===== LEVEL 4: 递归、排序与结构体 =====
   {
     course_id: "cpp",
@@ -324,6 +543,79 @@ export const ASSESSMENT_QUESTIONS: SeedQuestion[] = [
       "#include <iostream>\nusing namespace std;\nint main() {\n  int n, arr[100];\n  cin >> n;\n  for (int i = 0; i < n; i++) cin >> arr[i];\n  for (int i = 0; i < n-1; i++) {\n    for (int j = 0; j < n-i-1; j++) {\n      if (arr[j] > arr[j+1]) swap(arr[j], arr[j+1]);\n    }\n  }\n  for (int i = 0; i < n; i++) cout << arr[i] << \" \";\n  return 0;\n}",
     explanation:
       "冒泡排序双重循环：外层控制轮数，内层控制每轮比较次数。相邻元素比较交换，每轮将最大值移到末尾。",
+    status: "active",
+    created_by: "manual",
+  },
+  // --- Level 4 扩充 (difficulty 6-8) ---
+  {
+    course_id: "cpp",
+    level: 4,
+    knowledge_point: "选择排序",
+    question_type: "objective",
+    difficulty: 6,
+    content:
+      "选择排序每轮遍历后，哪个元素会被放到正确位置？\nA. 当前未排序部分的最小元素\nB. 当前未排序部分的最大元素\nC. 数组的第一个元素\nD. 随机一个元素",
+    answer: "A",
+    explanation:
+      "选择排序每轮从未排序部分找到最小元素，放到已排序部分的末尾（当前轮次的起始位置）。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 4,
+    knowledge_point: "结构体数组",
+    question_type: "objective",
+    difficulty: 6,
+    content:
+      "以下代码输出什么？\n```cpp\nstruct Point { int x, y; }; \nPoint p[2] = {{1, 2}, {3, 4}};\ncout << p[1].x;\n```\nA. 1\nB. 2\nC. 3\nD. 4",
+    answer: "C",
+    explanation:
+      "p[1]是数组第二个元素（下标1），其x坐标为3。结构体数组通过下标访问元素，再通过.访问成员。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 4,
+    knowledge_point: "递归原理",
+    question_type: "objective",
+    difficulty: 7,
+    content:
+      "调用factorial(3)时，函数调用的顺序是？（factorial函数定义：if (n<=1) return 1; return n*factorial(n-1);）\nA. factorial(3) → factorial(2) → factorial(1)\nB. factorial(1) → factorial(2) → factorial(3)\nC. factorial(3) → factorial(1) → factorial(2)\nD. factorial(3) 只调用一次",
+    answer: "A",
+    explanation:
+      "递归调用顺序：factorial(3)调用factorial(2)，后者再调用factorial(1)。factorial(1)返回1结束递归，然后逐层返回计算结果。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 4,
+    knowledge_point: "结构体与函数",
+    question_type: "coding",
+    difficulty: 7,
+    content:
+      "定义一个表示学生信息的结构体Student，包含姓名（string）和成绩（int）。编写程序，输入3个学生的姓名和成绩，输出成绩最高的学生的姓名。\n\n示例：\n输入：\nTom 85\nJerry 92\nAlice 88\n输出：Jerry",
+    answer:
+      "#include <iostream>\n#include <string>\nusing namespace std;\nstruct Student { string name; int score; }; \nint main() {\n  Student s[3];\n  for (int i = 0; i < 3; i++) {\n    cin >> s[i].name >> s[i].score;\n  }\n  int maxIdx = 0;\n  for (int i = 1; i < 3; i++) {\n    if (s[i].score > s[maxIdx].score) maxIdx = i;\n  }\n  cout << s[maxIdx].name;\n  return 0;\n}",
+    explanation:
+      "结构体数组存储学生信息，遍历数组找到成绩最高的学生，记录其下标后输出姓名。",
+    status: "active",
+    created_by: "manual",
+  },
+  {
+    course_id: "cpp",
+    level: 4,
+    knowledge_point: "递归斐波那契",
+    question_type: "coding",
+    difficulty: 8,
+    content:
+      "用递归函数计算斐波那契数列的第n项（fib(1)=1, fib(2)=1, fib(n)=fib(n-1)+fib(n-2)）。输入n（n≤20），输出fib(n)。\n\n示例：\n输入：10\n输出：55",
+    answer:
+      "#include <iostream>\nusing namespace std;\nint fib(int n) {\n  if (n <= 2) return 1;\n  return fib(n - 1) + fib(n - 2);\n}\nint main() {\n  int n;\n  cin >> n;\n  cout << fib(n);\n  return 0;\n}",
+    explanation:
+      "斐波那契递归定义：终止条件n<=2返回1；递归式fib(n-1)+fib(n-2)。fib(10)=55。",
     status: "active",
     created_by: "manual",
   },

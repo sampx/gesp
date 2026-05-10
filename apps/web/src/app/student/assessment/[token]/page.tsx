@@ -20,6 +20,7 @@ interface QuestionData {
   id: string;
   question_type: "objective" | "coding";
   level: number;
+  difficulty: number;
   knowledge_point: string;
   content: string;
 }
@@ -350,7 +351,11 @@ export default function AssessmentAnswerPage() {
             <div className="flex items-center gap-2">
               <Badge variant="secondary">{question.question_type === "objective" ? "选择题" : "编程题"}</Badge>
               <Badge variant="outline">{question.knowledge_point}</Badge>
-              <span className="text-xs text-muted-foreground ml-auto">难度 {question.level}</span>
+              <span className="text-xs text-muted-foreground ml-auto flex items-center gap-2">
+                <span>Lv.{question.level}</span>
+                <span className="text-border">|</span>
+                <span>难度 {question.difficulty}</span>
+              </span>
             </div>
 
             {question.question_type === "objective" ? (
