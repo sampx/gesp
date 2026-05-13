@@ -63,6 +63,7 @@ export interface LatestFeedback {
 
 export interface ProgressData {
   current_level: number;
+  final_level: number | null;
   total_answered: number;
   total_correct: number;
   config_question_limit: number;
@@ -508,6 +509,7 @@ export async function getProgress(sessionId: string): Promise<ProgressData> {
 
   return {
     current_level: session.current_level,
+    final_level: session.final_level,
     total_answered: totalAnswered,
     total_correct: session.total_correct ?? 0,
     config_question_limit: configQuestionLimit,

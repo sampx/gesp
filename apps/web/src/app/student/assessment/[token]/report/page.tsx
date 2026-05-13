@@ -1,26 +1,67 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Clock, Target, ArrowRight, RefreshCw, BookOpen } from "lucide-react";
+import { Trophy, Target, RefreshCw, BookOpen } from "lucide-react";
 import { ReportChart } from "@/components/assessment/report-chart";
 import { getAssessmentProgress } from "@/lib/server-api";
+
+interface KnowledgeStat {
+  total: number;
+  correct: number;
+}
+
+interface ReportData {
+  done?: boolean;
+  final_level?: number | null;
+  total_answered?: number;
+  total_correct?: number;
+  knowledge_stats?: Record<string, KnowledgeStat>;
+  evaluation?: string | null;
+}
+
+function isReportReady(data?: ReportData | null): boolean {
+  return Boolean(data?.done && data.final_level != null && data.evaluation?.trim());
+}
 
 export default function AssessmentReportPage() {
   const params = useParams<{ token: string }>();
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    getAssessmentProgress(params.token)
-      .then(res => { if (res.success) setData(res.data); })
-      .finally(() => setLoading(false));
+    let active = true;
+
+    const load = async () => {
+      try {
+        const res = await getAssessmentProgress(params.token);
+        if (!active || !res.success) return;
+
+        setData(res.data);
+
+        if (!isReportReady(res.data)) {
+          pollTimerRef.current = setTimeout(load, 2000);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      active = false;
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    };
   }, [params.token]);
 
   if (loading) {
@@ -42,6 +83,24 @@ export default function AssessmentReportPage() {
     );
   }
 
+  if (!isReportReady(data)) {
+    return (
+      <div className="space-y-6 py-8">
+        <div>
+          <h1 className="text-2xl font-semibold">测评报告</h1>
+          <p className="text-muted-foreground mt-1">你的测评结果和学习建议</p>
+        </div>
+
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground">
+            <div className="h-5 w-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <p>正在生成测评报告...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 py-8">
       <div>
@@ -58,7 +117,7 @@ export default function AssessmentReportPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-center">
-            <Badge className="text-3xl px-8 py-4 font-bold">Lv.{data.final_level || data.current_level}</Badge>
+            <Badge className="text-3xl px-8 py-4 font-bold">Lv.{data.final_level}</Badge>
           </div>
           <div className="grid grid-cols-2 gap-4 text-center">
             <div>

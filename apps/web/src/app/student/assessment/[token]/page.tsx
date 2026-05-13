@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, ArrowRight, Trophy } from "lucide-react";
+import { CheckCircle, XCircle, ArrowRight } from "lucide-react";
 import { ObjectiveQuestion } from "@/components/assessment/objective-question";
 import { CodingQuestion } from "@/components/assessment/coding-question";
 import { ChatPanel } from "@/components/assessment/chat-panel";
 import { ProgressBar } from "@/components/assessment/progress-bar";
 import { getNextQuestion, submitAnswer, getAssessmentProgress } from "@/lib/server-api";
 
-type State = "LOADING_QUESTION" | "ANSWERING" | "JUDGING" | "SCORING" | "FEEDBACK" | "DONE";
+type State = "LOADING_QUESTION" | "ANSWERING" | "JUDGING" | "SCORING" | "FEEDBACK";
 
 interface QuestionData {
   id: string;
@@ -31,6 +31,16 @@ interface FeedbackData {
   feedback?: string;
   correct_answer?: string;
   explanation?: string;
+}
+
+interface ReportStatusData {
+  done?: boolean;
+  final_level?: number | null;
+  evaluation?: string | null;
+}
+
+function isReportReady(data?: ReportStatusData | null): boolean {
+  return Boolean(data?.done && data.final_level != null && data.evaluation?.trim());
 }
 
 export default function AssessmentAnswerPage() {
@@ -55,11 +65,11 @@ export default function AssessmentAnswerPage() {
     done: false,
   });
   const [error, setError] = useState("");
-  const [doneData, setDoneData] = useState<{ final_level?: number } | null>(null);
 
-  // Pending done state — wait for feedback display before navigating to report
+  // Pending done state — assessment finished, waiting for report generation
   const [pendingDone, setPendingDone] = useState(false);
-  const [pendingFinalLevel, setPendingFinalLevel] = useState<number | null>(null);
+  // Report ready state — report page has all required data (done + final_level + evaluation)
+  const [reportReady, setReportReady] = useState(false);
 
   // Prefetched next question + readiness flag
   const [prefetchedQuestion, setPrefetchedQuestion] = useState<QuestionData | null>(null);
@@ -67,6 +77,7 @@ export default function AssessmentAnswerPage() {
 
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scoringPollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reportPollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -75,6 +86,7 @@ export default function AssessmentAnswerPage() {
       mountedRef.current = false;
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
       if (scoringPollTimerRef.current) clearTimeout(scoringPollTimerRef.current);
+      if (reportPollTimerRef.current) clearTimeout(reportPollTimerRef.current);
     };
   }, []);
 
@@ -108,9 +120,11 @@ export default function AssessmentAnswerPage() {
         if (res.data.progress) setProgress(prev => ({ ...prev, ...res.data.progress }));
         pollTimerRef.current = setTimeout(loadNextQuestion, 2000);
       } else if (res.data?.done) {
-        // Backend says assessment is done
-        setDoneData({ final_level: res.data.final_level });
-        setState("DONE");
+        setPendingDone(true);
+        if (isReportReady(res.data)) {
+          setReportReady(true);
+          router.replace(`/student/assessment/${token}/report`);
+        }
       } else {
         setError(res.message || "加载题目失败");
         setState("ANSWERING");
@@ -133,7 +147,11 @@ export default function AssessmentAnswerPage() {
           // If assessment is already done, redirect to report
         }));
         if (data?.done) {
-          router.replace(`/student/assessment/${token}/report`);
+          setPendingDone(true);
+          if (isReportReady(data)) {
+            setReportReady(true);
+            router.replace(`/student/assessment/${token}/report`);
+          }
         }
       }
     }).catch(() => {});
@@ -177,9 +195,8 @@ export default function AssessmentAnswerPage() {
         }));
       }
       if (res.data.done) {
-        // Per T-03-13: don't jump to DONE — show feedback first
+        // Assessment finished — show feedback first, then navigate to report
         setPendingDone(true);
-        setPendingFinalLevel(res.data.final_level ?? null);
         setState("FEEDBACK");
       } else {
         setState("FEEDBACK");
@@ -215,7 +232,6 @@ export default function AssessmentAnswerPage() {
           }));
           if (res.data.done) {
             setPendingDone(true);
-            setPendingFinalLevel(res.data.final_level ?? null);
           }
           setState("FEEDBACK");
           return;
@@ -241,7 +257,36 @@ export default function AssessmentAnswerPage() {
   }, [token]);
 
   const handleNext = () => loadNextQuestion();
-  const handleViewReport = () => router.push(`/student/assessment/${token}/report`);
+
+  // Poll progress until report is ready (done + final_level + evaluation)
+  useEffect(() => {
+    if (!pendingDone || reportReady) return;
+    const poll = async () => {
+      if (!mountedRef.current) return;
+      try {
+        const res = await getAssessmentProgress(token);
+        if (!mountedRef.current) return;
+        if (res.success && isReportReady(res.data)) {
+          setReportReady(true);
+          return;
+        }
+      } catch {
+        // Continue polling
+      }
+      if (mountedRef.current) {
+        reportPollTimerRef.current = setTimeout(poll, 2000);
+      }
+    };
+    reportPollTimerRef.current = setTimeout(poll, 1500);
+    return () => {
+      if (reportPollTimerRef.current) clearTimeout(reportPollTimerRef.current);
+    };
+  }, [pendingDone, reportReady, token]);
+
+  useEffect(() => {
+    if (!pendingDone || !reportReady || state !== "LOADING_QUESTION") return;
+    router.replace(`/student/assessment/${token}/report`);
+  }, [pendingDone, reportReady, state, token, router]);
 
   // Callback: question_ready SSE event → prefetch next question
   const handleQuestionReady = useCallback(async () => {
@@ -259,9 +304,11 @@ export default function AssessmentAnswerPage() {
           }));
         }
       } else if (res.data?.done) {
-        // Backend says assessment is done — set pendingDone instead of jumping to DONE
+        // Backend says assessment is done — set pendingDone
         setPendingDone(true);
-        setPendingFinalLevel(res.data.final_level ?? null);
+        if (isReportReady(res.data)) {
+          setReportReady(true);
+        }
       }
     } catch {
       // Prefetch failed — user will click and enter normal load flow
@@ -269,9 +316,8 @@ export default function AssessmentAnswerPage() {
   }, [token, state]);
 
   // Callback: assessment_done SSE event → set pendingDone (don't skip feedback)
-  const handleAssessmentDone = useCallback((finalLevel?: number) => {
+  const handleAssessmentDone = useCallback((_finalLevel?: number) => {
     setPendingDone(true);
-    setPendingFinalLevel(finalLevel ?? null);
     // If already in FEEDBACK, update the button to show "查看测评报告"
     // If in SCORING, the polling will eventually pick up latest_feedback and transition to FEEDBACK
   }, []);
@@ -280,11 +326,8 @@ export default function AssessmentAnswerPage() {
   const handleNextFromFeedback = useCallback(() => {
     // If assessment is done, navigate to report instead of next question
     if (pendingDone) {
-      setDoneData({ final_level: pendingFinalLevel ?? undefined });
-      setState("DONE");
-      setTimeout(() => {
-        router.replace(`/student/assessment/${token}/report`);
-      }, 500);
+      if (!reportReady) return;
+      router.replace(`/student/assessment/${token}/report`);
       return;
     }
 
@@ -300,21 +343,7 @@ export default function AssessmentAnswerPage() {
       // No prefetched question — fallback to normal load
       loadNextQuestion();
     }
-  }, [pendingDone, pendingFinalLevel, prefetchedQuestion, loadNextQuestion, token, router]);
-
-  if (state === "DONE") {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
-        <Trophy className="h-16 w-16 text-amber-500" />
-        <h1 className="text-2xl font-semibold">测评完成！</h1>
-        {doneData?.final_level && (
-          <Badge className="text-lg px-4 py-2">你的级别：Lv.{doneData.final_level}</Badge>
-        )}
-        <p className="text-muted-foreground">AI 正在为你生成综合评价报告...</p>
-        <Button onClick={handleViewReport} className="gap-2"><ArrowRight className="h-4 w-4" />查看测评报告</Button>
-      </div>
-    );
-  }
+  }, [pendingDone, reportReady, prefetchedQuestion, loadNextQuestion, token, router]);
 
   return (
     <div className="space-y-4 py-6">
@@ -334,12 +363,21 @@ export default function AssessmentAnswerPage() {
       {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
 
       {/* LOADING_QUESTION state */}
-      {state === "LOADING_QUESTION" && (
+      {state === "LOADING_QUESTION" && !pendingDone && (
         <Card>
           <CardContent className="space-y-4 py-8">
             <Skeleton className="h-6 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
             <Skeleton className="h-32 w-full" />
+          </CardContent>
+        </Card>
+      )}
+
+      {state === "LOADING_QUESTION" && pendingDone && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center gap-3 py-10 text-muted-foreground">
+            <div className="h-5 w-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <p>{reportReady ? "正在进入测评报告..." : "正在生成测评报告..."}</p>
           </CardContent>
         </Card>
       )}
@@ -406,7 +444,7 @@ export default function AssessmentAnswerPage() {
                     <p className="text-sm text-muted-foreground">{feedback.explanation}</p>
                   </div>
                 )}
-                {/* Per T-03-13: button label changes based on pendingDone */}
+                {/* Button: next question, or report navigation when assessment is done */}
                 {!pendingDone ? (
                   <Button
                     className="w-full gap-2"
@@ -430,8 +468,16 @@ export default function AssessmentAnswerPage() {
                     className="w-full gap-2"
                     size="lg"
                     onClick={handleNextFromFeedback}
+                    disabled={!reportReady}
                   >
-                    查看测评报告 <ArrowRight className="h-4 w-4" />
+                    {reportReady ? (
+                      <>查看测评报告 <ArrowRight className="h-4 w-4" /></>
+                    ) : (
+                      <>
+                        <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        正在生成测评报告...
+                      </>
+                    )}
                   </Button>
                 )}
               </div>
